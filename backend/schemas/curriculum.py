@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 
 class ProgramCreate(BaseModel):
@@ -10,6 +10,7 @@ class ProgramCreate(BaseModel):
     ched_cmo_reference: Optional[str] = None
     total_units: int
     description: Optional[str] = None
+    program_outcomes: list[str] = []
 
 
 class ProgramResponse(BaseModel):
@@ -19,6 +20,12 @@ class ProgramResponse(BaseModel):
     ched_cmo_reference: Optional[str]
     total_units: int
     description: Optional[str]
+    program_outcomes: list[str] = []
+
+    @field_validator("program_outcomes", mode="before")
+    @classmethod
+    def _none_to_list(cls, v):
+        return v or []
 
     model_config = {"from_attributes": True}
 

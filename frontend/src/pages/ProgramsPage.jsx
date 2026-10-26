@@ -13,7 +13,7 @@ function Toast({ message, type = "success", onClose }) {
   );
 }
 
-const EMPTY_FORM = { program_name: "", degree_type: "", ched_cmo_reference: "", total_units: "", description: "" };
+const EMPTY_FORM = { program_name: "", degree_type: "", ched_cmo_reference: "", total_units: "", description: "", outcomes_text: "" };
 
 export default function ProgramsPage() {
   const [programs, setPrograms] = useState([]);
@@ -39,12 +39,21 @@ export default function ProgramsPage() {
   useEffect(() => { fetchPrograms(); }, [fetchPrograms]);
 
   const openCreate = () => { setForm(EMPTY_FORM); setEditTarget(null); setShowModal(true); };
-  const openEdit = (p) => { setForm({ ...p, total_units: String(p.total_units) }); setEditTarget(p); setShowModal(true); };
+  const openEdit = (p) => {
+    setForm({ ...p, total_units: String(p.total_units), outcomes_text: (p.program_outcomes || []).join("\n") });
+    setEditTarget(p);
+    setShowModal(true);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
-    const payload = { ...form, total_units: parseInt(form.total_units, 10) };
+    const { outcomes_text, ...rest } = form;
+    const payload = {
+      ...rest,
+      total_units: parseInt(form.total_units, 10),
+      program_outcomes: (outcomes_text || "").split("\n").map(s => s.trim()).filter(Boolean),
+    };
     try {
       if (editTarget) {
         await api.put(`/programs/${editTarget.id}`, payload);
@@ -161,6 +170,15 @@ export default function ProgramsPage() {
                   <textarea rows={2} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
                     placeholder="Optional program description" />
+                </div>
+                <div>
+                  <label htmlFor="program-outcomes" className="block text-xs font-medium text-gray-600 mb-1">
+                    Program Outcomes <span className="text-gray-400 font-normal">(one per line; used to check syllabus alignment)</span>
+                  </label>
+                  <textarea id="program-outcomes" rows={4} value={form.outcomes_text}
+                    onChange={e => setForm(f => ({ ...f, outcomes_text: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder={"Apply knowledge of computing to solve problems\nDesign and evaluate computing solutions"} />
                 </div>
                 <div className="flex gap-2 justify-end pt-1">
                   <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">Cancel</button>

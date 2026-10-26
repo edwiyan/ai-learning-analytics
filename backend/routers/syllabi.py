@@ -296,6 +296,31 @@ def get_syllabus(
     return syllabus
 
 
+@router.get("/{syllabus_id}/alignment-check")
+def get_syllabus_alignment(
+    syllabus_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Advisory measurable-outcome and program-outcome alignment check (§3.11.2)."""
+    from backend.services.ai.syllabus_alignment import syllabus_alignment
+
+    syllabus = db.query(Syllabus).filter(Syllabus.id == syllabus_id).first()
+    if not syllabus:
+        raise HTTPException(status_code=404, detail="Syllabus not found")
+    course = db.query(Course).filter(Course.id == syllabus.course_id).first()
+    if current_user.role in (UserRole.program_director, UserRole.dean):
+        instructor = db.query(User).filter(User.id == course.instructor_id).first() if course else None
+        if current_user.college and (not instructor or instructor.college != current_user.college):
+            raise HTTPException(status_code=403, detail="Syllabus is outside your college")
+    elif current_user.role in (UserRole.instructor, UserRole.admin):
+        if course:
+            _assert_course_access(course, current_user)
+    elif current_user.role != UserRole.vp_academic_affairs:
+        raise HTTPException(status_code=403, detail="Not allowed")
+    return syllabus_alignment(syllabus, db)
+
+
 @router.get("/{syllabus_id}/approval-history", response_model=list[SyllabusApprovalResponse])
 def get_approval_history(
     syllabus_id: uuid.UUID,

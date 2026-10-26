@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, Text
+from sqlalchemy import Column, String, Integer, Text, JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy import DateTime
@@ -17,6 +17,8 @@ class Program(Base):
     ched_cmo_reference = Column(String, nullable=True)
     total_units = Column(Integer, nullable=False, default=0)
     description = Column(Text, nullable=True)
+    # Program outcomes (POs) used by the syllabus alignment check (capstone §3.11.2).
+    program_outcomes = Column(JSON, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     curricula = relationship("Curriculum", back_populates="program", cascade="all, delete-orphan")

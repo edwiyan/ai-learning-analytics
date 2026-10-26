@@ -38,6 +38,57 @@ const NEXT_STAGE_LABEL = {
   vp_academic_affairs: "Fully Approved",
 };
 
+// Advisory measurable-outcome and program-outcome check (capstone §3.11.2 Phase 1).
+function AlignmentCheck({ syllabusId }) {
+  const [data, setData] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    api.get(`/syllabi/${syllabusId}/alignment-check`)
+      .then(res => { if (!cancelled) setData(res.data); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [syllabusId]);
+
+  if (!data) return null;
+  const vague = data.measurability.filter(r => !r.measurable);
+  const pa = data.program_alignment;
+  return (
+    <section aria-labelledby={`align-${syllabusId}`} className="rounded-xl border border-gray-200 px-4 py-3 space-y-2">
+      <p id={`align-${syllabusId}`} className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+        Alignment check <span className="font-normal normal-case text-gray-400">(advisory)</span>
+      </p>
+      {vague.length === 0 ? (
+        <p className="text-xs text-emerald-700">All learning outcomes use measurable action verbs.</p>
+      ) : (
+        <ul className="space-y-0.5">
+          {vague.map(r => (
+            <li key={r.competency_code} className="text-xs text-amber-700">
+              <span className="font-semibold">{r.competency_code}:</span> {r.issues[0]}
+            </li>
+          ))}
+        </ul>
+      )}
+      {pa ? (
+        <div className="text-xs text-gray-600 space-y-0.5">
+          <p>
+            Program ({data.program_name}):{" "}
+            {pa.unaligned_clos.length === 0
+              ? <span className="text-emerald-700">every CLO supports at least one program outcome.</span>
+              : <span className="text-amber-700">{pa.unaligned_clos.join(", ")} support no program outcome.</span>}
+          </p>
+          {pa.uncovered_program_outcomes.length > 0 && (
+            <p className="text-gray-500">
+              Not covered by this course: {pa.uncovered_program_outcomes.map(code => `${code} (${pa.outcome_codes[code]})`).join("; ")}
+            </p>
+          )}
+        </div>
+      ) : (
+        data.alignment_status && <p className="text-xs text-gray-400">{data.alignment_status}</p>
+      )}
+    </section>
+  );
+}
+
 function SyllabusCard({ s, acting, onApprove, onReject, onHistory }) {
   const compCount = s.competencies?.length ?? 0;
   const courseSnippet = s.course_id ? s.course_id.slice(0, 8) + "…" : "—";
@@ -218,6 +269,7 @@ export default function SyllabusApprovalQueue() {
               </div>
 
               <div className="px-6 py-4 space-y-4">
+                <AlignmentCheck syllabusId={approveTarget.id} />
                 {/* Syllabus summary */}
                 <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm">
                   <div className="flex justify-between text-xs text-gray-500">
