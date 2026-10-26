@@ -1,6 +1,6 @@
 from typing import List
 from uuid import UUID
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from backend.models.prediction import RiskLevel
 
 
@@ -43,6 +43,13 @@ class RecommendationItem(BaseModel):
     competency_tags: list[str] = []
     relevance_score: float
     personalized_message: str | None = None
+    my_feedback: bool | None = None  # the student's own helpful / not-helpful rating
+
+
+class RecommendationFeedbackIn(BaseModel):
+    helpful: bool
+    comment: str | None = Field(default=None, max_length=500)
+    course_id: str | None = None
 
 
 class ResourceCreate(BaseModel):
@@ -58,6 +65,8 @@ class ResourceResponse(BaseModel):
     type: str
     url: str
     competency_tags: list[str] = []
+    helpful_count: int = 0
+    not_helpful_count: int = 0
     model_config = {"from_attributes": True}
 
 

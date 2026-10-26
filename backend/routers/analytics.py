@@ -1,5 +1,6 @@
 import csv
 import io
+import uuid
 from collections import defaultdict
 from datetime import timedelta
 from typing import Optional
@@ -15,11 +16,12 @@ from backend.models.user import User, UserRole
 from backend.models.course import Course
 from backend.models.prediction import RiskLevel
 from backend.models.resource import Resource
+from backend.models.recommendation_feedback import RecommendationFeedback
 from backend.models.score import StudentScore
 from backend.models.assessment import Assessment, AssessmentItem, GradingPeriod
 from backend.schemas.analytics import (
     RiskPredictionResponse, CourseRiskOverview,
-    RecommendationItem, ResourceCreate, ResourceResponse,
+    RecommendationItem, RecommendationFeedbackIn, ResourceCreate, ResourceResponse,
     CompetencyScoreItem, AdminStats, CollegeStats, PeriodTrendItem,
     StudentPerformanceItem, CompetencyDistributionItem, RiskTrendItem,
     EnrollmentTrendItem, SubjectPerformanceItem, AuditLogEntry, YieldDistribution,
@@ -188,7 +190,51 @@ def get_my_recommendations(
         return []
     sid_hash = hash_student_id(current_user.student_number)
     result = predict_risk(sid_hash, course_id, db)
-    return get_recommendations(result["weak_competency_ids"], course_id, db)
+    recs = get_recommendations(result["weak_competency_ids"], course_id, db)
+    if recs:
+        rated = {
+            str(f.resource_id): f.helpful
+            for f in db.query(RecommendationFeedback).filter(RecommendationFeedback.student_id_hash == sid_hash).all()
+        }
+        for r in recs:
+            r["my_feedback"] = rated.get(r["id"])
+    return recs
+
+
+@router.post("/me/recommendations/{resource_id}/feedback", status_code=200)
+def rate_recommendation(
+    resource_id: uuid.UUID,
+    payload: RecommendationFeedbackIn,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.student)),
+    _: None = Depends(require_consent),
+):
+    """Student rates a recommended resource as helpful or not (capstone §2.3 Feedback
+    Loop). Re-rating the same resource updates the earlier rating."""
+    if not current_user.student_number:
+        raise HTTPException(status_code=400, detail="Student number not set on this account")
+    if not db.query(Resource).filter(Resource.id == resource_id).first():
+        raise HTTPException(status_code=404, detail="Resource not found")
+    course_id = None
+    if payload.course_id:
+        try:
+            course_id = uuid.UUID(payload.course_id)
+        except ValueError:
+            raise HTTPException(status_code=422, detail="Invalid course_id")
+
+    sid_hash = hash_student_id(current_user.student_number)
+    fb = db.query(RecommendationFeedback).filter(
+        RecommendationFeedback.student_id_hash == sid_hash,
+        RecommendationFeedback.resource_id == resource_id,
+    ).first()
+    if fb is None:
+        fb = RecommendationFeedback(student_id_hash=sid_hash, resource_id=resource_id)
+        db.add(fb)
+    fb.helpful = payload.helpful
+    fb.comment = (payload.comment or "").strip() or None
+    fb.course_id = course_id
+    db.commit()
+    return {"resource_id": str(resource_id), "helpful": fb.helpful}
 
 
 # ── Instructor course analytics ───────────────────────────────────────────────
@@ -1106,7 +1152,22 @@ def get_student_profile(
 
 @router.get("/resources", response_model=list[ResourceResponse])
 def list_resources(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return db.query(Resource).all()
+    from sqlalchemy import case, func as sa_func
+    counts = {
+        str(rid): (helpful or 0, not_helpful or 0)
+        for rid, helpful, not_helpful in db.query(
+            RecommendationFeedback.resource_id,
+            sa_func.sum(case((RecommendationFeedback.helpful.is_(True), 1), else_=0)),
+            sa_func.sum(case((RecommendationFeedback.helpful.is_(False), 1), else_=0)),
+        ).group_by(RecommendationFeedback.resource_id).all()
+    }
+    results = []
+    for r in db.query(Resource).all():
+        helpful, not_helpful = counts.get(str(r.id), (0, 0))
+        item = ResourceResponse.model_validate(r)
+        item.helpful_count, item.not_helpful_count = int(helpful), int(not_helpful)
+        results.append(item)
+    return results
 
 
 @router.post("/resources", response_model=ResourceResponse, status_code=201)

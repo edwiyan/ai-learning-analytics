@@ -722,6 +722,15 @@ export default function ResourcesPage() {
                       {r.duration_minutes && (
                         <span className="text-xs text-gray-400">{r.duration_minutes} min</span>
                       )}
+                      {(r.helpful_count > 0 || r.not_helpful_count > 0) && (
+                        <span
+                          className="text-xs text-gray-500"
+                          title="Student ratings of this resource when it was recommended"
+                        >
+                          👍 {r.helpful_count} · 👎 {r.not_helpful_count}
+                          {" "}({Math.round(r.helpful_count / (r.helpful_count + r.not_helpful_count) * 100)}% helpful)
+                        </span>
+                      )}
                     </div>
 
                     {r.description && <p className="text-xs text-gray-500 mt-0.5 truncate">{r.description}</p>}

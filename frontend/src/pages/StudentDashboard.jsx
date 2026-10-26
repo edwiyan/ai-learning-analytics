@@ -12,6 +12,7 @@ import RiskBadge from "../components/RiskBadge";
 import StatCard from "../components/StatCard";
 import { useApi } from "../hooks/useApi";
 import { useAuth } from "../context/AuthContext";
+import api from "../services/api";
 
 ChartJS.register(
   CategoryScale, LinearScale, RadialLinearScale,
@@ -95,6 +96,16 @@ export default function StudentDashboard() {
     courseId ? `/analytics/me/recommendations?course_id=${courseId}` : null,
     [courseId],
   );
+  // Ratings given this session, layered over the saved my_feedback values.
+  const [recFeedback, setRecFeedback] = useState({});
+  const rateRec = async (resourceId, helpful) => {
+    setRecFeedback(prev => ({ ...prev, [resourceId]: helpful }));
+    try {
+      await api.post(`/analytics/me/recommendations/${resourceId}/feedback`, { helpful, course_id: courseId });
+    } catch {
+      setRecFeedback(prev => { const next = { ...prev }; delete next[resourceId]; return next; });
+    }
+  };
   const { data: trend, loading: loadingTrend } = useApi(
     courseId ? `/analytics/me/trend?course_id=${courseId}` : null,
     [courseId],
@@ -501,13 +512,20 @@ export default function StudentDashboard() {
                 </div>
               ) : recs?.length > 0 ? (
                 <div className="space-y-2">
-                  {recs.slice(0, 6).map(r => (
+                  {recs[0]?.personalized_message && (
+                    <p className="text-sm text-indigo-800 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2.5 leading-relaxed">
+                      {recs[0].personalized_message}
+                    </p>
+                  )}
+                  {recs.slice(0, 6).map(r => {
+                    const rating = r.id in recFeedback ? recFeedback[r.id] : r.my_feedback;
+                    return (
+                    <div key={r.id} className="flex items-center gap-2 rounded-lg border border-gray-100 hover:border-indigo-200 hover:bg-indigo-50/40 transition-colors">
                     <a
-                      key={r.id}
                       href={r.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:border-indigo-200 hover:bg-indigo-50/40 transition-colors group"
+                      className="flex flex-1 min-w-0 items-center gap-3 p-3 group"
                     >
                       <div className="shrink-0">
                         <ResourceTypeTag type={r.type} />
@@ -535,7 +553,26 @@ export default function StudentDashboard() {
                         </svg>
                       </div>
                     </a>
-                  ))}
+                    <div className="flex items-center gap-1 pr-2 shrink-0" role="group" aria-label={`Was "${r.title}" helpful?`}>
+                      {[[true, "👍", "Helpful"], [false, "👎", "Not helpful"]].map(([value, icon, label]) => (
+                        <button
+                          key={label}
+                          type="button"
+                          onClick={() => rateRec(r.id, value)}
+                          aria-pressed={rating === value}
+                          title={label}
+                          aria-label={label}
+                          className={`w-8 h-8 rounded-lg text-sm transition-colors ${
+                            rating === value ? "bg-indigo-100 ring-1 ring-indigo-300" : "hover:bg-gray-100 opacity-60 hover:opacity-100"
+                          }`}
+                        >
+                          {icon}
+                        </button>
+                      ))}
+                    </div>
+                    </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="text-sm text-gray-400 text-center py-6">

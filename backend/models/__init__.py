@@ -6,6 +6,7 @@ from backend.models.score import StudentScore
 from backend.models.prediction import RiskPrediction
 from backend.models.competency_mastery import CompetencyMastery
 from backend.models.resource import Resource, Recommendation
+from backend.models.recommendation_feedback import RecommendationFeedback
 from backend.models.audit import AuditLog
 from backend.models.instructor_intervention import InstructorIntervention
 from backend.models.program import Program
