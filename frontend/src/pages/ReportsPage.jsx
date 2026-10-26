@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Layout from "../components/Layout";
 import api from "../services/api";
+import { useThresholds } from "../hooks/useThresholds";
 
 const RISK = {
   "At-Risk": { bar: "bg-red-500", chip: "bg-red-50 text-red-700" },
@@ -77,6 +78,7 @@ function StudentTable({ rows, empty, needsIntervention = false }) {
 }
 
 export default function ReportsPage() {
+  const T = useThresholds();
   const [options, setOptions] = useState(null);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [report, setReport] = useState(null);
@@ -220,7 +222,7 @@ export default function ReportsPage() {
                       <li key={i} className="flex items-center gap-3 text-sm">
                         <span className="font-mono text-xs text-indigo-600 w-24 shrink-0">{g.code}</span>
                         <span className="flex-1 min-w-0 truncate text-gray-700">{g.topic} <span className="text-xs text-gray-400">· {g.course}</span></span>
-                        <span className="text-xs text-gray-500 shrink-0">{g.below}/{g.students} below 75%</span>
+                        <span className="text-xs text-gray-500 shrink-0">{g.below}/{g.students} below {T.mastery_threshold}%</span>
                         <span className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden shrink-0"><span className="block h-full bg-red-400" style={{ width: `${g.below_pct}%` }} /></span>
                       </li>
                     ))}

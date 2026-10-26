@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import Layout from "../components/Layout";
 import Pagination from "../components/Pagination";
 import { useApi } from "../hooks/useApi";
+import { useThresholds } from "../hooks/useThresholds";
 
 const PAGE_SIZE = 10;
 
 function MasteryBar({ score, isWeak }) {
+  const T = useThresholds();
   return (
     <div className="flex items-center gap-2">
       <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
@@ -15,7 +17,7 @@ function MasteryBar({ score, isWeak }) {
         />
       </div>
       <span className={`text-xs font-semibold w-10 text-right ${
-        isWeak ? "text-red-600" : score >= 85 ? "text-blue-600" : "text-green-600"
+        isWeak ? "text-red-600" : score >= T.proficient_threshold ? "text-blue-600" : "text-green-600"
       }`}>
         {score.toFixed(1)}%
       </span>
@@ -127,6 +129,7 @@ function CourseSection({ course }) {
 }
 
 export default function StudentCompetenciesPage() {
+  const T = useThresholds();
   const { data: courses, loading } = useApi("/analytics/me/courses");
   const [filter, setFilter] = useState("all");
 
@@ -199,11 +202,11 @@ export default function StudentCompetenciesPage() {
             <div className="flex flex-wrap items-center gap-4 text-xs text-gray-400 pb-2">
               <span className="flex items-center gap-1.5">
                 <span className="w-3 h-1.5 rounded bg-red-400 inline-block" />
-                Weak (below 75%)
+                Weak (below {T.mastery_threshold}%)
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-3 h-1.5 rounded bg-indigo-500 inline-block" />
-                Passing (75%+)
+                Passing ({T.mastery_threshold}%+)
               </span>
               <span className="ml-auto">Sorted weakest first per course</span>
             </div>

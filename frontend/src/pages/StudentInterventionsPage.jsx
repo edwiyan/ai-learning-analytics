@@ -3,6 +3,7 @@ import Layout from "../components/Layout";
 import RiskBadge from "../components/RiskBadge";
 import { useApi } from "../hooks/useApi";
 import api from "../services/api";
+import { useThresholds } from "../hooks/useThresholds";
 
 const INTERVENTION_TYPE_CONFIG = {
   academic_counseling:        { label: "Academic Counseling",         bg: "bg-blue-100",   text: "text-blue-700" },
@@ -148,6 +149,7 @@ function InterventionCard({ iv }) {
 }
 
 function CourseIntervention({ course }) {
+  const T = useThresholds();
   const cid = course.id;
   const { data: risk }          = useApi(`/analytics/me/risk?course_id=${cid}`, [cid]);
   const { data: scores }        = useApi(`/analytics/me/competency-scores?course_id=${cid}`, [cid]);
@@ -231,7 +233,7 @@ function CourseIntervention({ course }) {
             </p>
             <div className="space-y-2">
               {weakAreas.map((s, i) => {
-                const gap = 75 - s.average_score;
+                const gap = T.mastery_threshold - s.average_score;
                 return (
                   <div key={s.competency_code} className="flex items-center gap-3 bg-red-50 border border-red-100 rounded-lg px-4 py-3">
                     <span className="w-5 h-5 rounded-full bg-red-200 text-red-700 text-xs font-bold flex items-center justify-center shrink-0">

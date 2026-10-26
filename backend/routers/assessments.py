@@ -26,7 +26,7 @@ from backend.services.assessment.alignment import alignment_hints
 from backend.services.assessment.csv_parser import parse_assessment_csv
 from backend.services.ai.topic_mapper import map_question_to_competency
 from backend.services.analytics_refresh import refresh_course_analytics
-from backend.core.config import settings
+from backend.services.institution_settings import get_settings
 from backend.core.limiter import limiter
 
 router = APIRouter(prefix="/assessments", tags=["assessments"])
@@ -116,6 +116,7 @@ def _map_unmapped_items(assessment_id: str, db: Session):
         for c in competencies
     ]
     comp_map = {c.competency_code: c for c in competencies}
+    thresholds = get_settings(db)
 
     # LLM calls run concurrently so a whole CSV maps within the capstone's
     # "< 5 s per mapping batch" target; DB writes stay on this thread.
@@ -137,7 +138,9 @@ def _map_unmapped_items(assessment_id: str, db: Session):
             code = result.get("competency_code")
             score = result.get("confidence_score", 0.0)
             item.confidence_score = score
-            item.needs_review = score < settings.topic_mapping_confidence_threshold
+            # Confidence only prioritizes review. With auto-accept off (pilot default) every
+            # AI mapping is provisional until a faculty member confirms it (panel comment 1).
+            item.needs_review = (not thresholds.mapping_auto_accept) or score < thresholds.mapping_review_threshold
             item.bloom_level = result.get("bloom_level")
             item.ai_confidence = score
             item.ai_mapped_at = datetime.now(timezone.utc)
@@ -808,3 +811,36 @@ def revert_item(
                })
     background_tasks.add_task(refresh_course_analytics, item.assessment.course_id, db)
     return {"status": "reverted"}
+
+
+@router.put("/{assessment_id}/confirm-confident")
+def confirm_confident_mappings(
+    assessment_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.instructor, UserRole.admin)),
+):
+    """Faculty confirm, in one action, every pending AI mapping of this assessment whose
+    self-reported confidence is at or above the review threshold. The confirmation is
+    recorded per item (validated_by) and audit-logged; low-confidence items stay queued."""
+    assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
+    if not assessment:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+    course = db.query(Course).filter(Course.id == assessment.course_id).first()
+    _assert_course_access(course, current_user)
+    threshold = get_settings(db).mapping_review_threshold
+    items = db.query(AssessmentItem).filter(
+        AssessmentItem.assessment_id == assessment_id,
+        AssessmentItem.needs_review == True,  # noqa: E712
+        AssessmentItem.validated_by.is_(None),
+        AssessmentItem.mapped_competency_id.isnot(None),
+        AssessmentItem.ai_suggested_competency_id.isnot(None),
+        AssessmentItem.ai_confidence >= threshold,
+    ).all()
+    for item in items:
+        item.needs_review = False
+        item.validated_by = current_user.id
+    db.commit()
+    log_action(db, str(current_user.id), "mapping_bulk_confirm", target_table="assessments",
+               target_id=str(assessment_id), extra={"confirmed": len(items), "threshold": threshold,
+                                                    "item_ids": [str(i.id) for i in items][:500]})
+    return {"confirmed": len(items), "threshold": threshold}

@@ -25,11 +25,10 @@ from backend.models.syllabus import Competency, Syllabus
 from backend.models.user import User, UserRole
 from backend.services.ai.feature_engineering import get_all_students_in_course
 from backend.services.ai.risk_predictor import predict_risk
+from backend.services.institution_settings import get_settings, last_updated
 
 INSTITUTION = "Dalubhasaang Politekniko ng Lungsod ng Baliwag (BTECH)"
 LEVELS = [RiskLevel.at_risk.value, RiskLevel.on_track.value, RiskLevel.excelling.value]
-MASTERY_THRESHOLD = 75.0
-GRADE_DECLINE_THRESHOLD = 15.0
 YEAR_LABELS = {1: "1st Year", 2: "2nd Year", 3: "3rd Year", 4: "4th Year", 5: "5th Year"}
 ROLE_LABELS = {
     UserRole.admin: "Administrator", UserRole.vp_academic_affairs: "VP for Academic Affairs",
@@ -101,6 +100,7 @@ def _student_context(db: Session) -> tuple[dict, dict]:
 
 
 def build_report(db: Session, user: User, filters: ReportFilters) -> dict:
+    thresholds = get_settings(db)
     courses = scoped_courses(db, user)
     names = {str(c.id): f"{c.code} — {c.title}" for c in courses}
     names.update({str(c.id): c.name for c in db.query(Curriculum).all()})
@@ -138,7 +138,7 @@ def build_report(db: Session, user: User, filters: ReportFilters) -> dict:
             level = getattr(result["risk_level"], "value", str(result["risk_level"]))
             comp_avgs = (features or {}).get("competency_avgs") or {}
             weak = sorted(((comps[str(cid)].topic_name, pct) for cid, pct in comp_avgs.items()
-                           if str(cid) in comps and pct < MASTERY_THRESHOLD), key=lambda x: x[1])
+                           if str(cid) in comps and pct < thresholds.mastery_threshold), key=lambda x: x[1])
             for cid, pct in comp_avgs.items():
                 if str(cid) in comps:
                     comp_scores[str(cid)].append(pct)
@@ -203,7 +203,9 @@ def build_report(db: Session, user: User, filters: ReportFilters) -> dict:
             "Section": _group(rows, "section"),
             "Course": _group(rows, "course_id", label=lambda r: f"{r['course']} — {r['course_title']} ({r['instructor']})"),
         },
-        "competency_gaps": _competency_gaps(comp_scores, comp_meta, kept_courses),
+        "competency_gaps": _competency_gaps(comp_scores, comp_meta, kept_courses, thresholds.mastery_threshold),
+        "thresholds": thresholds,
+        "thresholds_updated_at": last_updated(db)[0],
         "interventions": _intervention_summary(rows),
     }
 
@@ -245,13 +247,13 @@ def _group(rows, key, label=None):
     return sorted(out, key=lambda x: (-x["at_risk_pct"], x["group"]))
 
 
-def _competency_gaps(comp_scores, comp_meta, kept_courses):
+def _competency_gaps(comp_scores, comp_meta, kept_courses, mastery_threshold):
     out = []
     for cid, scores in comp_scores.items():
         course, comp = comp_meta[cid]
         if str(course.id) not in kept_courses or not scores:
             continue
-        below = sum(1 for s in scores if s < MASTERY_THRESHOLD)
+        below = sum(1 for s in scores if s < mastery_threshold)
         out.append({
             "course": course.code,
             "code": comp.competency_code,

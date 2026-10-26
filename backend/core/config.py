@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     # (use a paid Gemini account so its data terms match OpenAI's API terms).
     gemini_enabled: bool = False
     gemini_model: str = "gemini-2.5-flash"
+    # Superseded by the "mapping_review_threshold" institution setting; kept so old .env files load.
     topic_mapping_confidence_threshold: float = 0.75
     # Secret salt for student-ID hashing: SHA-256(Student_ID + Salt), capstone §3.9.1.
     # Changing it after data exists breaks the link between users and their scores.

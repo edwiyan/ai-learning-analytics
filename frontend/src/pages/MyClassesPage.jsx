@@ -4,6 +4,7 @@ import Layout from "../components/Layout";
 import RiskBadge from "../components/RiskBadge";
 import { useApi } from "../hooks/useApi";
 import api from "../services/api";
+import { useThresholds } from "../hooks/useThresholds";
 
 const RISK_ORDER = { "At-Risk": 0, "On-Track": 1, "Excelling": 2 };
 const PAGE_SIZE = 10;
@@ -138,13 +139,14 @@ function AtRiskAlertStrip({ students, onDismiss }) {
 // ─── CompetencyChart ─────────────────────────────────────────────────────────
 
 function CompetencyChart({ courseId, onFilterByCompetency, activeCompetency }) {
+  const T = useThresholds();
   const { data: distribution } = useApi(
     courseId ? `/analytics/courses/${courseId}/competency-distribution` : null,
     [courseId]
   );
   if (!distribution?.length) return null;
 
-  const weakCount = distribution.filter(d => d.class_avg < 75).length;
+  const weakCount = distribution.filter(d => d.class_avg < T.mastery_threshold).length;
   const overallAvg = distribution.reduce((s, d) => s + d.class_avg, 0) / distribution.length;
   const sorted = [...distribution].sort((a, b) => a.class_avg - b.class_avg);
 
@@ -161,7 +163,7 @@ function CompetencyChart({ courseId, onFilterByCompetency, activeCompetency }) {
             {weakCount > 0 && (
               <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-red-50 text-red-600 border border-red-100 px-2.5 py-1 rounded-full">
                 <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block" />
-                {weakCount} below 75%
+                {weakCount} below {T.mastery_threshold}%
               </span>
             )}
             <span className="text-xs font-medium bg-gray-50 text-gray-600 border border-gray-200 px-2.5 py-1 rounded-full">
@@ -183,7 +185,7 @@ function CompetencyChart({ courseId, onFilterByCompetency, activeCompetency }) {
       {/* Detailed competency breakdown */}
       <div className="border-t border-gray-100 divide-y divide-gray-50">
         {sorted.map(d => {
-          const isWeak = d.class_avg < 75;
+          const isWeak = d.class_avg < T.mastery_threshold;
           const isActive = activeCompetency === d.topic_name;
           const passRate = Math.round(((d.total_students - d.below_passing_count) / d.total_students) * 100);
           return (
@@ -249,6 +251,7 @@ function CompetencyChart({ courseId, onFilterByCompetency, activeCompetency }) {
 // ─── StudentProfileDrawer ─────────────────────────────────────────────────────
 
 function StudentProfileDrawer({ student, courseId, onClose }) {
+  const T = useThresholds();
   const { data: profile, loading } = useApi(
     student && courseId
       ? `/analytics/courses/${courseId}/students/${student.student_id_hash}/profile`
@@ -295,7 +298,7 @@ function StudentProfileDrawer({ student, courseId, onClose }) {
                 <p className={`text-xl font-bold ${
                   profile.avg_score === null ? "text-gray-300"
                   : profile.avg_score >= 90 ? "text-blue-600"
-                  : profile.avg_score >= 75 ? "text-green-600"
+                  : profile.avg_score >= T.mastery_threshold ? "text-green-600"
                   : "text-red-600"
                 }`}>
                   {profile.avg_score !== null ? `${profile.avg_score}%` : "—"}
@@ -333,7 +336,7 @@ function StudentProfileDrawer({ student, courseId, onClose }) {
                       <div className="flex flex-col items-center justify-end h-16 mb-1">
                         {pt.score !== null ? (
                           <div
-                            className={`w-full rounded-t-sm transition-all ${pt.score >= 75 ? "bg-indigo-400" : "bg-red-400"}`}
+                            className={`w-full rounded-t-sm transition-all ${pt.score >= T.mastery_threshold ? "bg-indigo-400" : "bg-red-400"}`}
                             style={{ height: `${Math.max(pt.score, 4)}%` }}
                           />
                         ) : (
@@ -341,7 +344,7 @@ function StudentProfileDrawer({ student, courseId, onClose }) {
                         )}
                       </div>
                       <p className="text-xs text-gray-500 truncate">{pt.period.replace("Semi-Final", "Semi")}</p>
-                      <p className={`text-xs font-semibold ${pt.score !== null ? (pt.score >= 75 ? "text-indigo-600" : "text-red-600") : "text-gray-300"}`}>
+                      <p className={`text-xs font-semibold ${pt.score !== null ? (pt.score >= T.mastery_threshold ? "text-indigo-600" : "text-red-600") : "text-gray-300"}`}>
                         {pt.score !== null ? `${pt.score}%` : "—"}
                       </p>
                     </div>
@@ -843,6 +846,7 @@ function AttendanceSection({ courseId }) {
 // ─── ClassDetail ─────────────────────────────────────────────────────────────
 
 function ClassDetail({ course }) {
+  const T = useThresholds();
   const { data: overview, loading: overviewLoading } = useApi(
     `/analytics/courses/${course.id}/overview`, [course.id]
   );
@@ -1218,8 +1222,8 @@ function ClassDetail({ course }) {
                       <td className="px-5 py-3 text-right">
                         {s.avg_score !== null && s.avg_score !== undefined ? (
                           <span className={`font-semibold ${
-                            s.avg_score >= 85 ? "text-blue-600" :
-                            s.avg_score >= 75 ? "text-green-600" :
+                            s.avg_score >= T.excelling_avg ? "text-blue-600" :
+                            s.avg_score >= T.mastery_threshold ? "text-green-600" :
                             "text-red-600"
                           }`}>
                             {s.avg_score}%

@@ -12,6 +12,7 @@ import RiskBadge from "../components/RiskBadge";
 import StatCard from "../components/StatCard";
 import { useApi } from "../hooks/useApi";
 import { useAuth } from "../context/AuthContext";
+import { useThresholds } from "../hooks/useThresholds";
 
 const PAGE_SIZE = 10;
 
@@ -64,10 +65,11 @@ function SectionCard({ title, badge, action, children, className = "" }) {
 }
 
 function StudentRow({ student }) {
+  const T = useThresholds();
   const gradeColor =
     student.avg_score === null ? "text-gray-400"
     : student.avg_score >= 90 ? "text-blue-600"
-    : student.avg_score >= 75 ? "text-green-600"
+    : student.avg_score >= T.mastery_threshold ? "text-green-600"
     : "text-red-600";
 
   return (
@@ -170,6 +172,7 @@ function StudentSearchBar({ value, onChange }) {
 // ── Instructor view ───────────────────────────────────────────────────────────
 
 function InstructorAnalytics() {
+  const T = useThresholds();
   const { data: courses, loading } = useApi("/courses/");
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [page, setPage] = useState(1);
@@ -272,8 +275,8 @@ function InstructorAnalytics() {
           {/* Overview stat cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <StatCard label="Total Students" value={overview.total_students} color="indigo" />
-            <StatCard label="At-Risk"   value={overview.at_risk}   color="red"   sub="below 75% overall" />
-            <StatCard label="On-Track"  value={overview.on_track}  color="green" sub="75–89%" />
+            <StatCard label="At-Risk"   value={overview.at_risk}   color="red"   sub={`${T.at_risk_min_gaps}+ gaps or >${T.grade_decline_pct}% decline`} />
+            <StatCard label="On-Track"  value={overview.on_track}  color="green" sub="neither At-Risk nor Excelling" />
             <StatCard label="Excelling" value={overview.excelling} color="blue"  sub="90%+" />
           </div>
 
@@ -357,7 +360,7 @@ function InstructorAnalytics() {
                     />
                   </div>
                   <p className="text-xs text-gray-400 mt-2">
-                    At-Risk: 3+ learning gaps or &gt;15% grade decline · Excelling: ≥85% mastery, no gaps · On-Track: otherwise
+                    At-Risk: {T.at_risk_min_gaps}+ learning gaps (below {T.mastery_threshold}%) or &gt;{T.grade_decline_pct}% grade decline · Excelling: ≥{T.excelling_avg}% average, no gaps · On-Track: otherwise
                   </p>
                 </>
               ) : (
@@ -589,6 +592,7 @@ function KpiCard({ label, value, sub, colorClass }) {
 // ── Admin view ────────────────────────────────────────────────────────────────
 
 function AdminAnalytics() {
+  const T = useThresholds();
   const { data: trends,   loading: loadingTrends }   = useApi("/analytics/admin/enrollment-trends");
   const { data: yield_,   loading: loadingYield }    = useApi("/analytics/admin/yield-distribution");
   const { data: subjects, loading: loadingSubjects } = useApi("/analytics/admin/subject-performance");
@@ -602,7 +606,7 @@ function AdminAnalytics() {
   const prevTrend = trends?.[trends.length - 2];
 
   const masteryGap = lastTrend?.avg_score != null
-    ? parseFloat((lastTrend.avg_score - 75).toFixed(1))
+    ? parseFloat((lastTrend.avg_score - T.mastery_threshold).toFixed(1))
     : null;
 
   const enrollmentChange = (lastTrend && prevTrend)
@@ -658,8 +662,8 @@ function AdminAnalytics() {
         fill: { target: 1, above: "rgba(99,102,241,0.12)", below: "rgba(239,68,68,0.12)" },
       },
       {
-        label: "Target (75%)",
-        data: trends.map(() => 75),
+        label: `Target (${T.mastery_threshold}%)`,
+        data: trends.map(() => T.mastery_threshold),
         borderColor: "rgba(156,163,175,0.7)",
         backgroundColor: "transparent",
         borderWidth: 1.5,
@@ -671,7 +675,7 @@ function AdminAnalytics() {
   } : null;
 
   const yieldChartData = yield_?.total > 0 ? {
-    labels: ["Proficient (≥85%)", "Developing (75–84%)", "Emerging (<75%)"],
+    labels: [`Proficient (≥${T.proficient_threshold}%)`, `Developing (${T.mastery_threshold}–${T.proficient_threshold}%)`, `Emerging (<${T.mastery_threshold}%)`],
     datasets: [{
       data: [yield_.proficient, yield_.developing, yield_.emerging],
       backgroundColor: ["#22c55e", "#f59e0b", "#ef4444"],
@@ -684,12 +688,12 @@ function AdminAnalytics() {
   // ── Contextual insights ───────────────────────────────────────────────────────
   const masteryInsight = masteryGap != null
     ? masteryGap >= 0
-      ? `Currently ${masteryGap}% above the 75% target`
-      : `Currently ${Math.abs(masteryGap)}% below the 75% target — intervention recommended`
+      ? `Currently ${masteryGap}% above the ${T.mastery_threshold}% target`
+      : `Currently ${Math.abs(masteryGap)}% below the ${T.mastery_threshold}% target — intervention recommended`
     : null;
 
   const yieldInsight = (yield_?.total > 0 && atRiskCount != null)
-    ? `${atRiskCount} of ${yield_.total} students (${Math.round(atRiskCount / yield_.total * 100)}%) in the Emerging band (below the 75% passing threshold)`
+    ? `${atRiskCount} of ${yield_.total} students (${Math.round(atRiskCount / yield_.total * 100)}%) in the Emerging band (below the ${T.mastery_threshold}% passing threshold)`
     : null;
 
   return (
@@ -704,13 +708,13 @@ function AdminAnalytics() {
             <KpiCard
               label="At-Risk Students"
               value={atRiskCount}
-              sub="Emerging (<75%)"
+              sub={`Emerging (<${T.mastery_threshold}%)`}
               colorClass="bg-red-50 border-red-200 text-red-700"
             />
             <KpiCard
               label="Mastery vs Target"
               value={masteryGap != null ? `${masteryGap >= 0 ? "+" : ""}${masteryGap}%` : null}
-              sub="vs 75% benchmark"
+              sub={`vs ${T.mastery_threshold}% benchmark`}
               colorClass={masteryGap != null && masteryGap < 0
                 ? "bg-amber-50 border-amber-200 text-amber-700"
                 : "bg-indigo-50 border-indigo-200 text-indigo-700"
@@ -801,9 +805,9 @@ function AdminAnalytics() {
               </div>
               <div className="mt-4 space-y-2">
                 {[
-                  { label: "Proficient (≥85%)",   value: yield_.proficient, color: "bg-green-500" },
-                  { label: "Developing (75–84%)", value: yield_.developing, color: "bg-amber-500" },
-                  { label: "Emerging (<75%)",     value: yield_.emerging,   color: "bg-red-500"   },
+                  { label: `Proficient (≥${T.proficient_threshold}%)`,   value: yield_.proficient, color: "bg-green-500" },
+                  { label: `Developing (${T.mastery_threshold}–${T.proficient_threshold}%)`, value: yield_.developing, color: "bg-amber-500" },
+                  { label: `Emerging (<${T.mastery_threshold}%)`,     value: yield_.emerging,   color: "bg-red-500"   },
                 ].map(({ label, value, color }) => (
                   <div key={label} className="flex items-center gap-2">
                     <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${color}`} />
@@ -843,8 +847,8 @@ function AdminAnalytics() {
                   ? Array.from({ length: 5 }).map((_, i) => <TableRowSkeleton key={i} />)
                   : [...subjects].sort((a, b) => (b.avg_score || 0) - (a.avg_score || 0)).map(s => {
                   const scoreColor =
-                    (s.avg_score || 0) >= 85 ? "bg-blue-100 text-blue-700"
-                    : (s.avg_score || 0) >= 75 ? "bg-green-100 text-green-700"
+                    (s.avg_score || 0) >= T.proficient_threshold ? "bg-blue-100 text-blue-700"
+                    : (s.avg_score || 0) >= T.mastery_threshold ? "bg-green-100 text-green-700"
                     : (s.avg_score || 0) >= 60 ? "bg-amber-100 text-amber-700"
                     : "bg-red-100 text-red-700";
                   const failColor =
@@ -876,7 +880,7 @@ function AdminAnalytics() {
           </div>
           {!loadingSubjects && (
           <p className="text-xs text-gray-400 mt-3">
-            Color key: <span className="text-green-600">≥85% proficient</span> · <span className="text-amber-600">75–84% developing</span> · <span className="text-red-600">&lt;75% emerging</span>
+            Color key: <span className="text-green-600">≥{T.proficient_threshold}% proficient</span> · <span className="text-amber-600">{T.mastery_threshold}–{T.proficient_threshold}% developing</span> · <span className="text-red-600">&lt;{T.mastery_threshold}% emerging</span>
           </p>
           )}
         </SectionCard>
@@ -902,7 +906,7 @@ function AdminAnalytics() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5 pt-4 border-t border-gray-100">
           {[
-            { label: "Topic Classification Logic", desc: "GPT-4o-mini receives question text and syllabus topics, returns the best-matching topic with a confidence score. Items below the 0.75 confidence threshold are flagged for instructor review." },
+            { label: "Topic Classification Logic", desc: `GPT-4o-mini receives question text and syllabus topics and returns the best-matching topic with a self-reported confidence score. Confidence only orders the review queue: ${T.mapping_auto_accept ? "items" : "every mapping is confirmed by faculty; items"} below ${Math.round(T.mapping_review_threshold * 100)}% are reviewed first.` },
             { label: "Risk Classification Rules",      desc: "Rule-Based Engine applies deterministic thresholds on competency mastery and period-over-period grade decline. Outputs At-Risk · On-Track · Excelling." },
             { label: "Recommendation Engine",      desc: "Tag-Match Recommender queries resources whose competency tags overlap with the student's weak competency codes and topic names, ranked by match count." },
           ].map(item => (

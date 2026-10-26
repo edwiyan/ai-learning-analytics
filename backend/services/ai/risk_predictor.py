@@ -2,14 +2,16 @@ from sqlalchemy.orm import Session
 
 from backend.models.prediction import RiskLevel
 from backend.services.ai.feature_engineering import build_student_features, get_all_students_in_course
+from backend.services.institution_settings import DEFAULTS, get_settings
 
 
-def _rule_based_risk(features: dict) -> RiskLevel:
+def _rule_based_risk(features: dict, settings=DEFAULTS) -> RiskLevel:
     """Deterministic risk classification aligned with the capstone Table 3 criteria.
 
     At-Risk is triggered when a student has 3 or more learning gaps (competencies
     below the 75% passing threshold) OR a grade decline greater than 15% between the
-    two most recent grading periods. Behavioral signals (attendance, submission
+    two most recent grading periods. These are the defaults; the values in force are
+    institution settings (services/institution_settings.py). Behavioral signals (attendance, submission
     timeliness) are intentionally excluded from the flag per Delimitation #2 — they
     remain available as descriptive features but do not drive academic risk.
     """
@@ -18,15 +20,15 @@ def _rule_based_risk(features: dict) -> RiskLevel:
     grade_decline_pct = features.get("grade_decline_pct", 0.0)
 
     # At-Risk: (learning_gap_count >= 3) OR (grade_decline > 15%)
-    if learning_gap_count >= 3 or grade_decline_pct > 15.0:
+    if learning_gap_count >= settings.at_risk_min_gaps or grade_decline_pct > settings.grade_decline_pct:
         return RiskLevel.at_risk
     # Excelling: strong overall mastery with no learning gaps
-    if avg >= 85 and learning_gap_count == 0:
+    if avg >= settings.excelling_avg and learning_gap_count == 0:
         return RiskLevel.excelling
     return RiskLevel.on_track
 
 
-def explain_risk(features: dict | None, risk_level) -> str:
+def explain_risk(features: dict | None, risk_level, settings=DEFAULTS) -> str:
     """Plain-language reason for a rule-based classification (which rule fired)."""
     level = getattr(risk_level, "value", risk_level)
     if not features:
@@ -35,9 +37,9 @@ def explain_risk(features: dict | None, risk_level) -> str:
     decline = features.get("grade_decline_pct", 0.0) or 0.0
     if level == RiskLevel.at_risk.value:
         parts = []
-        if gaps >= 3:
-            parts.append(f"{gaps} competencies below 75%")
-        if decline > 15.0:
+        if gaps >= settings.at_risk_min_gaps:
+            parts.append(f"{gaps} competencies below {settings.mastery_threshold:g}%")
+        if decline > settings.grade_decline_pct:
             parts.append(f"{decline:.1f}% grade decline")
         return "; ".join(parts)
     if level == RiskLevel.excelling.value:
@@ -56,12 +58,13 @@ def predict_risk(student_id_hash: str, course_id: str, db: Session) -> dict:
         return {"risk_level": RiskLevel.on_track, "confidence": None, "weak_competency_ids": [],
                 "reason": explain_risk(None, RiskLevel.on_track)}
 
-    risk_level = _rule_based_risk(features)
+    settings = get_settings(db)
+    risk_level = _rule_based_risk(features, settings)
 
     return {
         "risk_level": risk_level,
         "confidence": None,
         "weak_competency_ids": features["weak_competency_ids"],
-        "reason": explain_risk(features, risk_level),
+        "reason": explain_risk(features, risk_level, settings),
         "features": features,
     }

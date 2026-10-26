@@ -4,6 +4,7 @@ import Layout from "../components/Layout";
 import RiskBadge from "../components/RiskBadge";
 import { useApi } from "../hooks/useApi";
 import api from "../services/api";
+import { useThresholds } from "../hooks/useThresholds";
 
 const INTERVENTION_TYPES = [
   { value: "academic_counseling",       label: "Academic Counseling" },
@@ -19,9 +20,10 @@ const INTERVENTION_TYPES = [
 const PAGE_SIZE = 10;
 
 function ScorePill({ score }) {
+  const T = useThresholds();
   if (score === null) return <span className="text-gray-300">—</span>;
   const color =
-    score >= 75 ? "text-green-600" : score >= 60 ? "text-amber-600" : "text-red-600";
+    score >= T.mastery_threshold ? "text-green-600" : score >= 60 ? "text-amber-600" : "text-red-600";
   return <span className={`font-semibold ${color}`}>{score}%</span>;
 }
 
@@ -31,6 +33,7 @@ function FlagReason({ reason }) {
 }
 
 export default function InterventionAlertsPage() {
+  const T = useThresholds();
   const { data: alerts, loading, error } = useApi("/analytics/instructor/at-risk-students");
   const [courseFilter, setCourseFilter] = useState("All");
   const [reviewed, setReviewed] = useState(new Set());
@@ -411,7 +414,7 @@ export default function InterventionAlertsPage() {
               </svg>
               <p className="text-xs text-amber-700">
                 Risk classification uses a rule-based engine with deterministic thresholds on competency mastery across grading periods.
-                Students are flagged At-Risk when 3 or more competencies fall below the 75% passing threshold (learning gaps) or their average declines by more than 15% between grading periods.
+                Students are flagged At-Risk when {T.at_risk_min_gaps} or more competencies fall below the {T.mastery_threshold}% passing threshold (learning gaps) or their average declines by more than {T.grade_decline_pct}% between grading periods. These thresholds are set by the institution.
               </p>
             </div>
           </>

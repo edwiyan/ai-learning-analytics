@@ -9,6 +9,7 @@ import Layout from "../components/Layout";
 import RiskBadge from "../components/RiskBadge";
 import { useApi } from "../hooks/useApi";
 import { useAuth } from "../context/AuthContext";
+import { useThresholds } from "../hooks/useThresholds";
 
 ChartJS.register(
   CategoryScale, LinearScale, RadialLinearScale,
@@ -49,6 +50,7 @@ function EmptyState() {
 const PAGE_SIZE = 10;
 
 function CourseDetail({ course }) {
+  const T = useThresholds();
   const cid = course.id;
   const { data: risk }   = useApi(`/analytics/me/risk?course_id=${cid}`, [cid]);
   const { data: scores } = useApi(`/analytics/me/competency-scores?course_id=${cid}`, [cid]);
@@ -94,8 +96,8 @@ function CourseDetail({ course }) {
         pointRadius: 4,
       },
       {
-        label: "Passing (75%)",
-        data: scores.map(() => 75),
+        label: `Passing (${T.mastery_threshold}%)`,
+        data: scores.map(() => T.mastery_threshold),
         backgroundColor: "transparent",
         borderColor: "rgba(156,163,175,0.5)",
         borderWidth: 1.5,
@@ -151,7 +153,7 @@ function CourseDetail({ course }) {
         <StatCard
           label="Weak Areas"
           value={weakCount > 0 ? weakCount : "None"}
-          sub={weakCount > 0 ? "competencies below 75%" : "all competencies passing"}
+          sub={weakCount > 0 ? `competencies below ${T.mastery_threshold}%` : "all competencies passing"}
           accent={weakCount > 0 ? "border-red-200 bg-red-50" : "border-green-200 bg-green-50"}
         />
       </div>

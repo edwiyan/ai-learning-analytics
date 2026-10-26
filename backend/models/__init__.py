@@ -26,3 +26,4 @@ from backend.models.notification import Notification
 from backend.models.grade_submission import GradeSubmission, GradeSubmissionApproval
 from backend.models.exam_question import ExamQuestion
 from backend.models.llm_cache import LLMCache
+from backend.models.institution_setting import InstitutionSetting

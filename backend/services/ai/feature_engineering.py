@@ -6,7 +6,10 @@ from backend.models.syllabus import Competency, SyllabusStatus
 from backend.models.grade_weight import GradeWeight
 from backend.models.attendance import AttendanceRecord, AttendanceStatus
 
-PASSING_THRESHOLD = 75.0
+from backend.services.institution_settings import DEFAULTS as _SETTINGS_DEFAULTS, get_settings
+
+# Default only; the value in force comes from institution settings (get_settings(db)).
+PASSING_THRESHOLD = _SETTINGS_DEFAULTS.mastery_threshold
 
 # Chronological order of grading periods, used to compute the period-over-period
 # grade decline that feeds the At-Risk rule (capstone Table 3).
@@ -20,15 +23,16 @@ PERIOD_ORDER = [
 from datetime import timezone as _tz
 
 
-def mastery_level(pct: float) -> str:
+def mastery_level(pct: float, settings=_SETTINGS_DEFAULTS) -> str:
     """Map a mastery percentage to the capstone mastery levels (Table 3).
 
-    Proficient (>=85), Developing (75-84), Emerging (<75). An "Emerging" level is
-    equivalent to a Learning Gap for the competency.
+    Proficient (>= proficient threshold, default 85), Developing (mastery threshold up
+    to that, default 75-84), Emerging (below the mastery threshold). "Emerging" is a
+    Learning Gap for the competency. Thresholds come from institution settings.
     """
-    if pct >= 85:
+    if pct >= settings.proficient_threshold:
         return "Proficient"
-    if pct >= PASSING_THRESHOLD:
+    if pct >= settings.mastery_threshold:
         return "Developing"
     return "Emerging"
 
@@ -168,7 +172,7 @@ def build_student_features(student_id_hash: str, course_id: str, db: Session) ->
 
     formative_avg = sum(formative_scores) / len(formative_scores) if formative_scores else None
     summative_avg = sum(summative_scores) / len(summative_scores) if summative_scores else None
-    weak = [cid for cid, avg in comp_avgs.items() if avg < PASSING_THRESHOLD]
+    weak = [cid for cid, avg in comp_avgs.items() if avg < get_settings(db).mastery_threshold]
     total_comps = len(comp_avgs)
     weak_ratio = len(weak) / total_comps if total_comps > 0 else 0.0
 
@@ -228,12 +232,13 @@ def recompute_competency_mastery(course_id: str, db: Session) -> int:
     ).delete(synchronize_session=False)
 
     written = 0
+    thresholds = get_settings(db)
     for student_hash in students:
         features = build_student_features(student_hash, course_id, db)
         if not features:
             continue
         for competency_id, avg in features["competency_avgs"].items():
-            level = mastery_level(avg)
+            level = mastery_level(avg, thresholds)
             db.add(CompetencyMastery(
                 student_id_hash=student_hash,
                 course_id=course_id,

@@ -25,6 +25,7 @@ import {
   LinearScale,
   BarElement,
 } from "chart.js";
+import { useThresholds } from "../hooks/useThresholds";
 
 ChartJS.register(Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
@@ -129,6 +130,7 @@ function PipelineArrow() {
 }
 
 export default function InstructorDashboard() {
+  const T = useThresholds();
   const { user } = useAuth();
   const {
     data: instructorCourses,
@@ -834,7 +836,7 @@ export default function InstructorDashboard() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5 pt-4 border-t border-gray-100">
             {[
-              { label: "Topic Classification Logic", desc: "GPT-4o-mini receives question text and syllabus topics, returns the best-matching topic with a confidence score. Items below the 0.75 confidence threshold are flagged for instructor review." },
+              { label: "Topic Classification Logic", desc: `GPT-4o-mini receives question text and syllabus topics and returns the best-matching topic with a self-reported confidence score. Confidence only orders the review queue: ${T.mapping_auto_accept ? "items" : "every mapping is confirmed by faculty; items"} below ${Math.round(T.mapping_review_threshold * 100)}% are reviewed first.` },
               { label: "Risk Classification Rules",      desc: "Rule-Based Engine applies deterministic thresholds on competency mastery and period-over-period grade decline. Outputs At-Risk · On-Track · Excelling." },
               { label: "Recommendation Engine",      desc: "Tag-Match Recommender queries resources whose competency tags overlap with the student's weak competency codes and topic names, ranked by match count." },
             ].map(item => (

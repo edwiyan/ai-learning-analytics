@@ -14,6 +14,7 @@ import StatCard from "../components/StatCard";
 import { useApi } from "../hooks/useApi";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
+import { useThresholds } from "../hooks/useThresholds";
 
 ChartJS.register(
   CategoryScale, LinearScale, RadialLinearScale,
@@ -71,6 +72,7 @@ function SkeletonBlock({ className = "h-64" }) {
 }
 
 export default function StudentDashboard() {
+  const T = useThresholds();
   const { user } = useAuth();
   const { data: courses, loading: loadingCourses } = useApi("/analytics/me/courses");
   const [selectedCourse, setSelectedCourse] = useState(null);
@@ -146,8 +148,8 @@ export default function StudentDashboard() {
         pointRadius: 4,
       },
       {
-        label: "Target (75%)",
-        data: scores.map(() => 75),
+        label: `Target (${T.mastery_threshold}%)`,
+        data: scores.map(() => T.mastery_threshold),
         backgroundColor: "transparent",
         borderColor: "rgba(156,163,175,0.6)",
         borderWidth: 1.5,
@@ -174,8 +176,8 @@ export default function StudentDashboard() {
         fill: true,
       },
       {
-        label: "Target (75%)",
-        data: trendPoints.map(() => 75),
+        label: `Target (${T.mastery_threshold}%)`,
+        data: trendPoints.map(() => T.mastery_threshold),
         borderColor: "rgba(156,163,175,0.6)",
         borderWidth: 1.5,
         borderDash: [5, 5],
@@ -307,7 +309,7 @@ export default function StudentDashboard() {
                     label="Overall GPA"
                     value={avgScore !== null ? `${avgScore}%` : "—"}
                     color="indigo"
-                    sub={avgScore !== null ? (avgScore >= 75 ? "Passing" : "Below passing") : "No data"}
+                    sub={avgScore !== null ? (avgScore >= T.mastery_threshold ? "Passing" : "Below passing") : "No data"}
                   />
                   <StatCard
                     label="Competency Mastery"
@@ -319,7 +321,7 @@ export default function StudentDashboard() {
                     label="At-Risk Topics"
                     value={scores ? weakCount : "—"}
                     color={weakCount > 0 ? "red" : "green"}
-                    sub="below 75% threshold"
+                    sub={`below ${T.mastery_threshold}% threshold`}
                   />
                   <StatCard
                     label="Pending Assignments"
@@ -405,7 +407,7 @@ export default function StudentDashboard() {
                         }}
                       />
                     </div>
-                    <p className="text-xs text-gray-400 mt-2">Dashed line = 75% passing threshold</p>
+                    <p className="text-xs text-gray-400 mt-2">Dashed line = {T.mastery_threshold}% passing threshold</p>
                   </>
                 ) : (
                   <div className="flex flex-col items-center justify-center h-64 text-gray-300">
@@ -453,7 +455,7 @@ export default function StudentDashboard() {
                     <div className="flex gap-2 mt-3 flex-wrap">
                       {trendPoints.map(t => {
                         const score = t.avg_score ?? t.score;
-                        const passing = score >= 75;
+                        const passing = score >= T.mastery_threshold;
                         return (
                           <div key={t.period} className="flex-1 min-w-16 text-center bg-gray-50 rounded-lg py-2 px-1 border border-gray-100">
                             <p className="text-xs text-gray-500">{t.period}</p>
@@ -485,7 +487,7 @@ export default function StudentDashboard() {
               <SectionCard title="Learning Gaps">
                 <div className="space-y-2">
                   {scores.filter(s => s.is_weak).map(s => {
-                    const gap = 75 - s.average_score;
+                    const gap = T.mastery_threshold - s.average_score;
                     return (
                       <div key={s.competency_id} className="flex items-center justify-between bg-red-50 border border-red-100 rounded-lg px-4 py-2.5">
                         <div>

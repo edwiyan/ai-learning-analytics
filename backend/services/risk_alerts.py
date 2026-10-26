@@ -15,16 +15,17 @@ from backend.core.notifications import notify
 from backend.models.course import Course
 from backend.models.user import User, UserRole
 from backend.services.ai.risk_snapshot import RiskTransition
+from backend.services.institution_settings import DEFAULTS, get_settings
 
 logger = logging.getLogger(__name__)
 
 
-def risk_reason(t: RiskTransition) -> str:
+def risk_reason(t: RiskTransition, settings=DEFAULTS) -> str:
     """Plain-language reason matching the Table 3.8.2 At-Risk rule."""
     reasons = []
-    if t.learning_gap_count >= 3:
-        reasons.append(f"{t.learning_gap_count} competencies below 75% mastery")
-    if t.grade_decline_pct > 15:
+    if t.learning_gap_count >= settings.at_risk_min_gaps:
+        reasons.append(f"{t.learning_gap_count} competencies below {settings.mastery_threshold:g}% mastery")
+    if t.grade_decline_pct > settings.grade_decline_pct:
         reasons.append(f"a {t.grade_decline_pct:.1f}% grade decline from the previous grading period")
     return " and ".join(reasons) or "the At-Risk criteria"
 
@@ -62,7 +63,7 @@ def dispatch_risk_alerts(course_id, transitions: list[RiskTransition], db: Sessi
     for t in newly_at_risk:
         student = students.get(t.student_id_hash)
         name = student.full_name if student else f"Student {t.student_id_hash[:8]}"
-        reason = risk_reason(t)
+        reason = risk_reason(t, get_settings(db))
         if instructor:
             title = f"{name} is now At-Risk in {course.code}"
             body = (f"{name} was flagged At-Risk because of {reason}. "

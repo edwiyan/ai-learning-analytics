@@ -16,7 +16,6 @@ from reportlab.platypus import (
     Paragraph, Spacer, Table, TableStyle,
 )
 
-from backend.services.reports.data import GRADE_DECLINE_THRESHOLD, MASTERY_THRESHOLD
 
 PH_TZ = ZoneInfo("Asia/Manila")
 PAGE_W, PAGE_H = A4
@@ -228,6 +227,7 @@ def _breakdown_table(groups, label):
 
 def _narrative(data) -> list:
     s = data["summary"]
+    MASTERY_THRESHOLD = data["thresholds"].mastery_threshold
     out = []
     if not s["total"]:
         return [Paragraph("No assessment results were found for the selected scope and filters.", S["body"])]
@@ -314,6 +314,8 @@ def render_pdf(data: dict) -> bytes:
     ])
 
     s = data["summary"]
+    t = data["thresholds"]
+    MASTERY_THRESHOLD, GRADE_DECLINE_THRESHOLD = t.mastery_threshold, t.grade_decline_pct
     story = []
 
     # ── Cover details ──
@@ -381,7 +383,7 @@ def render_pdf(data: dict) -> bytes:
     # ── 6. At-Risk roster ──
     at_risk = [r for r in data["rows"] if r["risk_level"] == "At-Risk"]
     story += [PageBreak(), Paragraph("6. At-Risk Students", S["h1"]),
-              Paragraph(f"Flagged by the rule-based engine: three or more competencies below {MASTERY_THRESHOLD:.0f}% "
+              Paragraph(f"Flagged by the rule-based engine: {t.at_risk_min_gaps} or more competencies below {MASTERY_THRESHOLD:.0f}% "
                         f"mastery, or a grade decline greater than {GRADE_DECLINE_THRESHOLD:.0f}% between the two most "
                         "recent grading periods.", S["small"]), Spacer(1, 2 * mm)]
     if at_risk:
@@ -400,7 +402,7 @@ def render_pdf(data: dict) -> bytes:
     # ── 7. Excelling ──
     excelling = [r for r in data["rows"] if r["risk_level"] == "Excelling"]
     story += [CondPageBreak(60 * mm), Paragraph("7. Excelling Students", S["h1"]),
-              Paragraph("Average of 85% or higher with no competency below the mastery threshold.", S["small"]),
+              Paragraph(f"Average of {t.excelling_avg:.0f}% or higher with no competency below the mastery threshold.", S["small"]),
               Spacer(1, 2 * mm)]
     if excelling:
         w = CONTENT_W
@@ -429,9 +431,12 @@ def render_pdf(data: dict) -> bytes:
 
     # ── 9. Methodology ──
     defs = [
-        ("At-Risk", f"Three or more competencies with mastery below {MASTERY_THRESHOLD:.0f}%, OR a grade decline greater "
+        ("At-Risk", f"{t.at_risk_min_gaps} or more competencies with mastery below {MASTERY_THRESHOLD:.0f}%, OR a grade decline greater "
                     f"than {GRADE_DECLINE_THRESHOLD:.0f}% between the two most recent grading periods."),
-        ("Excelling", "Average score of 85% or higher and no competency below the mastery threshold."),
+        ("Excelling", f"Average score of {t.excelling_avg:.0f}% or higher and no competency below the mastery threshold."),
+        ("Threshold source", "Institutionally defined operational thresholds, set by BTECH in AILAS Institution Settings"
+                             + (f" (last changed {data['thresholds_updated_at']:%d %B %Y})." if data.get("thresholds_updated_at")
+                                else " (system defaults; not yet changed).")),
         ("On-Track", "Neither At-Risk nor Excelling."),
         ("Competency Mastery Score", "Total points earned ÷ total points possible on the assessment items mapped to the "
                                      "competency, × 100."),

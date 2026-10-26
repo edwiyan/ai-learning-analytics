@@ -7,6 +7,7 @@ import {
 import { Line, Doughnut } from "react-chartjs-2";
 import Layout from "../components/Layout";
 import { useApi } from "../hooks/useApi";
+import { useThresholds } from "../hooks/useThresholds";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Title, Tooltip, Legend, Filler);
 
@@ -77,6 +78,7 @@ function generateAISummary(subjects, yield_, trends) {
 }
 
 export default function CurriculumInsightsPage() {
+  const T = useThresholds();
   const { data: subjects } = useApi("/analytics/admin/subject-performance");
   const { data: trends } = useApi("/analytics/admin/enrollment-trends");
   const { data: yield_ } = useApi("/analytics/admin/yield-distribution");
@@ -101,8 +103,8 @@ export default function CurriculumInsightsPage() {
         pointBackgroundColor: "#6366f1",
       },
       {
-        label: "Target (75%)",
-        data: trends.map(() => 75),
+        label: `Target (${T.mastery_threshold}%)`,
+        data: trends.map(() => T.mastery_threshold),
         borderColor: "rgba(156,163,175,0.7)",
         backgroundColor: "transparent",
         borderWidth: 1.5,
@@ -320,7 +322,7 @@ export default function CurriculumInsightsPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5 pt-4 border-t border-gray-100">
             {[
-              { label: "Topic Classification Logic", desc: "GPT-4o-mini receives question text and syllabus topics, returns the best-matching topic with a confidence score. Items below the 0.75 confidence threshold are flagged for instructor review." },
+              { label: "Topic Classification Logic", desc: `GPT-4o-mini receives question text and syllabus topics and returns the best-matching topic with a self-reported confidence score. Confidence only orders the review queue: ${T.mapping_auto_accept ? "items" : "every mapping is confirmed by faculty; items"} below ${Math.round(T.mapping_review_threshold * 100)}% are reviewed first.` },
               { label: "Risk Classification Rules", desc: "Rule-Based Engine applies deterministic thresholds on competency mastery and period-over-period grade decline. Outputs At-Risk · On-Track · Excelling." },
               { label: "Recommendation Engine", desc: "Tag-Match Recommender queries resources whose competency tags overlap with the student's weak competency codes and topic names, ranked by match count." },
             ].map(item => (

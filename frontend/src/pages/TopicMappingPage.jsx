@@ -5,6 +5,7 @@ import Pagination from "../components/Pagination";
 import { useAuth } from "../context/AuthContext";
 import { useApi } from "../hooks/useApi";
 import api from "../services/api";
+import { useThresholds } from "../hooks/useThresholds";
 
 const PAGE_SIZE = 15;
 
@@ -26,9 +27,9 @@ const PERIOD_THEME = {
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
-function confZone(score) {
+function confZone(score, review = 0.75) {
   if (score == null) return null;
-  if (score >= 0.75) return {
+  if (score >= review) return {
     label: "High", bar: "bg-emerald-400", text: "text-emerald-700",
     borderBar: "bg-emerald-400",
     tip: "High confidence — AI strongly matched this question to the competency. Safe to approve.",
@@ -48,10 +49,11 @@ function confZone(score) {
 // ── ConfidenceBar with tooltip ────────────────────────────────────────────────
 
 function ConfidenceBar({ score }) {
+  const T = useThresholds();
   const [tip, setTip] = useState(false);
   if (score == null) return <span className="text-xs text-gray-300">—</span>;
   const pct  = Math.round(score * 100);
-  const zone = confZone(score);
+  const zone = confZone(score, T.mapping_review_threshold);
   return (
     <div
       className="relative"
@@ -122,15 +124,17 @@ function StatCard({ label, value, sub, accent }) {
 // ── ConfidenceHistogram ───────────────────────────────────────────────────────
 
 function ConfidenceHistogram({ items }) {
+  const T = useThresholds();
   const mapped = items.filter(i => i.confidence_score != null);
   if (!mapped.length) return null;
   const total  = mapped.length;
-  const high   = mapped.filter(i => i.confidence_score >= 0.75).length;
-  const medium = mapped.filter(i => i.confidence_score >= 0.50 && i.confidence_score < 0.75).length;
+  const review = T.mapping_review_threshold;
+  const high   = mapped.filter(i => i.confidence_score >= review).length;
+  const medium = mapped.filter(i => i.confidence_score >= 0.50 && i.confidence_score < review).length;
   const low    = mapped.filter(i => i.confidence_score < 0.50).length;
   const bars   = [
-    { label: "High ≥75%",   count: high,   pct: Math.round(high/total*100),   color: "bg-emerald-400", text: "text-emerald-700" },
-    { label: "Mid 50–75%",  count: medium, pct: Math.round(medium/total*100), color: "bg-amber-400",   text: "text-amber-700"   },
+    { label: `High ≥${Math.round(review * 100)}%`,   count: high,   pct: Math.round(high/total*100),   color: "bg-emerald-400", text: "text-emerald-700" },
+    { label: `Mid 50–${Math.round(review * 100)}%`,  count: medium, pct: Math.round(medium/total*100), color: "bg-amber-400",   text: "text-amber-700"   },
     { label: "Low <50%",    count: low,    pct: Math.round(low/total*100),    color: "bg-red-400",     text: "text-red-600"     },
   ];
   return (
@@ -223,6 +227,7 @@ function ConfirmDialog({ title, message, confirmLabel = "Confirm", danger = fals
 // ── OverrideDrawer ────────────────────────────────────────────────────────────
 
 function OverrideDrawer({ item, competencies, courseId, onCompetencyCreated, onSave, onClose }) {
+  const T = useThresholds();
   const [selected, setSel]       = useState(item.mapped_competency_id || "");
   const [created, setCreated]     = useState([]);
   const [newTag, setNewTag]       = useState(null);   // { topic_name, competency_code } while the form is open
@@ -236,7 +241,7 @@ function OverrideDrawer({ item, competencies, courseId, onCompetencyCreated, onS
   const aiCompId    = item.ai_suggested_competency_id || item.mapped_competency_id;
   const currentComp = competencies.find(c => c.id === aiCompId);
   const aiScore     = item.ai_confidence ?? item.confidence_score;
-  const zone = confZone(aiScore);
+  const zone = confZone(aiScore, T.mapping_review_threshold);
 
   const doSave = async () => {
     if (!selected) return;
@@ -437,6 +442,7 @@ function OverrideDrawer({ item, competencies, courseId, onCompetencyCreated, onS
 // AI mapping accuracy vs. faculty decisions (capstone §3.6.2, target ≥ 85%).
 
 function MappingAccuracyCard({ courseId }) {
+  const T = useThresholds();
   const { data: report, loading } = useApi(`/assessments/course/${courseId}/mapping-accuracy`, [courseId]);
   if (loading) return <div className="h-28 bg-gray-100 rounded-2xl animate-pulse" />;
   if (!report) return null;
@@ -485,7 +491,7 @@ function MappingAccuracyCard({ courseId }) {
       )}
       {report.auto_accepted_unreviewed > 0 && (
         <p className="text-xs text-gray-400 mt-1">
-          {report.auto_accepted_unreviewed} auto-accepted item{report.auto_accepted_unreviewed !== 1 ? "s" : ""} (≥75% confidence) not yet reviewed are excluded.
+          {report.auto_accepted_unreviewed} auto-accepted item{report.auto_accepted_unreviewed !== 1 ? "s" : ""} (≥{Math.round(T.mapping_review_threshold * 100)}% confidence) not yet reviewed are excluded.
         </p>
       )}
     </section>
@@ -495,6 +501,7 @@ function MappingAccuracyCard({ courseId }) {
 // ── MappingTable ──────────────────────────────────────────────────────────────
 
 function MappingTable({ assessmentId, competencies, courseId, onCompetencyCreated }) {
+  const T = useThresholds();
   const { user } = useAuth();
   const [items, setItems]               = useState([]);
   const [loading, setLoading]           = useState(true);
@@ -542,6 +549,23 @@ function MappingTable({ assessmentId, competencies, courseId, onCompetencyCreate
   }, [assessmentId]);
 
   const showToast = useCallback((message, onUndo) => setToast({ message, onUndo }), []);
+
+  // Faculty confirm, in one recorded action, every pending AI mapping at or above the
+  // review threshold; low-confidence items stay in the queue.
+  const [confirmingConfident, setConfirmingConfident] = useState(false);
+  const confidentPending = items.filter(i => i.needs_review && !i.validated_by && i.mapped_competency_id
+    && i.ai_confidence != null && i.ai_confidence >= T.mapping_review_threshold).length;
+  const confirmConfident = useCallback(async () => {
+    setConfirmingConfident(true);
+    try {
+      const res = await api.put(`/assessments/${assessmentId}/confirm-confident`);
+      const fresh = await api.get(`/assessments/${assessmentId}/items`);
+      setItems(Array.isArray(fresh.data) ? fresh.data : []);
+      showToast(`${res.data.confirmed} mapping${res.data.confirmed === 1 ? "" : "s"} confirmed.`, null);
+    } catch (err) {
+      showToast(err.response?.data?.detail || "Could not confirm mappings.", null);
+    } finally { setConfirmingConfident(false); }
+  }, [assessmentId, showToast]);
   const dismissToast = useCallback(() => setToast(null), []);
 
   const handleApprove = useCallback((item) => {
@@ -713,10 +737,23 @@ function MappingTable({ assessmentId, competencies, courseId, onCompetencyCreate
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <StatCard label="Total Items"  value={totalCount}       accent="gray"   />
         <StatCard label="Mapped"       value={mappedCount}      sub={`${mappedPct}% of items`} accent="indigo" />
-        <StatCard label="Needs Review" value={needsReviewCount} sub="Below 75% confidence" accent="amber" />
+        <StatCard label="Pending Confirmation" value={needsReviewCount} sub={T.mapping_auto_accept ? `Below ${Math.round(T.mapping_review_threshold * 100)}% confidence` : "every AI mapping needs faculty confirmation"} accent="amber" />
         <StatCard label="Validated"    value={validatedCount}   sub="Manually confirmed" accent="green" />
         <StatCard label="Unmapped"     value={unmappedCount}    sub="No competency assigned" accent="red" />
       </div>
+
+      {confidentPending > 0 && (
+        <div className="flex items-center justify-between gap-3 flex-wrap bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-3">
+          <p className="text-sm text-indigo-900">
+            <strong>{confidentPending}</strong> AI mapping{confidentPending === 1 ? "" : "s"} at or above {Math.round(T.mapping_review_threshold * 100)}% confidence
+            {confidentPending === 1 ? " is" : " are"} waiting for confirmation. Check them in the table, then confirm them together.
+          </p>
+          <button onClick={confirmConfident} disabled={confirmingConfident}
+            className="px-3 py-1.5 text-sm font-semibold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50">
+            {confirmingConfident ? "Confirming…" : `Confirm ${confidentPending} confident mapping${confidentPending === 1 ? "" : "s"}`}
+          </button>
+        </div>
+      )}
 
       {/* Confidence distribution */}
       {totalCount > 0 && <ConfidenceHistogram items={items} />}
@@ -807,7 +844,9 @@ function MappingTable({ assessmentId, competencies, courseId, onCompetencyCreate
           </div>
 
           <p className="text-xs text-gray-400">
-            Items below <strong className="text-amber-600">75% confidence</strong> require manual review before submission.
+            {T.mapping_auto_accept
+              ? <>Items below <strong className="text-amber-600">{Math.round(T.mapping_review_threshold * 100)}% confidence</strong> require manual review.</>
+              : <>Every AI mapping needs your confirmation; items below <strong className="text-amber-600">{Math.round(T.mapping_review_threshold * 100)}% confidence</strong> are listed first. The AI's confidence is self-reported and is not proof of correctness.</>}
             Focus a row then press{" "}
             <kbd className="bg-gray-100 border border-gray-200 px-1 py-0.5 rounded text-gray-600 font-mono text-[10px]">A</kbd> to approve,{" "}
             <kbd className="bg-gray-100 border border-gray-200 px-1 py-0.5 rounded text-gray-600 font-mono text-[10px]">O</kbd> to override.
@@ -906,7 +945,7 @@ function MappingTable({ assessmentId, competencies, courseId, onCompetencyCreate
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {paged.map((item, idx) => {
-                  const zone       = confZone(item.confidence_score);
+                  const zone       = confZone(item.confidence_score, T.mapping_review_threshold);
                   const isFocused  = focusedIdx === idx;
                   const isSelected = selected.has(item.id);
                   const rowBg      =
@@ -1106,6 +1145,7 @@ function MappingTable({ assessmentId, competencies, courseId, onCompetencyCreate
 // ── TopicMappingPage ──────────────────────────────────────────────────────────
 
 export default function TopicMappingPage() {
+  const T = useThresholds();
   const { data: courses, loading: coursesLoading } = useApi("/courses/");
   const [selectedCourseId, setSelectedCourseId]         = useState(null);
   const [selectedAssessmentId, setSelectedAssessmentId] = useState(null);
@@ -1153,7 +1193,9 @@ export default function TopicMappingPage() {
           </div>
           <p className="text-sm text-gray-500 leading-relaxed max-w-xl">
             Each assessment question is automatically mapped to a course competency using NLP.
-            Items below <strong className="text-amber-600 font-semibold">75% confidence</strong> are flagged for your review before results feed into analytics.
+            {T.mapping_auto_accept
+              ? <>Items below <strong className="text-amber-600 font-semibold">{Math.round(T.mapping_review_threshold * 100)}% confidence</strong> are flagged for your review.</>
+              : <>AI mappings are applied provisionally and each one waits for your confirmation; items below <strong className="text-amber-600 font-semibold">{Math.round(T.mapping_review_threshold * 100)}% confidence</strong> are listed first.</>}
           </p>
         </div>
       </div>

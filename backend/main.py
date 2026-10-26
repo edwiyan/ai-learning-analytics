@@ -8,7 +8,7 @@ from backend.core.limiter import limiter
 from backend.core.security_headers import SecurityHeadersMiddleware
 from backend.routers import auth, users, courses, syllabi, assessments, analytics
 from backend.routers import programs, curricula, sections, enrollments, grade_submissions, notifications
-from backend.routers import attendance, surveys, consent, exam_questions, course_resources, reports
+from backend.routers import attendance, surveys, consent, exam_questions, course_resources, reports, institution_settings
 # Import new models so SQLAlchemy metadata is populated for migrations
 import backend.models.grade_weight          # noqa: F401
 import backend.models.grade_scale           # noqa: F401
@@ -65,6 +65,7 @@ app.include_router(consent.router)
 app.include_router(exam_questions.router)
 app.include_router(course_resources.router)
 app.include_router(reports.router)
+app.include_router(institution_settings.router)
 
 
 @app.get("/health", tags=["health"])

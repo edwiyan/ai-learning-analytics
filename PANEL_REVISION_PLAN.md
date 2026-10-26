@@ -76,27 +76,27 @@ Acceptance: `grep -ri "predict\|real-time" frontend/src` shows no claims about A
 
 ## Phase 3 — Institution settings and thresholds (comments 1, 2) · ~1.5 days
 
-- [ ] **T3.1 Settings store.** `institution_settings` table (key, JSON value, updated_by,
+- [x] **T3.1 Settings store.** `institution_settings` table (key, JSON value, updated_by,
   updated_at) + migration; `services/settings.py` with typed getters, defaults and a short cache.
   Keys: `mastery_threshold` 75, `at_risk_min_gaps` 3, `grade_decline_pct` 15, `excelling_avg` 85,
   `mapping_review_threshold` 0.75, `mapping_auto_accept` false, `early_warning_period` "prelim",
   `intervention_target_school_days` 5.
-- [ ] **T3.2 Use the settings.** `risk_predictor._rule_based_risk`, `feature_engineering`
+- [x] **T3.2 Use the settings.** `risk_predictor._rule_based_risk`, `feature_engineering`
   (`PASSING_THRESHOLD`, mastery levels), `risk_alerts` message text, `reports/data.py` +
   PDF methodology, topic mapping threshold (`config.topic_mapping_confidence_threshold` →
   setting). Tests for non-default values.
-- [ ] **T3.3 Auto-accept switch (D1).** Topic mapping: when `mapping_auto_accept` is false, every
+- [x] **T3.3 Auto-accept switch (D1).** Topic mapping: when `mapping_auto_accept` is false, every
   AI-mapped item is applied provisionally and marked pending confirmation; low-confidence items
   still flagged first. Add "Confirm all ≥ threshold" bulk action (records `validated_by`).
   Mapping page shows pending count. Tests.
-- [ ] **T3.4 Settings API + page.** `GET/PUT /institution-settings` (admin; PUT audit-logged with
+- [x] **T3.4 Settings API + page.** `GET/PUT /institution-settings` (admin; PUT audit-logged with
   old/new); after a threshold change, recompute analytics for all courses in the background.
   Admin "Institution Settings" page. Add the prefix to the Vite proxy and Nginx (not `/settings`,
   which is already an SPA page).
-- [ ] **T3.5 Threshold sensitivity view.** Endpoint + table: number/% of students flagged under
+- [x] **T3.5 Threshold sensitivity view.** Endpoint + table: number/% of students flagged under
   gaps ∈ {2,3,4} × decline ∈ {10,15,20}% (and mastery 70/75/80), scope = admin's courses or a
   college; exportable for the BTECH validation meeting.
-- [ ] **T3.6** Reports print the threshold values in force and when they were last changed.
+- [x] **T3.6** Reports print the threshold values in force and when they were last changed.
 
 ## Phase 4 — Early-warning timing (comment 3) · ~1 day
 

@@ -293,7 +293,7 @@ function Stats() {
 function HowItWorks() {
   const steps = [
     { n: "01", title: "Upload Assessments", desc: "Instructors upload CSV grade sheets. Student IDs are SHA-256 hashed on ingestion for privacy." },
-    { n: "02", title: "AI Topic Mapping",   desc: "GPT-4o-mini maps each question to syllabus competencies. Items below 0.75 confidence go to faculty review." },
+    { n: "02", title: "AI Topic Mapping",   desc: "GPT-4o-mini suggests the syllabus competency for each question; faculty confirm or correct every mapping, starting with low-confidence ones." },
     { n: "03", title: "Risk Classification",    desc: "A rule-based engine scores every student — Excelling, On-Track, or At-Risk — using deterministic competency thresholds." },
     { n: "04", title: "Targeted Resources", desc: "Tag-match recommender ranks remedial videos, readings, and exercises per weak competency on each student's dashboard." },
   ];

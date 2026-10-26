@@ -36,6 +36,7 @@ export default defineConfig({
       '/consent/':    BACKEND,
       // Trailing slash: API calls (/reports/...) go to the backend, the SPA page /reports does not.
       '/reports/':    BACKEND,
+      '/institution-settings': BACKEND,
     },
   },
 })

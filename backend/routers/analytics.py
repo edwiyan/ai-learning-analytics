@@ -41,6 +41,8 @@ from backend.schemas.instructor_intervention import InterventionCreate, Interven
 from backend.schemas.grade_consultation import GradeConsultationCreate, GradeConsultationResponse
 from backend.services.academic_standing import upsert_academic_standing
 
+from backend.services.institution_settings import get_settings
+
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
 _PERIODS_ORDERED = [
@@ -139,7 +141,7 @@ def get_my_competency_scores(
                 competency_code=comp.competency_code,
                 topic_name=comp.topic_name,
                 average_score=round(avg, 2),
-                is_weak=avg < 75.0,
+                is_weak=avg < get_settings(db).mastery_threshold,
             ))
     return results
 
@@ -540,7 +542,7 @@ def get_competency_distribution(
         if not comp:
             continue
         class_avg = sum(scores) / len(scores)
-        below = sum(1 for s in scores if s < 75.0)
+        below = sum(1 for s in scores if s < get_settings(db).mastery_threshold)
         results.append(CompetencyDistributionItem(
             competency_code=comp.competency_code,
             topic_name=comp.topic_name,
@@ -983,11 +985,12 @@ def get_yield_distribution(
     # Buckets follow the capstone mastery levels (Table 3): Proficient >=85,
     # Developing 75-84, Emerging <75. See feature_engineering.mastery_level().
     proficient = developing = emerging = 0
+    thresholds = get_settings(db)
     for scores in student_scores.values():
         avg = sum(scores) / len(scores)
-        if avg >= 85:
+        if avg >= thresholds.proficient_threshold:
             proficient += 1
-        elif avg >= 75:
+        elif avg >= thresholds.mastery_threshold:
             developing += 1
         else:
             emerging += 1
@@ -1151,7 +1154,7 @@ def get_student_profile(
                     "competency_code": comp.competency_code,
                     "topic_name": comp.topic_name,
                     "average_score": round(avg, 2),
-                    "is_weak": avg < 75.0,
+                    "is_weak": avg < get_settings(db).mastery_threshold,
                 })
 
     a_ids = _assessment_ids(course_id, db)
