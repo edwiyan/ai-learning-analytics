@@ -8,13 +8,17 @@ Capstone §3.9.2 mitigations implemented here:
     breaker stops calling a failing provider for a cool-down period so requests
     fail fast and fall back (graceful degradation) instead of hanging.
   * Multi-provider fallback -> when OpenAI fails (or its circuit is open) and
-    GEMINI_API_KEY is set, the same prompt is sent to Google Gemini.
+    GEMINI_ENABLED=true with GEMINI_API_KEY set, the same prompt goes to Google Gemini.
+  * Data minimization (panel comment 6) -> every prompt passes a guard that blocks
+    student numbers and student names and strips email addresses; OpenAI calls are
+    sent with store=False. Student scores are never part of any prompt.
 Callers handle LLMUnavailable by falling back (rule-based parser, manual review
 queue, template drafts, or no encouragement message).
 """
 import hashlib
 import json
 import logging
+import re
 import threading
 import time
 from datetime import datetime, timezone
@@ -115,7 +119,19 @@ def llm_status() -> dict:
     if gemini_configured():
         providers["gemini"] = breakers["gemini"].status()
     available = any(state != "open" for state in providers.values())
-    return {"configured": bool(providers), "available": available, "providers": providers}
+    return {
+        "configured": bool(providers),
+        "available": available,
+        "providers": providers,
+        # What leaves the server and under which settings (shown to administrators).
+        "data_handling": {
+            "openai_store": False,
+            "gemini_fallback_enabled": gemini_configured(),
+            "student_data_sent": False,
+            "sent": "syllabus text (contact details removed), question text, competency and outcome text, "
+                    "resource titles",
+        },
+    }
 
 
 def openai_configured() -> bool:
@@ -124,7 +140,7 @@ def openai_configured() -> bool:
 
 
 def gemini_configured() -> bool:
-    return bool(settings.gemini_api_key)
+    return bool(settings.gemini_enabled and settings.gemini_api_key)
 
 
 def llm_configured() -> bool:
@@ -177,6 +193,7 @@ def _openai_json(prompt: str, temperature: float) -> dict:
         messages=[{"role": "user", "content": prompt}],
         temperature=temperature,
         response_format={"type": "json_object"},
+        store=False,
     )
     return json.loads(response.choices[0].message.content)
 
@@ -187,6 +204,7 @@ def _openai_text(prompt: str, temperature: float, max_tokens: int) -> str:
         messages=[{"role": "user", "content": prompt}],
         temperature=temperature,
         max_tokens=max_tokens,
+        store=False,
     )
     return response.choices[0].message.content.strip()
 
@@ -236,12 +254,59 @@ def _text_fn(provider: str):
     return _openai_text if provider == "openai" else _gemini_text
 
 
+class PromptBlocked(LLMUnavailable):
+    """A prompt contained student-identifying data and was not sent."""
+
+
+_EMAIL = re.compile(r"[\w.+-]+@[\w-]+(\.[\w-]+)+")
+_identifiers_cache: dict = {"at": 0.0, "numbers": set(), "names": set()}
+IDENTIFIER_CACHE_SECONDS = 300
+
+
+def _student_identifiers() -> tuple[set, set]:
+    """Student numbers and full names (lowercased), refreshed every few minutes."""
+    now = time.monotonic()
+    if now - _identifiers_cache["at"] > IDENTIFIER_CACHE_SECONDS:
+        numbers, names = set(), set()
+        try:
+            from backend.models.user import User, UserRole
+            db = _session_factory()
+            try:
+                for number, name in db.query(User.student_number, User.full_name).filter(
+                        User.role == UserRole.student).all():
+                    if number:
+                        numbers.add(number.strip().lower())
+                    if name and len(name.split()) >= 2:
+                        names.add(" ".join(name.lower().split()))
+            finally:
+                db.close()
+        except Exception as exc:  # DB unavailable: emails are still stripped
+            logger.warning("Prompt guard could not load student identifiers: %s", exc)
+        _identifiers_cache.update(at=now, numbers=numbers, names=names)
+    return _identifiers_cache["numbers"], _identifiers_cache["names"]
+
+
+def guard_prompt(prompt: str, purpose: str) -> str:
+    """Strip email addresses and refuse prompts that contain a student number or a
+    student's full name. Returns the prompt to send."""
+    prompt = _EMAIL.sub("[email removed]", prompt)
+    lowered = " ".join(prompt.lower().split())
+    numbers, names = _student_identifiers()
+    hit = next((n for n in numbers if re.search(rf"(?<![\w-]){re.escape(n)}(?![\w-])", lowered)), None) \
+        or next((n for n in names if re.search(rf"\b{re.escape(n)}\b", lowered)), None)
+    if hit:
+        logger.error("Blocked %s prompt: it contained a student identifier", purpose)
+        raise PromptBlocked(f"{purpose} prompt blocked: it contained student-identifying data")
+    return prompt
+
+
 def complete_json(prompt: str, *, purpose: str, temperature: float = 0.0, use_cache: bool = True) -> dict:
     """Return the model's JSON answer for prompt, from cache when available,
     trying each configured provider in order."""
     providers = _providers()
     if not providers:
         raise LLMUnavailable("No LLM provider configured")
+    prompt = guard_prompt(prompt, purpose)
     # Keyed on the primary model so a fallback answer is reused once OpenAI recovers.
     key = _cache_key(providers[0][1], prompt, temperature)
     if use_cache:
@@ -269,6 +334,7 @@ def complete_text(prompt: str, *, purpose: str, temperature: float = 0.7, max_to
     providers = _providers()
     if not providers:
         raise LLMUnavailable("No LLM provider configured")
+    prompt = guard_prompt(prompt, purpose)
     errors = []
     for provider, _model in providers:
         fn = _text_fn(provider)

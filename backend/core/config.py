@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     # Optional fallback provider (capstone §3.9.2 multi-provider fallback).
     # Used only when OpenAI fails or its circuit is open; blank = disabled.
     gemini_api_key: str = ""
+    # The fallback sends prompts to a second provider; off unless explicitly enabled
+    # (use a paid Gemini account so its data terms match OpenAI's API terms).
+    gemini_enabled: bool = False
     gemini_model: str = "gemini-2.5-flash"
     topic_mapping_confidence_threshold: float = 0.75
     # Secret salt for student-ID hashing: SHA-256(Student_ID + Salt), capstone §3.9.1.

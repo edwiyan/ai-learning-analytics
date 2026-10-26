@@ -58,20 +58,20 @@ Acceptance: `grep -ri "predict\|real-time" frontend/src` shows no claims about A
 
 ## Phase 2 — Privacy and AI provider (comments 6, 7) · ~1 day
 
-- [ ] **T2.1 Payload guard.** In `llm_client`, before any provider call, reject (log + raise) a
+- [x] **T2.1 Payload guard.** In `llm_client`, before any provider call, reject (log + raise) a
   prompt that contains a student-number pattern (e.g. `\d{4}-\d{4,5}`) or an email address.
   Test: build every prompt (`prompts.build_*`) from fixtures that include student names,
   numbers and scores and assert none appear in the prompt.
-- [ ] **T2.2 Redact syllabus contact details.** Strip emails and phone numbers from syllabus text
+- [x] **T2.2 Redact syllabus contact details.** Strip emails and phone numbers from syllabus text
   before `build_syllabus_prompt` (stored raw text stays local). Test.
-- [ ] **T2.3 Provider settings.** `store=False` on both OpenAI calls; `GEMINI_ENABLED` flag in
+- [x] **T2.3 Provider settings.** `store=False` on both OpenAI calls; `GEMINI_ENABLED` flag in
   `core/config.py` (default false) gating `gemini_configured()`; `llm_status()` reports
   providers and `store=false`. Update `.env.example`, `docker-compose.prod.yml`. Tests.
-- [ ] **T2.4 Admin visibility.** AI status card on the Admin dashboard lists enabled providers
+- [x] **T2.4 Admin visibility.** AI status card on the Admin dashboard lists enabled providers
   and the data-handling setting.
-- [ ] **T2.5 Privacy Policy page.** Add the "sent to the AI provider / never sent" table (same as
+- [x] **T2.5 Privacy Policy page.** Add the "sent to the AI provider / never sent" table (same as
   manuscript Table X).
-- [ ] **T2.6 Evidence doc.** `docs/AI_DATA_HANDLING.md`: what each prompt sends, provider config,
+- [x] **T2.6 Evidence doc.** `docs/AI_DATA_HANDLING.md`: what each prompt sends, provider config,
   where to capture account-setting screenshots for the manuscript appendix.
 
 ## Phase 3 — Institution settings and thresholds (comments 1, 2) · ~1.5 days

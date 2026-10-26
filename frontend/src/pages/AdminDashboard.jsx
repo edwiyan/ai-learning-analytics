@@ -158,6 +158,7 @@ export default function AdminDashboard() {
 
   const { data: susResults } = useApi("/surveys/sus/results");
   const { data: ingestion } = useApi("/analytics/admin/ingestion-stats");
+  const { data: health } = useApi("/health");
 
   const TOP_PAGE_SIZE     = 5;
   const FAILURE_PAGE_SIZE = 5;
@@ -618,6 +619,31 @@ export default function AdminDashboard() {
             )}
           </SectionCard>
         </div>
+
+        {/* What the external AI provider receives (panel comments 6 and 7) */}
+        {health?.llm && (
+          <SectionCard title="AI Provider and Data Handling">
+            <div className="grid sm:grid-cols-3 gap-4 text-sm">
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Providers</p>
+                {Object.keys(health.llm.providers || {}).length ? (
+                  Object.entries(health.llm.providers).map(([name, state]) => (
+                    <p key={name} className="text-gray-800 capitalize">{name} <span className={`text-xs ${state === "closed" ? "text-green-600" : "text-amber-600"}`}>· {state === "closed" ? "available" : state.replace("_", "-")}</span></p>
+                  ))
+                ) : <p className="text-amber-600">None configured (rule-based fallbacks in use)</p>}
+                <p className="text-xs text-gray-400 mt-1">Gemini fallback: {health.llm.data_handling?.gemini_fallback_enabled ? "enabled" : "disabled"}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Sent to the provider</p>
+                <p className="text-gray-700">{health.llm.data_handling?.sent}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Never sent</p>
+                <p className="text-gray-700">Student numbers, names, emails, scores, grades or risk results. Requests are sent with storage disabled (<code className="text-xs">store=false</code>).</p>
+              </div>
+            </div>
+          </SectionCard>
+        )}
 
         {/* Ingestion parse rate and latency vs. capstone §3.1 Objective 1 targets */}
         {ingestion?.kinds?.length > 0 && (

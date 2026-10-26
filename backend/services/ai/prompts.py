@@ -16,6 +16,15 @@ _INJECTION = re.compile(
     re.IGNORECASE,
 )
 _CONTROL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+_EMAIL = re.compile(r"[\w.+-]+@[\w-]+(\.[\w-]+)+")
+# Philippine mobile (09xx / +639xx) and landline ((044) 123-4567) formats
+_PHONE = re.compile(r"(\+?63[\s-]?|0)9\d{2}[\s-]?\d{3}[\s-]?\d{4}|\(?0\d{2,3}\)?[\s-]?\d{3}[\s-]?\d{4}")
+
+
+def redact_contact(text: str) -> str:
+    """Remove email addresses and phone numbers (e.g. faculty contact details in a
+    syllabus) before text leaves the server."""
+    return _PHONE.sub("[phone removed]", _EMAIL.sub("[email removed]", text or ""))
 
 
 def sanitize(text, max_len: int = 2000) -> str:
@@ -60,7 +69,7 @@ Syllabus text:
 
 
 def build_syllabus_prompt(raw_text: str) -> str:
-    return SYLLABUS_PARSE_PROMPT.format(text=sanitize(raw_text, max_len=12000))
+    return SYLLABUS_PARSE_PROMPT.format(text=sanitize(redact_contact(raw_text), max_len=12000))
 
 
 # ── Topic mapping (API call 2, §3.6.1 step 5) ─────────────────────────────────
