@@ -133,7 +133,7 @@ Recommended defaults are already used in the tasks below. Change them here if yo
   - Descoped items (Push/SMS, `.doc`) moved to future work.
   - Fix §2.1.20 (TF-IDF/Cosine), §2.1.8 (Random Forests), "ten platforms" → twenty, Flask-only §2.2.2, PDF/DOC → PDF/DOCX, the sign of the §3.8.2 grade-decline formula, unused references (scikit-learn, Redis, Matplotlib, Seaborn, NLTK, Transformers), and "No tables" in the List of Tables.
   - Optionally add a short section on extra modules (curricula, attendance, consent, audit logs, exam generator).
-- [ ] **T9.2 Final re-check.** Re-run the doc-vs-system cross-check and update the status reports.
+- [x] **T9.2 Final re-check.** Re-run the doc-vs-system cross-check and update the status reports.
 
 ---
 
@@ -170,3 +170,4 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 | 2026-10-26 | T8.4 | nginx.conf: 443 TLSv1.3-only + HTTP->HTTPS + HSTS/CSP/XFO/nosniff/Permissions-Policy; verified with openssl (1.3 ok, 1.2 refused). FIXED prod routing: proxied only 7 of 15 API prefixes. FIXED prod frontend: compose used the dev Dockerfile (Vite :5173) while nginx proxied :80 -> new frontend/Dockerfile.prod + nginx-spa.conf (SPA fallback verified). Prod compose passes STUDENT_ID_SALT/GEMINI/SMTP. nginx/README.md + make-self-signed-cert.sh. |
 | 2026-10-26 | T8.5 | qa/perf/measure_targets.js: dashboards 0.54-0.66 s (<3 s PASS), APIs worst 35 ms (<5 s PASS); JMeter 50 users p95 656 ms. LLM batch latency pending (no OpenAI key here): mapping calls now run 8-way concurrent and each batch is timed into ingestion stats. Summary: qa-output/performance/TARGETS.md. |
 | 2026-10-26 | T9.1 | CAPSTONE_DOC_EDITS.md: 7 consistency fixes (A), 14 as-built updates (B: FastAPI, stack table, hashing, HITL audit, mitigations, ERD naming, delimitations, Phase 1/2), optional evidence (C). |
+| 2026-10-26 | T9.2 | CAPSTONE_CROSSCHECK_2026-10-26.md written; old status report marked superseded; CLAUDE.md notes updated. Final: pytest 108 passed/1 skipped/5 xfailed, Vitest 13 passed, build OK, DB at head v2r3s4t5u6v7. |

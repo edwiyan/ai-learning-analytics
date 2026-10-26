@@ -1,3 +1,5 @@
+> **Superseded (2026-10-26):** this report compares against an older document. For the current capstone (`MJCO_CAPSTONE_92726.docx`) see `CAPSTONE_CROSSCHECK_2026-10-26.md`.
+
 # AILAS — System Status Report & Compliance Comparison
 
 **Against guideline document:** `LATEST DOC CAPSTONE_53126.docx`

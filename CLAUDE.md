@@ -142,7 +142,10 @@ The system targets **Dalubhasaang Politekniko ng Lungsod ng Baliwag (BTECH)**. A
 
 - **OCR (Tesseract)** supplements structured PDF/DOC parsing (pdfplumber/python-docx) as a fallback for scanned/image syllabi — additive, not a scope change. The fallback is wired in `services/ocr/extractor.py` (triggered only when a PDF has no embedded text) and requires the Tesseract + Poppler binaries on the host; it degrades gracefully (returns empty text) when they are absent.
 - **Bloom's-taxonomy tagging** in topic mapping is scaffolded but is a Phase-2 (post-pilot) capability per the document's workflow integration; advisory only.
-- **Notifications** ship with SMTP email; Web Push / Twilio SMS (listed in the doc's tech table) are deferred as future work.
+- **Notifications** ship as in-app + SMTP email (At-Risk alerts fire once when a student becomes At-Risk); Web Push / Twilio SMS (listed in the doc's tech table) are deferred as future work.
+- **LLM calls** all go through `services/ai/llm_client.py` (PostgreSQL `llm_cache`, retry + circuit breaker, optional Gemini fallback via `GEMINI_API_KEY`); prompts live in `services/ai/prompts.py` and must keep JSON braces escaped (`{{ }}`) — `test_prompts.py` guards this.
+- **Student IDs** are hashed as SHA-256(id + `STUDENT_ID_SALT`); never change the salt without `python -m backend.scripts.rehash_student_ids --old-salt ...`.
+- **Capstone alignment** work and decisions are tracked in `CAPSTONE_ALIGNMENT_PLAN.md`; doc wording changes are drafted in `CAPSTONE_DOC_EDITS.md`.
 - **Stack equivalents:** FastAPI (the doc permits Flask/FastAPI), pdfplumber (vs PyPDF2), python-jose + bcrypt (vs PyJWT) — same standards/roles, equivalent libraries.
 - **Attendance / submission timeliness** are captured as descriptive features but, per Delimitation #2 (no behavioral tracking), do **not** drive the rule-based risk flag.
 - **DB schema** uses the §3.4 column names (`hashed_identifier`, `mapping_confidence`, `requires_review`, `llm_structured_output`, `competency_mastery` table). Some ORM attributes keep prior names via SQLAlchemy column mapping.
