@@ -37,3 +37,6 @@ qa-output/screenshots/
 qa-output/sessions/
 backend/uploads/
 backups/
+# JMeter HTML dashboards: regenerate from results.jtl (jmeter -g results.jtl -o report)
+qa-output/performance/jmeter/*/report/*
+!qa-output/performance/jmeter/*/report/statistics.json
