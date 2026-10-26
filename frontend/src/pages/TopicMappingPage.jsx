@@ -439,7 +439,9 @@ function OverrideDrawer({ item, competencies, courseId, onCompetencyCreated, onS
 }
 
 // ── MappingAccuracyCard ───────────────────────────────────────────────────────
-// AI mapping accuracy vs. faculty decisions (capstone §3.6.2, target ≥ 85%).
+// Faculty review agreement: the AI's first suggestion vs. the faculty's final decision on
+// reviewed items. Operational monitoring only — the reported mapping accuracy comes from
+// the blind Mapping Validation sample (panel comment 1).
 
 function MappingAccuracyCard({ courseId }) {
   const T = useThresholds();
@@ -455,10 +457,11 @@ function MappingAccuracyCard({ courseId }) {
     <section aria-labelledby="mapping-accuracy-heading" className="bg-white rounded-2xl border border-gray-200 p-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h3 id="mapping-accuracy-heading" className="text-sm font-semibold text-gray-800">AI Mapping Accuracy</h3>
+          <h3 id="mapping-accuracy-heading" className="text-sm font-semibold text-gray-800">Faculty Review Agreement</h3>
           <p className="text-xs text-gray-500 mt-0.5 max-w-md">
             How often the AI's first suggestion matched your final decision, across items you reviewed.
-            Target: {report.target_pct}% or higher.
+            This is for monitoring; the reported mapping accuracy comes from the blind{" "}
+            <a href="/mapping-validation" className="text-indigo-600 hover:underline">Mapping Validation</a> sample.
           </p>
         </div>
         <div className="text-right">

@@ -37,6 +37,8 @@ export default defineConfig({
       // Trailing slash: API calls (/reports/...) go to the backend, the SPA page /reports does not.
       '/reports/':    BACKEND,
       '/institution-settings': BACKEND,
+      // Trailing slash: the API, not the SPA page /mapping-validation.
+      '/mapping-validation/': BACKEND,
     },
   },
 })

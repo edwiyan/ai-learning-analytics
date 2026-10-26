@@ -21,6 +21,7 @@ import ResourcesPage from "./pages/ResourcesPage";
 import CourseResourcesPage from "./pages/CourseResourcesPage";
 import ReportsPage from "./pages/ReportsPage";
 import InstitutionSettingsPage from "./pages/InstitutionSettingsPage";
+import MappingValidationPage from "./pages/MappingValidationPage";
 import SettingsPage from "./pages/SettingsPage";
 import CurriculumInsightsPage from "./pages/CurriculumInsightsPage";
 import AuditLogsPage from "./pages/AuditLogsPage";
@@ -75,6 +76,7 @@ export default function App() {
       <Route path="/my-competencies" element={<ProtectedRoute allowedRoles={["student"]}><StudentCompetenciesPage /></ProtectedRoute>} />
       <Route path="/interventions" element={<ProtectedRoute allowedRoles={["student"]}><StudentInterventionsPage /></ProtectedRoute>} />
       <Route path="/user-management" element={<ProtectedRoute allowedRoles={["admin","instructor"]}><UserManagement /></ProtectedRoute>} />
+      <Route path="/mapping-validation" element={<ProtectedRoute allowedRoles={["admin","instructor","program_director","dean","vp_academic_affairs"]}><MappingValidationPage /></ProtectedRoute>} />
       <Route path="/institution-settings" element={<ProtectedRoute allowedRoles={["admin","program_director","dean","vp_academic_affairs"]}><InstitutionSettingsPage /></ProtectedRoute>} />
       <Route path="/reports" element={<ProtectedRoute allowedRoles={["admin","instructor","program_director","dean","vp_academic_affairs"]}><ReportsPage /></ProtectedRoute>} />
       <Route path="/instructor/course-resources" element={<ProtectedRoute allowedRoles={["instructor","admin"]}><CourseResourcesPage /></ProtectedRoute>} />

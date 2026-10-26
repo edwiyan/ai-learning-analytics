@@ -336,7 +336,8 @@ def render_pdf(data: dict) -> bytes:
     contents = ["1. Executive Summary", "2. Risk Distribution by College, Program and Curriculum",
                 "3. Risk Distribution by Year Level and Section", "4. Risk Distribution by Course",
                 "5. Competency Gap Analysis", "6. At-Risk Students", "7. Excelling Students",
-                "8. Intervention Status", "9. Section Rosters by Curriculum", "10. Methodology and Definitions"]
+                "8. Intervention Status", "9. Section Rosters by Curriculum", "10. AI Mapping Validation",
+                "11. Methodology and Definitions"]
     story += [Paragraph("Contents", S["h2"])] + [Paragraph(c, S["body"]) for c in contents]
     story += [NextPageTemplate("body"), PageBreak()]
 
@@ -489,7 +490,35 @@ def render_pdf(data: dict) -> bytes:
             Spacer(1, 3 * mm),
         ]))
 
-    story += [PageBreak(), Paragraph("10. Methodology and Definitions", S["h1"]),
+    # ── 10. AI mapping validation ──
+    story += [PageBreak(), Paragraph("10. AI Mapping Validation", S["h1"]),
+              Paragraph("Mapping accuracy is measured on a stratified random sample of AI-mapped assessment items. Two "
+                        "faculty validators per course label each item without seeing the AI's answer; the Program "
+                        "Director decides items they disagree on. Accuracy = AI answer matches this ground truth.",
+                        S["small"]), Spacer(1, 2 * mm)]
+    mv = data.get("mapping_validation") or []
+    if not mv:
+        story.append(Paragraph("No mapping validation set covers these courses yet.", S["body"]))
+    for v in mv:
+        ci = "—" if v["ci_low"] is None else f"{v['ci_low']:.1f}–{v['ci_high']:.1f}%"
+        status = "complete" if v["complete"] else (f"in progress: {v['ground_truth_items']} of {v['items']} items "
+                                                   "have ground truth")
+        story += [Paragraph(f"<b>{_esc(v['name'])}</b> · {v['courses']} course{'s' if v['courses'] != 1 else ''} · "
+                            f"{_esc(status)}", S["body"]),
+                  _table(["Measure", "Value"], [
+                      ["Mapping accuracy (95% CI)", f"{_fmt_pct(v['accuracy_pct'])} ({ci})"],
+                      ["Target", f"≥ {v['target_pct']:.0f}% — {'met' if v['meets_target'] else 'not met'}"],
+                      ["Items with ground truth / sampled", f"{v['ground_truth_items']} / {v['items']}"],
+                      ["Validator agreement before adjudication", _fmt_pct(v["agreement_pct"])],
+                      ["Cohen's kappa", "—" if v["kappa"] is None else f"{v['kappa']:.2f}"],
+                      ["Adjudicated disagreements", f"{v['adjudicated']} of {v['disagreements']}"],
+                      ["Accuracy, high-confidence items", f"{_fmt_pct(v['by_band']['high']['accuracy_pct'])} "
+                                                         f"(n = {v['by_band']['high']['items']})"],
+                      ["Accuracy, low-confidence items", f"{_fmt_pct(v['by_band']['low']['accuracy_pct'])} "
+                                                        f"(n = {v['by_band']['low']['items']})"],
+                  ], [CONTENT_W * 0.55, CONTENT_W * 0.45]), Spacer(1, 4 * mm)]
+
+    story += [PageBreak(), Paragraph("11. Methodology and Definitions", S["h1"]),
               KeepTogether(_table(["Term", "Definition"], [[a, b] for a, b in defs],
                                   [CONTENT_W * 0.24, CONTENT_W * 0.76], zebra=False))]
 

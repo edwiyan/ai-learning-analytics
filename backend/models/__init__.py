@@ -27,3 +27,7 @@ from backend.models.grade_submission import GradeSubmission, GradeSubmissionAppr
 from backend.models.exam_question import ExamQuestion
 from backend.models.llm_cache import LLMCache
 from backend.models.institution_setting import InstitutionSetting
+from backend.models.mapping_validation import (
+    MappingValidationAdjudication, MappingValidationAssignment, MappingValidationItem, MappingValidationLabel,
+    MappingValidationSet,
+)

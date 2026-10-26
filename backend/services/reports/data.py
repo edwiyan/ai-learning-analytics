@@ -216,6 +216,7 @@ def build_report(db: Session, user: User, filters: ReportFilters) -> dict:
         "thresholds_updated_at": last_updated(db)[0],
         "interventions": _intervention_summary(rows),
         "early_warning": {"summary": _early_summary(early_rows, early["summary"]), "rows": early_rows},
+        "mapping_validation": _mapping_validation(db, {str(c.id) for c in courses}),
     }
 
 
@@ -302,3 +303,23 @@ def _early_summary(rows, base):
             "within_target": sum(1 for r in rows if r["within_target"]),
             "within_target_pct": round(sum(1 for r in rows if r["within_target"]) / n * 100, 1) if n else None,
             "overdue": sum(1 for r in rows if r["overdue"])}
+
+
+def _mapping_validation(db, course_ids: set) -> list[dict]:
+    """Results of validation sets that include any of the report's courses."""
+    from backend.models.mapping_validation import MappingValidationSet
+    from backend.services.mapping_validation import compute_metrics
+
+    out = []
+    for s in db.query(MappingValidationSet).order_by(MappingValidationSet.created_at.desc()).all():
+        by_course = {str(a.course_id): a for a in s.assignments}
+        if not course_ids & set(by_course):
+            continue
+        names = {}
+        for cid in by_course:
+            for c in (db.query(Competency).join(Syllabus, Competency.syllabus_id == Syllabus.id)
+                      .filter(Syllabus.course_id == cid).all()):
+                names[str(c.id)] = (c.competency_code, c.topic_name)
+        m = compute_metrics(s.items, by_course, names)
+        out.append({"name": s.name, "created_at": s.created_at, "courses": len(by_course), **m})
+    return out

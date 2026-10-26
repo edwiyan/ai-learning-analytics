@@ -114,28 +114,28 @@ Acceptance: `grep -ri "predict\|real-time" frontend/src` shows no claims about A
 
 ## Phase 5 — Mapping validation module (comment 1) · ~3 days
 
-- [ ] **T5.1 Data model + migration.** `mapping_validation_sets` (name, scope courses, sample
+- [x] **T5.1 Data model + migration.** `mapping_validation_sets` (name, scope courses, sample
   size, seed, status, created_by), `mapping_validation_items` (set, assessment_item, snapshot of
   AI competency + confidence), `mapping_validation_assignments` (set, course, validator ids,
   adjudicator id), `mapping_validation_labels` (item, validator, competency or "none",
   labeled_at), `mapping_validation_adjudications` (item, adjudicator, competency or "none", note).
-- [ ] **T5.2 Sampling.** Stratified random sample per course and confidence band (≥ / < threshold),
+- [x] **T5.2 Sampling.** Stratified random sample per course and confidence band (≥ / < threshold),
   any review status; default n = 306; seed stored so the sample is reproducible.
-- [ ] **T5.3 Set-up flow (PD/admin).** Create set, pick courses, assign two validators per course
+- [x] **T5.3 Set-up flow (PD/admin).** Create set, pick courses, assign two validators per course
   (faculty of the same college) and the adjudicator; validators get notifications.
-- [ ] **T5.4 Blind labeling page (validators).** One item at a time: question text + endorsed
+- [x] **T5.4 Blind labeling page (validators).** One item at a time: question text + endorsed
   competency list + "no matching competency"; **AI suggestion and confidence hidden**; cannot see
   the other validator's labels; progress bar; resume later.
-- [ ] **T5.5 Adjudication page (PD).** Only disagreements; shows both labels (AI still hidden);
+- [x] **T5.5 Adjudication page (PD).** Only disagreements; shows both labels (AI still hidden);
   PD picks the final competency with an optional note.
-- [ ] **T5.6 Metrics.** Ground truth = agreed label or adjudication. Accuracy with 95% Wilson CI;
+- [x] **T5.6 Metrics.** Ground truth = agreed label or adjudication. Accuracy with 95% Wilson CI;
   Cohen's κ before adjudication; per-competency accuracy; accuracy by confidence band
   (calibration table); "none fits" counts. Pure functions with unit tests (known κ examples).
-- [ ] **T5.7 Results page + export.** Results view, Excel export, and a "Mapping Validation"
+- [x] **T5.7 Results page + export.** Results view, Excel export, and a "Mapping Validation"
   section in the Reports PDF (Chapter 4 evidence).
-- [ ] **T5.8 Rename the existing card** to "Faculty review agreement" and link to the validation
+- [x] **T5.8 Rename the existing card** to "Faculty review agreement" and link to the validation
   results.
-- [ ] **T5.9 End-to-end test** (two validators, one disagreement, adjudication, metrics).
+- [x] **T5.9 End-to-end test** (two validators, one disagreement, adjudication, metrics).
 
 ## Phase 6 — Docs and wrap-up (comment 8 + housekeeping) · ~0.5 day
 
