@@ -8,6 +8,34 @@ from backend.core.config import settings
 logger = logging.getLogger(__name__)
 
 
+def smtp_configured() -> bool:
+    return all([settings.smtp_host, settings.smtp_user, settings.smtp_password, settings.email_from])
+
+
+def send_email(to: str, subject: str, html: str) -> bool:
+    """Send one HTML email. Returns False (and logs) when SMTP is not configured or
+    sending fails; callers treat email as best-effort on top of in-app notifications."""
+    if not smtp_configured():
+        logger.warning("SMTP not configured — skipping email '%s' to %s", subject, to)
+        return False
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"] = f"{settings.email_from_name} <{settings.email_from}>"
+    msg["To"] = to
+    msg.attach(MIMEText(html, "html"))
+    try:
+        with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=10) as server:
+            server.ehlo()
+            server.starttls()
+            server.login(settings.smtp_user, settings.smtp_password)
+            server.sendmail(settings.email_from, to, msg.as_string())
+        logger.info("Email '%s' sent to %s", subject, to)
+        return True
+    except Exception as exc:
+        logger.error("Failed to send email '%s' to %s: %s", subject, to, exc)
+        return False
+
+
 def _build_enrollment_html(
     student_name: str,
     student_number: str,
@@ -167,14 +195,6 @@ def send_enrollment_welcome(
     password: str,
 ) -> None:
     """Send enrollment welcome email with initial password. Silently skips if SMTP is not configured."""
-    if not all([settings.smtp_host, settings.smtp_user, settings.smtp_password, settings.email_from]):
-        logger.warning(
-            "SMTP not configured — skipping welcome email for %s (%s)",
-            student_name,
-            student_email,
-        )
-        return
-
     html = _build_enrollment_html(
         student_name=student_name,
         student_number=student_number,
@@ -183,19 +203,8 @@ def send_enrollment_welcome(
         curriculum_name=curriculum_name,
         password=password,
     )
-
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = f"Welcome to AILAS – Your Enrollment is Confirmed, {student_name.split()[0]}!"
-    msg["From"] = f"{settings.email_from_name} <{settings.email_from}>"
-    msg["To"] = student_email
-    msg.attach(MIMEText(html, "html"))
-
-    try:
-        with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=10) as server:
-            server.ehlo()
-            server.starttls()
-            server.login(settings.smtp_user, settings.smtp_password)
-            server.sendmail(settings.email_from, student_email, msg.as_string())
-        logger.info("Enrollment welcome email sent to %s", student_email)
-    except Exception as exc:
-        logger.error("Failed to send enrollment email to %s: %s", student_email, exc)
+    send_email(
+        student_email,
+        f"Welcome to AILAS – Your Enrollment is Confirmed, {student_name.split()[0]}!",
+        html,
+    )

@@ -91,3 +91,34 @@ def test_new_at_risk_student_alerts_instructor_and_student(db, course_setup, ins
     # Still At-Risk on the next refresh -> no duplicate alerts
     refresh_course_analytics(course_setup["course"].id, db)
     assert db.query(Notification).count() == 2
+
+
+def test_at_risk_alert_is_emailed_when_smtp_configured(db, course_setup, instructor_user, monkeypatch):
+    from backend.core.security import hash_student_id
+    from backend.models.user import User, UserRole
+    from backend.services import risk_alerts
+    from backend.services.analytics_refresh import refresh_course_analytics
+
+    sent = []
+    monkeypatch.setattr(risk_alerts, "smtp_configured", lambda: True)
+    monkeypatch.setattr(risk_alerts, "send_email", lambda to, subject, html: sent.append((to, subject, html)))
+
+    db.add(User(email="weak@test.com", password_hash="x", full_name="Weak <Student>",
+                role=UserRole.student, student_number="2024-0099", is_active=True))
+    db.commit()
+    add_scores(db, course_setup, hash_student_id("2024-0099"), 50)
+    refresh_course_analytics(course_setup["course"].id, db)
+
+    assert sorted(to for to, *_ in sent) == ["instructor@test.com", "weak@test.com"]
+    instructor_html = next(h for to, _, h in sent if to == "instructor@test.com")
+    assert "Weak &lt;Student&gt;" in instructor_html  # names are HTML-escaped
+
+
+def test_no_email_without_smtp(db, course_setup, monkeypatch):
+    from backend.services import risk_alerts
+    from backend.services.analytics_refresh import refresh_course_analytics
+
+    monkeypatch.setattr(risk_alerts, "smtp_configured", lambda: False)
+    monkeypatch.setattr(risk_alerts, "send_email", lambda *a: pytest.fail("email sent without SMTP"))
+    add_scores(db, course_setup, "weak", 50)
+    assert refresh_course_analytics(course_setup["course"].id, db)["alerted"] == 1
