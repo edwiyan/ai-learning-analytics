@@ -58,7 +58,7 @@ const FEATURES = [
   {
     icon: "chart",
     title: "Institution-Wide Analytics",
-    desc: "Role-scoped dashboards give admins, deans, and VP academic affairs real-time visibility into enrollment trends, subject performance, and failure rates.",
+    desc: "Role-scoped dashboards give admins, deans, and VP academic affairs up-to-date visibility, refreshed after each upload, into enrollment trends, subject performance, and failure rates.",
     color: "sky",
   },
   {
@@ -77,8 +77,8 @@ const FEATURES = [
 
 const STATS = [
   { value: "≥ 85%", label: "Topic Mapping Accuracy", sub: "vs faculty-validated ground truth" },
-  { value: "≥ 0.80", label: "Risk Prediction F₁", sub: "Rule-based engine" },
-  { value: "≤ 3s",  label: "API Response (p95)",   sub: "ISO/IEC 25010 target" },
+  { value: "< 3 s",  label: "Dashboard Load",       sub: "ISO/IEC 25010 target" },
+  { value: "< 5 s",  label: "API Response",         sub: "ISO/IEC 25010 target" },
   { value: "≥ 68",  label: "Target SUS Score",      sub: "above-average usability" },
 ];
 
@@ -147,9 +147,9 @@ function Hero() {
         </h1>
 
         <p className="max-w-2xl mx-auto text-lg text-gray-500 leading-relaxed mb-10">
-          AILAS maps every assessment to curriculum competencies using AI, predicts academic risk
-          in real time, and delivers personalized remedial resources — so no student slips through
-          the cracks.
+          AILAS uses AI to help faculty map every assessment item to the syllabus competencies, flags
+          students at risk with transparent rules each time results are uploaded, and points them to
+          remedial resources matched to their learning gaps — with faculty in control of every step.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -294,7 +294,7 @@ function HowItWorks() {
   const steps = [
     { n: "01", title: "Upload Assessments", desc: "Instructors upload CSV grade sheets. Student IDs are SHA-256 hashed on ingestion for privacy." },
     { n: "02", title: "AI Topic Mapping",   desc: "GPT-4o-mini maps each question to syllabus competencies. Items below 0.75 confidence go to faculty review." },
-    { n: "03", title: "Risk Prediction",    desc: "A rule-based engine scores every student — Excelling, On-Track, or At-Risk — using deterministic competency thresholds." },
+    { n: "03", title: "Risk Classification",    desc: "A rule-based engine scores every student — Excelling, On-Track, or At-Risk — using deterministic competency thresholds." },
     { n: "04", title: "Targeted Resources", desc: "Tag-match recommender ranks remedial videos, readings, and exercises per weak competency on each student's dashboard." },
   ];
   return (

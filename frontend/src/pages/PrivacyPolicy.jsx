@@ -28,7 +28,7 @@ export default function PrivacyPolicy() {
         <section className="space-y-2">
           <h2 className="text-base font-semibold text-gray-700">3. How We Use Your Data</h2>
           <ul className="text-sm list-disc list-inside space-y-1 leading-relaxed">
-            <li>Generate academic risk predictions and personalized remedial recommendations.</li>
+            <li>Classify academic risk with fixed, rule-based thresholds and match remedial resources to learning gaps.</li>
             <li>Provide instructors with anonymized, aggregate course analytics.</li>
             <li>Maintain system security and audit trails as required by university policy.</li>
           </ul>

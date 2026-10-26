@@ -100,23 +100,6 @@ def _student_context(db: Session) -> tuple[dict, dict]:
     return by_hash, placement
 
 
-def _risk_reason(features: dict | None, level: str) -> str:
-    if not features:
-        return "No assessment data yet"
-    gaps = features.get("below_passing_count", 0)
-    decline = features.get("grade_decline_pct", 0.0) or 0.0
-    if level == RiskLevel.at_risk.value:
-        parts = []
-        if gaps >= 3:
-            parts.append(f"{gaps} competencies below {MASTERY_THRESHOLD:.0f}%")
-        if decline > GRADE_DECLINE_THRESHOLD:
-            parts.append(f"{decline:.1f}% grade decline")
-        return "; ".join(parts)
-    if level == RiskLevel.excelling.value:
-        return f"Average {features.get('avg_score', 0):.1f}% with no learning gaps"
-    return f"{gaps} learning gap{'s' if gaps != 1 else ''}" if gaps else "Meets expectations"
-
-
 def build_report(db: Session, user: User, filters: ReportFilters) -> dict:
     courses = scoped_courses(db, user)
     names = {str(c.id): f"{c.code} — {c.title}" for c in courses}
@@ -183,7 +166,7 @@ def build_report(db: Session, user: User, filters: ReportFilters) -> dict:
                 "gap_count": (features or {}).get("below_passing_count", 0),
                 "grade_decline_pct": round((features or {}).get("grade_decline_pct", 0.0) or 0.0, 1),
                 "risk_level": level,
-                "reason": _risk_reason(features, level),
+                "reason": result["reason"],
                 "weak_topics": [f"{t} ({p:.0f}%)" for t, p in weak[:4]],
                 "intervention": ivs[-1].status.replace("_", " ") if ivs else None,
                 "intervention_count": len(ivs),

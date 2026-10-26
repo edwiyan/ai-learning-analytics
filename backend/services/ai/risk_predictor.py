@@ -26,16 +26,42 @@ def _rule_based_risk(features: dict) -> RiskLevel:
     return RiskLevel.on_track
 
 
+def explain_risk(features: dict | None, risk_level) -> str:
+    """Plain-language reason for a rule-based classification (which rule fired)."""
+    level = getattr(risk_level, "value", risk_level)
+    if not features:
+        return "No assessment data yet"
+    gaps = features.get("below_passing_count", 0)
+    decline = features.get("grade_decline_pct", 0.0) or 0.0
+    if level == RiskLevel.at_risk.value:
+        parts = []
+        if gaps >= 3:
+            parts.append(f"{gaps} competencies below 75%")
+        if decline > 15.0:
+            parts.append(f"{decline:.1f}% grade decline")
+        return "; ".join(parts)
+    if level == RiskLevel.excelling.value:
+        return f"Average {features.get('avg_score', 0):.1f}% with no learning gaps"
+    return f"{gaps} learning gap{'s' if gaps != 1 else ''}" if gaps else "Meets expectations"
+
+
 def predict_risk(student_id_hash: str, course_id: str, db: Session) -> dict:
+    """Classify a student's risk in a course with the deterministic rules above.
+
+    `confidence` is kept only because the risk_predictions table has the column; the
+    rules are deterministic, so it carries no meaning and is never shown to users.
+    """
     features = build_student_features(student_id_hash, course_id, db)
     if not features:
-        return {"risk_level": RiskLevel.on_track, "confidence": 0.5, "weak_competency_ids": []}
+        return {"risk_level": RiskLevel.on_track, "confidence": None, "weak_competency_ids": [],
+                "reason": explain_risk(None, RiskLevel.on_track)}
 
     risk_level = _rule_based_risk(features)
 
     return {
         "risk_level": risk_level,
-        "confidence": 0.75,
+        "confidence": None,
         "weak_competency_ids": features["weak_competency_ids"],
+        "reason": explain_risk(features, risk_level),
         "features": features,
     }

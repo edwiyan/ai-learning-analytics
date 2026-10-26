@@ -25,14 +25,9 @@ function ScorePill({ score }) {
   return <span className={`font-semibold ${color}`}>{score}%</span>;
 }
 
-function ConfidenceDot({ pct }) {
-  const color = pct >= 80 ? "bg-red-500" : pct >= 60 ? "bg-amber-400" : "bg-gray-300";
-  return (
-    <span className="flex items-center gap-1.5">
-      <span className={`w-2 h-2 rounded-full ${color} shrink-0`} />
-      <span className="text-xs text-gray-500">{pct}%</span>
-    </span>
-  );
+// Which rule flagged the student (the risk engine is deterministic, so there is no confidence score).
+function FlagReason({ reason }) {
+  return <span className="text-xs text-red-700">{reason || "—"}</span>;
 }
 
 export default function InterventionAlertsPage() {
@@ -239,7 +234,7 @@ export default function InterventionAlertsPage() {
                       <th className="px-5 py-3 text-right">Avg Score</th>
                       <th className="px-5 py-3 text-left">Weakest Area</th>
                       <th className="px-5 py-3 text-left">Weak Topics</th>
-                      <th className="px-5 py-3 text-left">Confidence</th>
+                      <th className="px-5 py-3 text-left">Why Flagged</th>
                       <th className="px-5 py-3 text-left">Actions</th>
                     </tr>
                   </thead>
@@ -289,7 +284,7 @@ export default function InterventionAlertsPage() {
                               </span>
                             </td>
                             <td className="px-5 py-3">
-                              <ConfidenceDot pct={a.confidence} />
+                              <FlagReason reason={a.reason} />
                             </td>
                             <td className="px-5 py-3">
                               <div className="flex items-center gap-1.5">

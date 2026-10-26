@@ -110,7 +110,7 @@ def get_my_risk(
     result = predict_risk(sid_hash, course_id, db)
     return {
         "risk_level": result["risk_level"],
-        "confidence": result["confidence"],
+        "reason": result["reason"],
         "weak_competency_ids": result["weak_competency_ids"],
     }
 
@@ -256,7 +256,7 @@ def get_course_overview(
         predictions.append(RiskPredictionResponse(
             student_id_hash=sid,
             risk_level=level,
-            confidence=result["confidence"],
+            reason=result["reason"],
             weak_competency_ids=result["weak_competency_ids"],
         ))
 
@@ -798,7 +798,8 @@ def get_instructor_at_risk(
                 "avg_score": round(avg, 1) if avg is not None else None,
                 "weakest_topic": weakest_topic,
                 "weak_count": len(risk_result.get("weak_competency_ids", [])),
-                "confidence": round(risk_result["confidence"] * 100),
+                "grade_decline_pct": round((features or {}).get("grade_decline_pct", 0.0) or 0.0, 1),
+                "reason": risk_result["reason"],
             })
 
     return sorted(results, key=lambda x: (x["avg_score"] if x["avg_score"] is not None else 100))
@@ -1178,7 +1179,8 @@ def get_student_profile(
         "year_level": user.year_level if user else None,
         "avg_score": round(features["avg_score"], 2) if features and features.get("avg_score") is not None else None,
         "risk_level": risk_result["risk_level"],
-        "confidence": round(risk_result["confidence"] * 100),
+        "risk_reason": risk_result["reason"],
+        "learning_gaps": len(risk_result.get("weak_competency_ids", [])),
         "competency_scores": sorted(competency_scores, key=lambda x: x["average_score"]),
         "period_trend": period_trend,
         "recommendations": [r if isinstance(r, dict) else r.model_dump() for r in recs][:6],

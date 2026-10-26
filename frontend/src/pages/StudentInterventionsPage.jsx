@@ -260,11 +260,11 @@ function CourseIntervention({ course }) {
           </div>
         )}
 
-        {/* AI Recommendations */}
+        {/* Recommended resources */}
         {recs?.length > 0 && (
           <div>
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-              AI-Recommended Resources
+              Recommended Resources
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {recs.slice(0, 6).map((r, i) => (

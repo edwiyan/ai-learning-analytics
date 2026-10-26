@@ -24,7 +24,7 @@ def test_rule_based_at_risk(mock_features):
     mock_features.return_value = _make_features(avg_score=55.0, below_count=4)
     result = predict_risk("abc123hash", "course-uuid", MagicMock())
     assert result["risk_level"] == RiskLevel.at_risk
-    assert result["confidence"] > 0
+    assert result["reason"] == "4 competencies below 75%"
 
 
 @patch("backend.services.ai.risk_predictor.build_student_features")
@@ -62,7 +62,7 @@ def test_predict_risk_returns_required_keys(mock_features):
     mock_features.return_value = _make_features(avg_score=65.0, below_count=1)
     result = predict_risk("abc123hash", "course-uuid", MagicMock())
     assert "risk_level" in result
-    assert "confidence" in result
+    assert "reason" in result
     assert "weak_competency_ids" in result
 
 

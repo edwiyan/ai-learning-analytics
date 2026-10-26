@@ -336,9 +336,9 @@ export default function StudentDashboard() {
               <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-5 py-3">
                 <span className="text-sm text-gray-500 shrink-0">Risk Status</span>
                 <RiskBadge level={risk.risk_level} size="lg" />
-                {risk.confidence !== undefined && (
-                  <span className="text-xs text-gray-400 ml-auto">
-                    {Math.round(risk.confidence * 100)}% confidence
+                {risk.reason && (
+                  <span className="text-xs text-gray-500 ml-auto text-right">
+                    {risk.reason} <span className="text-gray-400">· rule-based</span>
                   </span>
                 )}
               </div>
@@ -503,8 +503,8 @@ export default function StudentDashboard() {
               </SectionCard>
             )}
 
-            {/* ── AI Recommendations ── */}
-            <SectionCard title="AI Recommendations">
+            {/* ── Recommended resources (matched to learning gaps by competency tags) ── */}
+            <SectionCard title="Recommended Resources">
               {loadingRecs ? (
                 <div className="space-y-2">
                   {[...Array(3)].map((_, i) => (

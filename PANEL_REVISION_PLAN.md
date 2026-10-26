@@ -38,21 +38,21 @@ finish and commit on its own.
 
 ## Phase 1 — Honest wording in the UI (comments 4, 5, 9) · ~0.5 day
 
-- [ ] **T1.1 Remove the fake risk confidence.** The rule engine always returns 0.75. Stop showing it:
+- [x] **T1.1 Remove the fake risk confidence.** The rule engine always returns 0.75. Stop showing it:
   StudentDashboard risk badge ("75% confidence"), instructor at-risk list (`confidence: 75`),
   anywhere else it renders. Keep the API field for compatibility but document it as unused, or drop
   it from `RiskResponse`/at-risk payloads. Files: `services/ai/risk_predictor.py`,
   `routers/analytics.py`, `pages/StudentDashboard.jsx`, `pages/InterventionAlertsPage.jsx`,
   `pages/InstructorDashboard.jsx`.
-- [ ] **T1.2 "Risk Prediction" → "Risk Classification (rule-based)".** Pipeline diagrams in
+- [x] **T1.2 "Risk Prediction" → "Risk Classification (rule-based)".** Pipeline diagrams in
   `AnalyticsPage`, `CurriculumInsightsPage`, `InstructorDashboard`; processing step label in
   `ProcessingInterface`; `TopicMappingPage` help text; `PrivacyPolicy` ("risk predictions").
-- [ ] **T1.3 Landing page.** Replace "predicts academic risk", remove the "Risk Prediction F₁ ≥ 0.80"
+- [x] **T1.3 Landing page.** Replace "predicts academic risk", remove the "Risk Prediction F₁ ≥ 0.80"
   stat (internal QA only), "real-time visibility" → "up-to-date visibility after each upload".
-- [ ] **T1.4 Recommendation labels.** StudentDashboard "AI Recommendations" → "Recommended
+- [x] **T1.4 Recommendation labels.** StudentDashboard "AI Recommendations" → "Recommended
   Resources" (subtitle: "matched to your learning gaps"); Course Resources shows "AI suggestions"
   only when an LLM is configured, otherwise "Keyword-matched suggestions".
-- [ ] **T1.5** Update Vitest/backend tests that assert old labels; lint; commit.
+- [x] **T1.5** Update Vitest/backend tests that assert old labels; lint; commit.
 
 Acceptance: `grep -ri "predict\|real-time" frontend/src` shows no claims about AILAS itself.
 

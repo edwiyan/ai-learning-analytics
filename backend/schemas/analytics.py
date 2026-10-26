@@ -7,7 +7,7 @@ from backend.models.prediction import RiskLevel
 class RiskPredictionResponse(BaseModel):
     student_id_hash: str
     risk_level: RiskLevel
-    confidence: float
+    reason: str = ""  # which rule fired (the engine is deterministic; no confidence score)
     weak_competency_ids: list[str] = []
     model_config = {"from_attributes": True}
 

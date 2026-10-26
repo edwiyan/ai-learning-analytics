@@ -20,7 +20,7 @@ const STEP_DESCRIPTIONS = {
 const OCR_PHASES = [
   { key: "ocr", label: "OCR Text Extraction", icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },
   { key: "nlp", label: "NLP Topic Classification", icon: "M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.346A3.001 3.001 0 0012 15a3 3 0 00-2.971 2.589l-.347-.346z" },
-  { key: "risk", label: "Risk Prediction Engine", icon: "M13 10V3L4 14h7v7l9-11h-7z" },
+  { key: "risk", label: "Risk Classification Rules", icon: "M13 10V3L4 14h7v7l9-11h-7z" },
 ];
 const DRAFT_KEY = "ailas_wizard_draft";
 
@@ -1379,7 +1379,7 @@ export default function ProcessingInterface() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
                 Assessment Date / Due Date
-                <InfoTooltip text="When was this assessment administered or due? Used to compute submission timeliness in risk predictions." />
+                <InfoTooltip text="When was this assessment administered or due? Recorded for submission-timeliness context; it does not affect the risk classification." />
               </label>
               <input
                 type="date"
@@ -1583,7 +1583,7 @@ export default function ProcessingInterface() {
               <h2 className="font-semibold text-gray-700 text-lg">Processing Complete</h2>
               <p className="text-sm text-gray-500">
                 Course <span className="font-medium text-indigo-600">{course?.title}</span> is ready.
-                Risk predictions will update as more data is added.
+                Risk classifications update each time new results are uploaded.
               </p>
               <div className="flex justify-center gap-3 pt-2">
                 <button onClick={() => { setStep("assessment"); setAssessment(null); setCsvFile(null); setCsvPreview(null); setUploadSummary(null); setUploadPercent(0); }}

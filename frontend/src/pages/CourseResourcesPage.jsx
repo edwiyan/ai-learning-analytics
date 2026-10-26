@@ -21,14 +21,14 @@ const TYPE_OPTIONS = [
   { value: "file", label: "File (PDF, PPT, DOCX…)" },
 ];
 const TABS = [
-  { key: "suggested", label: "AI Suggestions" },
+  { key: "suggested", label: "Suggestions" },
   { key: "accepted", label: "Accepted" },
   { key: "declined", label: "Declined" },
 ];
 const FILE_ACCEPT = ".pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.txt,.png,.jpg,.jpeg,.mp4";
 const EMPTY_FORM = { title: "", type: "link", url: "", description: "", competencyIds: [], file: null };
 
-function ResourceCard({ item, onDecide, onRemove, busy }) {
+function ResourceCard({ item, onDecide, onRemove, busy, aiAvailable }) {
   const r = item.resource;
   const fromInstructor = item.source === "instructor";
   return (
@@ -37,7 +37,7 @@ function ResourceCard({ item, onDecide, onRemove, busy }) {
         <div className="flex items-center gap-2 flex-wrap">
           <span className={`text-[11px] px-1.5 py-0.5 rounded font-medium capitalize ${TYPE_STYLES[r.type] || "bg-gray-100 text-gray-600"}`}>{r.type}</span>
           <span className={`text-[11px] px-1.5 py-0.5 rounded font-medium ${fromInstructor ? "bg-indigo-50 text-indigo-700" : "bg-gray-100 text-gray-600"}`}>
-            {fromInstructor ? "Added by you" : "AI suggestion"}
+            {fromInstructor ? "Added by you" : aiAvailable ? "AI suggestion" : "Keyword match"}
           </span>
           {!fromInstructor && item.score != null && (
             <span className="text-[11px] text-gray-400">{Math.round(item.score * 100)}% relevance</span>
@@ -233,7 +233,7 @@ export default function CourseResourcesPage() {
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-xl font-bold text-gray-800">Course Review Resources</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Accept or decline the AI's suggested review materials for each competency, and add your own. Students weak in a competency see your accepted resources first; declined ones are never shown.</p>
+            <p className="text-sm text-gray-500 mt-0.5">Accept or decline the suggested review materials for each competency, and add your own. Students weak in a competency see your accepted resources first; declined ones are never shown.</p>
           </div>
           <select value={activeCourse} onChange={e => { setCourseId(e.target.value); setView(null); }}
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white min-w-64">
@@ -260,7 +260,7 @@ export default function CourseResourcesPage() {
               </div>
               <button disabled={busy} onClick={suggest}
                 className="px-4 py-2 text-sm font-semibold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50">
-                {busy ? "Working…" : "✨ Get AI suggestions"}
+                {busy ? "Working…" : view.ai_available ? "✨ Get AI suggestions" : "Find matching resources"}
               </button>
             </div>
 
@@ -275,7 +275,7 @@ export default function CourseResourcesPage() {
 
             {groups.length === 0 ? (
               <p className="text-sm text-gray-400 text-center py-8">
-                {tab === "suggested" ? "No suggestions waiting. Click “Get AI suggestions” to look for more." : `No ${tab} resources yet.`}
+                {tab === "suggested" ? "No suggestions waiting. Click the button above to look for more." : `No ${tab} resources yet.`}
               </p>
             ) : (
               <div className="space-y-4">
@@ -285,7 +285,7 @@ export default function CourseResourcesPage() {
                       <span className="font-mono text-indigo-600">{g.comp.competency_code}</span> · {g.comp.topic_name}
                     </h3>
                     {g.items.map(item => (
-                      <ResourceCard key={item.link_id} item={item} busy={busy} onDecide={decide} onRemove={remove} />
+                      <ResourceCard key={item.link_id} item={item} busy={busy} aiAvailable={view.ai_available} onDecide={decide} onRemove={remove} />
                     ))}
                   </section>
                 ))}

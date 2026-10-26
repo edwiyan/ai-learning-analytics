@@ -826,7 +826,7 @@ export default function InstructorDashboard() {
             <PipelineArrow />
             <PipelineNode label="AI Logic Core"    sub="GPT-4o-mini · LLM API"      color="border-indigo-200 bg-indigo-50 text-indigo-800" icon="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.346A3.001 3.001 0 0012 15a3 3 0 00-2.971 2.589l-.347-.346z" />
             <PipelineArrow />
-            <PipelineNode label="Risk Prediction"  sub="Rule-Based Engine"          color="border-red-200 bg-red-50 text-red-800"         icon="M13 10V3L4 14h7v7l9-11h-7z" />
+            <PipelineNode label="Risk Classification"  sub="Rule-Based Engine"          color="border-red-200 bg-red-50 text-red-800"         icon="M13 10V3L4 14h7v7l9-11h-7z" />
             <PipelineArrow />
             <PipelineNode label="Recommendations"  sub="Tag-Match"                  color="border-green-200 bg-green-50 text-green-800"   icon="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             <PipelineArrow />
@@ -835,7 +835,7 @@ export default function InstructorDashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5 pt-4 border-t border-gray-100">
             {[
               { label: "Topic Classification Logic", desc: "GPT-4o-mini receives question text and syllabus topics, returns the best-matching topic with a confidence score. Items below the 0.75 confidence threshold are flagged for instructor review." },
-              { label: "Risk Prediction Model",      desc: "Rule-Based Engine applies deterministic thresholds on competency mastery and period-over-period grade decline. Outputs At-Risk · On-Track · Excelling." },
+              { label: "Risk Classification Rules",      desc: "Rule-Based Engine applies deterministic thresholds on competency mastery and period-over-period grade decline. Outputs At-Risk · On-Track · Excelling." },
               { label: "Recommendation Engine",      desc: "Tag-Match Recommender queries resources whose competency tags overlap with the student's weak competency codes and topic names, ranked by match count." },
             ].map(item => (
               <div key={item.label} className="bg-gray-50 rounded-lg p-3">

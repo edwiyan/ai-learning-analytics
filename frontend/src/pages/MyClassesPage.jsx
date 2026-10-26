@@ -308,8 +308,8 @@ function StudentProfileDrawer({ student, courseId, onClose }) {
                 </div>
               </div>
               <div className="bg-gray-50 rounded-xl p-3 text-center">
-                <p className="text-xs text-gray-400 mb-1">Confidence</p>
-                <p className="text-xl font-bold text-indigo-600">{profile.confidence}%</p>
+                <p className="text-xs text-gray-400 mb-1">Learning Gaps</p>
+                <p className="text-xl font-bold text-indigo-600">{profile.learning_gaps ?? "—"}</p>
               </div>
             </div>
 

@@ -1180,7 +1180,7 @@ export default function TopicMappingPage() {
             },
             {
               step: "4", title: "Validated", color: "text-emerald-600 bg-emerald-50",
-              desc: "Confirmed mappings power risk prediction, analytics, and student dashboards.",
+              desc: "Confirmed mappings feed the risk classification, analytics, and student dashboards.",
               icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0",
             },
           ].map((s, i, arr) => (
