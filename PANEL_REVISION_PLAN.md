@@ -139,8 +139,8 @@ Acceptance: `grep -ri "predict\|real-time" frontend/src` shows no claims about A
 
 ## Phase 6 — Docs and wrap-up (comment 8 + housekeeping) · ~0.5 day
 
-- [ ] **T6.1** CLAUDE.md: "MVC" → three-tier description; add settings, validation and privacy notes.
-- [ ] **T6.2** `CAPSTONE_DOC_EDITS.md`: point to `PANEL_REVISIONS_MANUSCRIPT.docx` as the current
+- [x] **T6.1** CLAUDE.md: "MVC" → three-tier description; add settings, validation and privacy notes.
+- [x] **T6.2** `CAPSTONE_DOC_EDITS.md`: point to `PANEL_REVISIONS_MANUSCRIPT.docx` as the current
   manuscript edit list; keep the version/stack fixes.
 - [ ] **T6.3** Full run: pytest, Vitest, build, lint (no new errors); browser check of every new page.
 - [ ] **T6.4** Final cross-check of the ten comments against system and manuscript.

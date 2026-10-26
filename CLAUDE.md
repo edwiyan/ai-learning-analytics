@@ -70,11 +70,12 @@ docker-compose logs -f
 
 ## Architecture
 
-MVC with three layers:
+Three-tier architecture (use this term, not MVC — panel comment 8), with an external AI service:
 
-- **View Layer** (`frontend/src/`): React.js SPA, role-based routing, Chart.js dashboards
-- **Controller Layer** (`backend/routers/`): FastAPI REST endpoints, JWT middleware, RBAC guards, CSV parsers, OCR integration
-- **Model Layer** (`backend/models/`, `database/`): SQLAlchemy ORM, AI/ML pipeline, LLM API integration
+- **Presentation tier** (`frontend/src/`): React.js SPA, role-based routing, Chart.js dashboards
+- **Application tier** (`backend/routers/`, `backend/services/`): FastAPI REST API, JWT + RBAC, ingestion, rule-based analytics, all calls to the AI provider
+- **Data tier** (`backend/models/`, `database/`): PostgreSQL via SQLAlchemy ORM + Alembic migrations
+- **External AI service**: OpenAI GPT-4o-mini (optional Gemini fallback), called only from `services/ai/llm_client.py`; Nginx is the TLS reverse proxy
 
 ### Backend Layout
 ```
@@ -106,8 +107,8 @@ frontend/src/
 
 1. **Syllabus Ingestion** — PDF/DOC upload → text extraction (pdfplumber for digital PDFs, python-docx for DOC/DOCX; if a PDF yields no embedded text, an optional Tesseract OCR fallback rasterizes the pages — it degrades gracefully to empty text when the Tesseract binary is not installed) → GPT-4o-mini parses into structured JSON (topics, learning outcomes, competency IDs) → instructor validates; items with confidence < 0.75 are flagged for mandatory manual review
 2. **Assessment Upload** — CSV → Pandas schema validation → grade normalization → student IDs SHA-256 hashed before storage
-3. **Topic Mapping** — question text + syllabus topics sent to GPT-4o-mini → returns `topic_id` + `confidence_score`; items below the 0.75 threshold queued for human-in-the-loop correction
-4. **Risk Prediction** — Rule-Based Engine (deterministic, capstone Table 3): a student is `At-Risk` when they have ≥ 3 learning gaps (competencies below the 75% mastery threshold) OR a > 15% grade decline between the two most recent grading periods; `Excelling` requires ≥ 85% average mastery and no gaps; otherwise `On-Track`. No custom ML model is trained, and no behavioral/attendance signals drive the flag (per the capstone delimitations).
+3. **Topic Mapping** — question text + syllabus topics sent to GPT-4o-mini → returns `topic_id` + a self-reported `confidence_score`. The confidence only orders review: with the `mapping_auto_accept` institution setting off (pilot default) every AI mapping is provisional until faculty confirm it; items below `mapping_review_threshold` (0.75) are listed first. Mapping accuracy is measured only by the blind Mapping Validation module (`routers/mapping_validation.py`), never from the confidence score
+4. **Risk Classification** — Rule-Based Engine (deterministic, capstone Table 3): a student is `At-Risk` when they have ≥ 3 learning gaps (competencies below the 75% mastery threshold) OR a > 15% grade decline between the two most recent grading periods; `Excelling` requires ≥ 85% average mastery and no gaps; otherwise `On-Track`. No custom ML model is trained, and no behavioral/attendance signals drive the flag (per the capstone delimitations).
 5. **Recommendations** — weak competencies → competency tag-match query against pre-curated resource repository → ranked remedial resources (videos, readings, exercises) surfaced on student dashboard; optional GPT-4o-mini call generates a personalized encouragement message for the top result
 
 ## Environment Variables
@@ -152,4 +153,5 @@ The system targets **Dalubhasaang Politekniko ng Lungsod ng Baliwag (BTECH)**. A
 - **Syllabus approval:** instructors edit AI-extracted competencies only while the syllabus is a draft or rejected (`PUT /syllabi/{id}/competencies`); they are read-only under review, and the VP's final action is labelled **Endorse** — it validates and locks the competencies.
 - **Course review resources:** `course_resources` links AI-suggested (keyword-ranked, LLM re-rated when configured) or instructor-added resources (links, lessons, uploaded files) to competencies with an accept/decline decision; the recommender skips declined ones and ranks accepted ones first (`routers/course_resources.py`, `services/ai/resource_suggester.py`).
 - **Reports:** `/reports` builds the Academic Performance & Early Intervention report (role-scoped; by college, program, curriculum, year level, section, course; competency gaps; At-Risk / Excelling rosters; interventions) and exports PDF (reportlab) and Excel (`services/reports/`).
+- **Panel revisions (Oct 2026, `PANEL_REVISION_PLAN.md`):** thresholds (75 / 3 / 15 / 85, 0.75 review, early-warning period, intervention target) are institution settings (`services/institution_settings.py`, `/institution-settings/`) — read them with `get_settings(db)`, never hard-code; the frontend uses `useThresholds()`. The risk engine returns a `reason`, not a confidence. Every LLM prompt passes `guard_prompt` (blocks student numbers/names, strips emails; `store=False`); student scores are never sent. Early-warning timeliness lives in `services/early_warning.py`. Avoid "predict"/"real-time" wording for AILAS.
 - **Roles:** the `instructor` role is the document's primary-user "Faculty" (the capstone uses both terms interchangeably).

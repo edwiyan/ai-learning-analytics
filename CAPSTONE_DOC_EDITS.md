@@ -1,5 +1,10 @@
 # Suggested edits to the capstone document (MJCO_CAPSTONE_92726.docx)
 
+> **Update 2026-10-27:** the panel review (ORPILLA) supersedes parts of this list — use
+> `PANEL_REVISIONS_MANUSCRIPT.docx` for comments 1–10 (validation protocol, thresholds,
+> "early", privacy, zero data retention, three-tier/FastAPI, Objective 3). The version and
+> stack corrections below (B2, B4, B5) still apply.
+
 Drafted 2026-10-26 after the capstone alignment work (see `CAPSTONE_ALIGNMENT_PLAN.md`).
 Each item gives the section, the current wording, and replacement text you can paste.
 Items in **A** are factual corrections; **B** brings the document in line with the system as built;
