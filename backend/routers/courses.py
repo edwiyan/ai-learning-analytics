@@ -12,6 +12,15 @@ from backend.schemas.grade_weight import GradeWeightCreate, GradeWeightResponse
 router = APIRouter(prefix="/courses", tags=["courses"])
 
 
+def _owned_course(course_id, db: Session, current_user: User) -> Course:
+    course = db.query(Course).filter(Course.id == course_id).first()
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    if current_user.role != UserRole.admin and str(course.instructor_id) != str(current_user.id):
+        raise HTTPException(status_code=403, detail="You do not own this course")
+    return course
+
+
 @router.post("/", response_model=CourseResponse, status_code=status.HTTP_201_CREATED)
 def create_course(
     payload: CourseCreate,
@@ -53,6 +62,7 @@ def list_grade_weights(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.instructor, UserRole.admin)),
 ):
+    _owned_course(course_id, db, current_user)
     return db.query(GradeWeight).filter(GradeWeight.course_id == course_id).all()
 
 
@@ -63,9 +73,7 @@ def upsert_grade_weight(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.instructor, UserRole.admin)),
 ):
-    course = db.query(Course).filter(Course.id == course_id).first()
-    if not course:
-        raise HTTPException(status_code=404, detail="Course not found")
+    _owned_course(course_id, db, current_user)
     existing = db.query(GradeWeight).filter(
         GradeWeight.course_id == course_id,
         GradeWeight.grading_period == payload.grading_period,
@@ -89,5 +97,6 @@ def clear_grade_weights(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.instructor, UserRole.admin)),
 ):
+    _owned_course(course_id, db, current_user)
     db.query(GradeWeight).filter(GradeWeight.course_id == course_id).delete()
     db.commit()

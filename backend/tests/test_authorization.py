@@ -141,12 +141,10 @@ def test_owner_instructor_can_read_own_tos(client, instructor_token, db, instruc
 
 
 # ---------------------------------------------------------------------------
-# Known unfixed holes — assert the secure behavior; xfail until the endpoint
-# is fixed. See module docstring for what to do when these start passing.
+# Formerly known holes (Findings 1 and 2) — fixed 2026-10-27; these are now
+# permanent regression guards.
 # ---------------------------------------------------------------------------
 
-@pytest.mark.xfail(reason="Finding 1: GET /assessments/{id}/approval-history has no "
-                          "ownership/role check (assessments.py:264)", strict=True)
 def test_student_cannot_read_assessment_approval_history(client, student_token, db, instructor_user):
     _, assessment, *_ = _seed_course_with_data(db, instructor_user)
     resp = client.get(
@@ -155,16 +153,12 @@ def test_student_cannot_read_assessment_approval_history(client, student_token, 
     assert resp.status_code == 403
 
 
-@pytest.mark.xfail(reason="Finding 1: GET /assessments/{id}/tos has no ownership/role "
-                          "check (assessments.py:278)", strict=True)
 def test_student_cannot_read_assessment_tos(client, student_token, db, instructor_user):
     _, assessment, *_ = _seed_course_with_data(db, instructor_user)
     resp = client.get(f"/assessments/{assessment.id}/tos", headers=_auth(student_token))
     assert resp.status_code == 403
 
 
-@pytest.mark.xfail(reason="Finding 1: assessment reads are not scoped to the owning "
-                          "instructor (assessments.py:278)", strict=True)
 def test_foreign_instructor_cannot_read_assessment_tos(
     client, other_instructor_token, db, instructor_user
 ):
@@ -175,16 +169,12 @@ def test_foreign_instructor_cannot_read_assessment_tos(
     assert resp.status_code == 403
 
 
-@pytest.mark.xfail(reason="Finding 2: GET /grade-submissions/{id} has no ownership/role "
-                          "check (grade_submissions.py:212)", strict=True)
 def test_student_cannot_read_grade_submission(client, student_token, db, instructor_user):
     *_, submission = _seed_course_with_data(db, instructor_user)
     resp = client.get(f"/grade-submissions/{submission.id}", headers=_auth(student_token))
     assert resp.status_code == 403
 
 
-@pytest.mark.xfail(reason="Finding 2: grade submissions are not scoped to the owning "
-                          "instructor (grade_submissions.py:212)", strict=True)
 def test_foreign_instructor_cannot_read_grade_submission(
     client, other_instructor_token, db, instructor_user
 ):
@@ -229,3 +219,72 @@ def test_override_rejects_competency_from_another_course(
         headers=_auth(instructor_token),
     )
     assert resp.status_code == 422
+
+
+def test_foreign_instructor_cannot_log_intervention(client, other_instructor_token, db, instructor_user):
+    course, *_ = _seed_course_with_data(db, instructor_user)
+    resp = client.post(f"/analytics/courses/{course.id}/interventions", headers=_auth(other_instructor_token),
+                       json={"student_id_hash": "x" * 64, "action_type": "flag", "note": "test"})
+    assert resp.status_code == 403
+
+
+def test_student_cannot_read_syllabus_approval_history(client, student_token, db, instructor_user):
+    from backend.models.syllabus import Syllabus, SyllabusStatus
+    course, *_ = _seed_course_with_data(db, instructor_user)
+    syl = db.query(Syllabus).filter(Syllabus.course_id == course.id).first()
+    if syl is None:
+        syl = Syllabus(course_id=course.id, file_path="x", status=SyllabusStatus.pending)
+        db.add(syl)
+        db.commit()
+    resp = client.get(f"/syllabi/{syl.id}/approval-history", headers=_auth(student_token))
+    assert resp.status_code == 403
+
+
+def test_program_director_of_same_college_can_read_tos(client, db, instructor_user):
+    from backend.core.security import create_access_token, hash_password
+    from backend.models.user import User, UserRole
+    _, assessment, *_ = _seed_course_with_data(db, instructor_user)
+    pd = User(email="pd-same@test.com", password_hash=hash_password("x"), full_name="PD", role=UserRole.program_director,
+              is_active=True, college=instructor_user.college)
+    other = User(email="pd-other@test.com", password_hash=hash_password("x"), full_name="PD2",
+                 role=UserRole.program_director, is_active=True, college="ZZZ")
+    db.add_all([pd, other])
+    db.commit()
+    tok = lambda u: {"Authorization": "Bearer " + create_access_token({"sub": str(u.id), "role": u.role, "jti": str(uuid.uuid4())})}
+    assert client.get(f"/assessments/{assessment.id}/tos", headers=tok(pd)).status_code == 200
+    assert client.get(f"/assessments/{assessment.id}/tos", headers=tok(other)).status_code == 403
+
+
+@pytest.mark.parametrize("path", [
+    "/analytics/courses/{c}/overview",
+    "/analytics/courses/{c}/students",
+    "/analytics/courses/{c}/topic-mastery-distribution",
+    "/analytics/courses/{c}/competency-distribution",
+    "/analytics/courses/{c}/risk-trend",
+    "/analytics/courses/{c}/early-warning-timeline",
+    "/analytics/courses/{c}/students/" + "a" * 64 + "/profile",
+    "/analytics/courses/{c}/students/" + "a" * 64 + "/interventions",
+    "/analytics/courses/{c}/consultations",
+    "/courses/{c}/grade-weights",
+])
+def test_foreign_instructor_cannot_read_course_analytics(client, other_instructor_token, db, instructor_user, path):
+    course, *_ = _seed_course_with_data(db, instructor_user)
+    resp = client.get(path.format(c=course.id), headers=_auth(other_instructor_token))
+    assert resp.status_code == 403, (path, resp.status_code)
+
+
+def test_foreign_instructor_cannot_read_items_or_edit_tos(client, other_instructor_token, db, instructor_user):
+    course, assessment, *_ = _seed_course_with_data(db, instructor_user)
+    h = _auth(other_instructor_token)
+    assert client.get(f"/assessments/{assessment.id}/items", headers=h).status_code == 403
+    assert client.get(f"/assessments/{assessment.id}/mapping-queue", headers=h).status_code == 403
+    assert client.post(f"/assessments/{assessment.id}/tos", headers=h,
+                       json={"competency_id": str(uuid.uuid4()), "item_count": 1, "weight_percent": 10}).status_code == 403
+    assert client.post(f"/courses/{course.id}/grade-weights", headers=h,
+                       json={"grading_period": "prelim", "assessment_category": "formative",
+                             "weight_percent": 50}).status_code in (403, 422)
+
+
+def test_owner_still_reads_own_course_analytics(client, instructor_token, db, instructor_user):
+    course, *_ = _seed_course_with_data(db, instructor_user)
+    assert client.get(f"/analytics/courses/{course.id}/overview", headers=_auth(instructor_token)).status_code == 200

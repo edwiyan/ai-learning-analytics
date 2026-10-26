@@ -45,6 +45,20 @@ from backend.services.institution_settings import get_settings
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
+
+def _course_read(course_id, db: Session, current_user: User) -> Course:
+    """404 for an unknown course; 403 unless the viewer owns it, administers it, or is
+    the Program Director / Dean of its college (or the VP)."""
+    from backend.core.access import assert_course_read_access
+    try:
+        course = db.query(Course).filter(Course.id == uuid.UUID(str(course_id))).first()
+    except ValueError:
+        course = None
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    assert_course_read_access(course.instructor_id, current_user, db)
+    return course
+
 _PERIODS_ORDERED = [
     ("Prelim", GradingPeriod.prelim),
     ("Midterm", GradingPeriod.midterm),
@@ -247,6 +261,7 @@ def get_course_overview(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.instructor, UserRole.admin)),
 ):
+    _course_read(course_id, db, current_user)
     student_ids = get_all_students_in_course(course_id, db)
     predictions = []
     counts = {RiskLevel.at_risk: 0, RiskLevel.on_track: 0, RiskLevel.excelling: 0}
@@ -284,6 +299,7 @@ def get_course_students(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.instructor, UserRole.admin)),
 ):
+    _course_read(course_id, db, current_user)
     from backend.models.syllabus import Competency
 
     student_hashes = get_all_students_in_course(course_id, db)
@@ -446,6 +462,7 @@ def get_topic_mastery_distribution(
     Per-competency histogram of student scores (0-60, 60-75, 75-90, 90-100 buckets).
     Sorted by class_avg ascending (weakest competency first).
     """
+    _course_read(course_id, db, current_user)
     from backend.models.syllabus import Competency
 
     # Verify course exists (implicitly via assessment query)
@@ -523,6 +540,7 @@ def get_competency_distribution(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.instructor, UserRole.admin)),
 ):
+    _course_read(course_id, db, current_user)
     from backend.models.syllabus import Competency
 
     student_hashes = get_all_students_in_course(course_id, db)
@@ -560,6 +578,7 @@ def get_risk_trend(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.instructor, UserRole.admin)),
 ):
+    _course_read(course_id, db, current_user)
     a_ids = _assessment_ids(course_id, db)
     if not a_ids:
         return []
@@ -595,6 +614,7 @@ def get_early_warning_timeline(
     Weekly (or period-based) snapshots of risk level counts using running cumulative averages.
     Returns W1, W2, … (up to 10 weeks), or P1–P4 grading periods if fewer than 2 weeks of data.
     """
+    _course_read(course_id, db, current_user)
     a_ids = _assessment_ids(course_id, db)
     if not a_ids:
         return []
@@ -1140,6 +1160,7 @@ def get_student_profile(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.instructor, UserRole.admin)),
 ):
+    _course_read(course_id, db, current_user)
     from backend.models.syllabus import Competency
 
     all_students = db.query(User).filter(
@@ -1259,6 +1280,8 @@ def create_intervention(
     course = db.query(Course).filter(Course.id == course_id).first()
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
+    if current_user.role != UserRole.admin and str(course.instructor_id) != str(current_user.id):
+        raise HTTPException(status_code=403, detail="You do not own this course")
 
     from datetime import date as DateType
     follow_up = None
@@ -1397,6 +1420,7 @@ def list_interventions(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.instructor, UserRole.admin)),
 ):
+    _course_read(course_id, db, current_user)
     rows = (
         db.query(InstructorIntervention)
         .filter(
@@ -1460,6 +1484,7 @@ def create_consultation(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.instructor, UserRole.admin)),
 ):
+    _course_read(course_id, db, current_user)
     course = db.query(Course).filter(Course.id == course_id).first()
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
@@ -1517,6 +1542,7 @@ def list_consultations(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.instructor, UserRole.admin)),
 ):
+    _course_read(course_id, db, current_user)
     q = db.query(GradeConsultation).filter(GradeConsultation.course_id == course_id)
     if student_id_hash:
         q = q.filter(GradeConsultation.student_id_hash == student_id_hash)

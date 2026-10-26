@@ -1,8 +1,11 @@
+import uuid
+
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from backend.core.access import assert_course_read_access
 from backend.core.audit import log_action
 from backend.core.database import get_db
 from backend.core.deps import get_current_user, require_role
@@ -211,22 +214,27 @@ def reject_submission(
 
 @router.get("/{submission_id}", response_model=GradeSubmissionResponse)
 def get_submission(
-    submission_id: str,
+    submission_id: uuid.UUID,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     submission = db.query(GradeSubmission).filter(GradeSubmission.id == submission_id).first()
     if not submission:
         raise HTTPException(status_code=404, detail="Grade submission not found")
+    assert_course_read_access(submission.instructor_id, current_user, db)
     return submission
 
 
 @router.get("/{submission_id}/approval-history", response_model=list[GradeSubmissionApprovalResponse])
 def get_submission_approval_history(
-    submission_id: str,
+    submission_id: uuid.UUID,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
+    submission = db.query(GradeSubmission).filter(GradeSubmission.id == submission_id).first()
+    if not submission:
+        raise HTTPException(status_code=404, detail="Grade submission not found")
+    assert_course_read_access(submission.instructor_id, current_user, db)
     return (
         db.query(GradeSubmissionApproval)
         .filter(GradeSubmissionApproval.submission_id == submission_id)

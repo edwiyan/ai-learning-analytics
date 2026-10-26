@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Request, UploadFile, status
 from sqlalchemy.orm import Session
 
+from backend.core.access import assert_course_read_access
 from backend.core.audit import log_action
 from backend.core.ingestion import record_ingestion
 from backend.core.database import get_db
@@ -34,6 +35,14 @@ router = APIRouter(prefix="/assessments", tags=["assessments"])
 ASSESSMENT_APPROVER_ROLES = {UserRole.program_director}
 
 ALLOWED_CSV_MIME = {"text/csv", "application/csv", "text/plain", "application/octet-stream"}
+
+
+def _owned_assessment(assessment_id, db: Session, current_user: User) -> Assessment:
+    assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
+    if not assessment:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+    _assert_course_access(assessment.course, current_user)
+    return assessment
 
 
 def _assert_course_access(course: Course, current_user: User):
@@ -282,6 +291,7 @@ def approve_assessment(
     assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
     if not assessment:
         raise HTTPException(status_code=404, detail="Assessment not found")
+    assert_course_read_access(assessment.course.instructor_id, current_user, db)  # PD: own college only
     if assessment.approval_status != AssessmentApprovalStatus.pending_pd:
         raise HTTPException(status_code=400, detail=f"Assessment is not pending PD approval (current: {assessment.approval_status})")
     approval = AssessmentApproval(
@@ -317,6 +327,7 @@ def reject_assessment(
     assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
     if not assessment:
         raise HTTPException(status_code=404, detail="Assessment not found")
+    assert_course_read_access(assessment.course.instructor_id, current_user, db)  # PD: own college only
     if assessment.approval_status != AssessmentApprovalStatus.pending_pd:
         raise HTTPException(status_code=400, detail=f"Assessment is not pending PD approval (current: {assessment.approval_status})")
     approval = AssessmentApproval(
@@ -366,11 +377,12 @@ def resubmit_assessment(
 def get_assessment_approval_history(
     assessment_id: uuid.UUID,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
     if not assessment:
         raise HTTPException(status_code=404, detail="Assessment not found")
+    assert_course_read_access(assessment.course.instructor_id, current_user, db)
     return db.query(AssessmentApproval).filter(
         AssessmentApproval.assessment_id == assessment_id
     ).order_by(AssessmentApproval.reviewed_at).all()
@@ -380,11 +392,12 @@ def get_assessment_approval_history(
 def get_tos(
     assessment_id: uuid.UUID,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
     if not assessment:
         raise HTTPException(status_code=404, detail="Assessment not found")
+    assert_course_read_access(assessment.course.instructor_id, current_user, db)
     entries = db.query(TableOfSpecifications).filter(
         TableOfSpecifications.assessment_id == assessment_id
     ).all()
@@ -414,6 +427,7 @@ def upsert_tos_entry(
     assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
     if not assessment:
         raise HTTPException(status_code=404, detail="Assessment not found")
+    _assert_course_access(assessment.course, current_user)
     existing = db.query(TableOfSpecifications).filter(
         TableOfSpecifications.assessment_id == assessment_id,
         TableOfSpecifications.competency_id == str(payload.competency_id),
@@ -459,6 +473,7 @@ def delete_tos_entry(
     ).first()
     if not entry:
         raise HTTPException(status_code=404, detail="TOS entry not found")
+    _assert_course_access(entry.assessment.course, current_user)
     db.delete(entry)
     db.commit()
 
@@ -623,6 +638,7 @@ def get_items(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.instructor, UserRole.admin)),
 ):
+    _owned_assessment(assessment_id, db, current_user)
     items = db.query(AssessmentItem).filter(AssessmentItem.assessment_id == assessment_id).all()
     return [
         {
@@ -657,6 +673,7 @@ def get_mapping_queue(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.instructor, UserRole.admin)),
 ):
+    _owned_assessment(assessment_id, db, current_user)
     items = db.query(AssessmentItem).filter(
         AssessmentItem.assessment_id == assessment_id,
         AssessmentItem.needs_review == True,
