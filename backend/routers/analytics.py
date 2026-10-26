@@ -28,7 +28,7 @@ from backend.schemas.analytics import (
 from backend.services.ai.risk_predictor import predict_risk
 from backend.services.ai.recommender import get_recommendations
 from backend.services.ai.feature_engineering import (
-    get_all_students_in_course, build_student_features,
+    get_all_students_in_course, build_student_features, competency_mastery_score,
 )
 from backend.services.grading import get_letter_grade
 from backend.models.instructor_intervention import InstructorIntervention
@@ -441,10 +441,9 @@ def get_topic_mastery_distribution(
         # Compute per-student average (normalized 0–100)
         student_score_map: dict = defaultdict(list)
         for s in scores:
-            pct = (s.score / s.max_score * 100) if s.max_score > 0 else 0.0
-            student_score_map[s.student_id_hash].append(pct)
+            student_score_map[s.student_id_hash].append(s)
 
-        student_avgs = [sum(v) / len(v) for v in student_score_map.values()]
+        student_avgs = [competency_mastery_score(v) for v in student_score_map.values()]
         if not student_avgs:
             continue
 

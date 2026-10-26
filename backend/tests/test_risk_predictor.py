@@ -64,3 +64,14 @@ def test_predict_risk_returns_required_keys(mock_features):
     assert "risk_level" in result
     assert "confidence" in result
     assert "weak_competency_ids" in result
+
+
+def test_competency_mastery_score_pools_points():
+    """CMS = SUM(score) / SUM(max_score) x 100 (capstone §3.8.2), not the mean of
+    item percentages: 1/1 + 10/20 is 11/21 = 52.4%, not (100% + 50%) / 2 = 75%."""
+    from types import SimpleNamespace
+    from backend.services.ai.feature_engineering import competency_mastery_score
+
+    scores = [SimpleNamespace(score=1, max_score=1), SimpleNamespace(score=10, max_score=20)]
+    assert competency_mastery_score(scores) == pytest.approx(11 / 21 * 100)
+    assert competency_mastery_score([]) == 0.0

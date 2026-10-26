@@ -33,6 +33,18 @@ def mastery_level(pct: float) -> str:
     return "Emerging"
 
 
+def competency_mastery_score(scores) -> float:
+    """Competency Mastery Score (capstone §3.8.2): SUM(item_score) / SUM(item_max_score) x 100.
+
+    Pooling raw points (rather than averaging item percentages) weights each item by
+    its max score, so a 20-point item counts more than a 1-point item.
+    """
+    total_max = sum(s.max_score for s in scores if s.max_score > 0)
+    if total_max == 0:
+        return 0.0
+    return sum(s.score for s in scores if s.max_score > 0) / total_max * 100
+
+
 def _aware(dt):
     if dt is None:
         return None
@@ -136,13 +148,12 @@ def build_student_features(student_id_hash: str, course_id: str, db: Session) ->
 
     # Build competency averages first — these only include mapped scores (competency_id set),
     # so they are clean of unmapped/test assessments that would skew the risk calculation.
-    competency_scores: dict[str, list[float]] = defaultdict(list)
+    competency_scores: dict[str, list] = defaultdict(list)
     for s in scores:
         if s.competency_id:
-            pct = (s.score / s.max_score * 100) if s.max_score > 0 else 0.0
-            competency_scores[str(s.competency_id)].append(pct)
+            competency_scores[str(s.competency_id)].append(s)
 
-    comp_avgs = {cid: sum(v) / len(v) for cid, v in competency_scores.items()}
+    comp_avgs = {cid: competency_mastery_score(v) for cid, v in competency_scores.items()}
 
     # Use competency-mapped average when available so avg_score is consistent with displayed
     # competency scores; fall back to all scores only when no competency mapping exists yet.

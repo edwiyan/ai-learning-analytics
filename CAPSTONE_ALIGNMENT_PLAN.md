@@ -46,7 +46,7 @@ Recommended defaults are already used in the tasks below. Change them here if yo
   Add `STUDENT_ID_SALT` to the settings and `.env.example`, and update `hash_student_id()`. Write a migration that re-hashes every `student_id_hash` / `hashed_identifier` column, using `users.student_number` as the source and an old→new hash map.
   Files: `backend/core/config.py`, `backend/core/security.py`, new migration, `.env.example`, tests.
   Done when: hashes differ from plain SHA-256, existing demo data still links up after the migration, and the CSV upload test passes.
-- [ ] **T1.3 CMS formula = ΣScore / ΣMax × 100** (§3.8.2), instead of the current average of item percentages.
+- [x] **T1.3 CMS formula = ΣScore / ΣMax × 100** (§3.8.2), instead of the current average of item percentages.
   Files: `backend/services/ai/feature_engineering.py` (`competency_scores`), `test_risk_predictor.py`, `test_risk_f1.py`.
   Done when: there is a unit test with items that have different max scores, and the F1 guard still passes.
 - [ ] **T1.4 Keep `competency_mastery` up to date.**
@@ -146,3 +146,4 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 | 2026-10-26 | T0.2 | Baseline: pytest 62 passed / 1 skipped / 6 xfailed; frontend build OK. |
 | 2026-10-26 | T1.1 | tag/revert now check course ownership + competency belongs to course's validated syllabus (422). Removed Finding-3 xfail; added test_mapping_review.py. |
 | 2026-10-26 | T1.2 | SHA-256(id+STUDENT_ID_SALT); migration p6l7m8n9o0p1 + core/rehash.py + scripts/rehash_student_ids.py. Local DB backed up to backups/, salt added to .env, migrated (240 scores, 9 enrollments, 60 mastery, 10 users re-keyed, 0 orphans). |
+| 2026-10-26 | T1.3 | competency_mastery_score() = SUM(score)/SUM(max)x100 used in feature_engineering + topic-mastery-distribution; F1 guard still green. |
