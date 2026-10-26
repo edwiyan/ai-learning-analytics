@@ -115,7 +115,7 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 
 ## Phase 8 — Testing and deployment (doc §3.5 Testing / Security rows)
 
-- [ ] **T8.1 Frontend unit tests (Vitest, D5).**
+- [x] **T8.1 Frontend unit tests (Vitest, D5).**
   Add vitest + @testing-library/react and an `npm test` script. Cover `RiskBadge`, `ProtectedRoute`, `AuthContext` and the mastery-level helper. Add the step to CI.
 - [ ] **T8.2 JMeter load test.**
   Add `qa/jmeter/ailas.jmx` (login → dashboards → at-risk list, 50 users). Save the results to `qa-output/performance/`.
@@ -164,3 +164,4 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 | 2026-10-26 | T6.1 | core/ingestion.py records each syllabus/CSV upload attempt (parse_ok, processing/extract/parse ms) as 'ingestion' audit entries; GET /analytics/admin/ingestion-stats (parse rate, median/p95, % under 2 s); File Ingestion card on AdminDashboard. T6.2 stays descoped (D3). |
 | 2026-10-26 | T7.1 | services/assessment/alignment.py compares drafted exam questions (competency + Bloom) to the TOS: unlinked, outside-TOS, Bloom gap >=2, under/over coverage, higher-order share; GET /assessments/{id}/alignment-hints (owner, admin, PD/Dean same college, VPAA); shown in PD Approve modal. Advisory only. |
 | 2026-10-26 | T7.2 | programs.program_outcomes (v2r3s4t5u6v7) editable on ProgramsPage; services/ai/syllabus_alignment.py: rule-based measurable-verb check + LLM CLO->PO mapping (hallucinated codes dropped); GET /syllabi/{id}/alignment-check; shown in syllabus approval dialog. Advisory only. |
+| 2026-10-26 | T8.1 | Vitest 5 + Testing Library + jsdom; npm test; 13 tests (RiskBadge, ProtectedRoute, AuthContext, AiStatusBanner) instead of a separate mastery helper (none exists in the frontend). CI: Node 22 + npm test step. |
