@@ -121,7 +121,7 @@ Recommended defaults are already used in the tasks below. Change them here if yo
   Add `qa/jmeter/ailas.jmx` (login → dashboards → at-risk list, 50 users). Save the results to `qa-output/performance/`.
 - [x] **T8.3 OWASP ZAP baseline scan.**
   Run `zap-baseline.py` via Docker against the running stack, save the report in `qa-output/security/`, and fix or triage the findings.
-- [ ] **T8.4 TLS 1.3 in production Nginx.**
+- [x] **T8.4 TLS 1.3 in production Nginx.**
   Add a 443 server block (`ssl_protocols TLSv1.3`, certs from `nginx/certs`) and enable the HTTP→HTTPS redirect. Document self-signed cert generation for the pilot.
 - [ ] **T8.5 Measure the remaining targets.**
   Re-run the dashboard (< 3 s) and API (< 5 s) measurements after Phases 1–5, plus LLM mapping-batch latency (< 5 s).
@@ -167,3 +167,4 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 | 2026-10-26 | T8.1 | Vitest 5 + Testing Library + jsdom; npm test; 13 tests (RiskBadge, ProtectedRoute, AuthContext, AiStatusBanner) instead of a separate mastery helper (none exists in the frontend). CI: Node 22 + npm test step. |
 | 2026-10-26 | T8.2 | qa/jmeter/ailas.jmx + README; 50 users x 5 loops: 1502 samples, mean 398 ms, p95 656 ms, 1 connect timeout (0.07%, Docker->host networking); all connected requests < 1.3 s vs 5 s target. HTML report in qa-output/performance/jmeter/run-20261026-185437/. |
 | 2026-10-26 | T8.3 | ZAP baseline (frontend): 0 FAIL/9 WARN; ZAP API scan (OpenAPI, unauthenticated): 0 FAIL/1 WARN/119 PASS. Fixed CORP header in API; frontend header warnings fixed via Nginx in T8.4; rest triaged in qa-output/security/zap/README.md. |
+| 2026-10-26 | T8.4 | nginx.conf: 443 TLSv1.3-only + HTTP->HTTPS + HSTS/CSP/XFO/nosniff/Permissions-Policy; verified with openssl (1.3 ok, 1.2 refused). FIXED prod routing: proxied only 7 of 15 API prefixes. FIXED prod frontend: compose used the dev Dockerfile (Vite :5173) while nginx proxied :80 -> new frontend/Dockerfile.prod + nginx-spa.conf (SPA fallback verified). Prod compose passes STUDENT_ID_SALT/GEMINI/SMTP. nginx/README.md + make-self-signed-cert.sh. |
