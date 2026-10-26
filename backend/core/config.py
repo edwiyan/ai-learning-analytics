@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     openai_api_key: str
     openai_model: str = "gpt-4o-mini"
     topic_mapping_confidence_threshold: float = 0.75
+    # Secret salt for student-ID hashing: SHA-256(Student_ID + Salt), capstone §3.9.1.
+    # Changing it after data exists breaks the link between users and their scores.
+    student_id_salt: str = ""
     tesseract_cmd: str = "tesseract"
     redis_url: str = "redis://localhost:6379/0"
     environment: str = "development"

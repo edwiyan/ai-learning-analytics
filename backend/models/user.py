@@ -1,11 +1,11 @@
 from sqlalchemy import Column, String, Boolean, DateTime, Enum, event
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-import hashlib
 import uuid
 import enum
 
 from backend.core.database import Base
+from backend.core.security import hash_student_id
 from backend.core.types import GUID
 
 
@@ -60,9 +60,7 @@ def _sync_hashed_identifier(mapper, connection, target):
     so all account-creation paths (enrollment, admin, bulk import, seed) populate it
     without per-call-site changes."""
     if target.student_number:
-        target.hashed_identifier = hashlib.sha256(
-            target.student_number.encode()
-        ).hexdigest()
+        target.hashed_identifier = hash_student_id(target.student_number)
 
 
 event.listen(User, "before_insert", _sync_hashed_identifier)

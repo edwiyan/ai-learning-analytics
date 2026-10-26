@@ -36,3 +36,4 @@ qa-audit/lighthouse/
 qa-output/screenshots/
 qa-output/sessions/
 backend/uploads/
+backups/

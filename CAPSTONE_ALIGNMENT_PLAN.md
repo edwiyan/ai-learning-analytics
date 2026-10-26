@@ -42,7 +42,7 @@ Recommended defaults are already used in the tasks below. Change them here if yo
   `PUT /assessments/items/{id}/tag` and `/revert` must call `_assert_course_access` the way upload does. Also check that `competency_id` belongs to the course's validated syllabus.
   Files: `backend/routers/assessments.py`, `backend/tests/test_authorization.py`.
   Done when: another instructor gets a 403; tests cover this.
-- [ ] **T1.2 Salted student-ID hash** — `SHA-256(Student_ID + Salt)`, as in §3.9.1.
+- [x] **T1.2 Salted student-ID hash** — `SHA-256(Student_ID + Salt)`, as in §3.9.1.
   Add `STUDENT_ID_SALT` to the settings and `.env.example`, and update `hash_student_id()`. Write a migration that re-hashes every `student_id_hash` / `hashed_identifier` column, using `users.student_number` as the source and an old→new hash map.
   Files: `backend/core/config.py`, `backend/core/security.py`, new migration, `.env.example`, tests.
   Done when: hashes differ from plain SHA-256, existing demo data still links up after the migration, and the CSV upload test passes.
@@ -145,3 +145,4 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 | 2026-10-26 | T0.1 | Baseline commit 89a7df0 on branch capstone-alignment; .gitignore extended (logs, *.db, QA artifacts). |
 | 2026-10-26 | T0.2 | Baseline: pytest 62 passed / 1 skipped / 6 xfailed; frontend build OK. |
 | 2026-10-26 | T1.1 | tag/revert now check course ownership + competency belongs to course's validated syllabus (422). Removed Finding-3 xfail; added test_mapping_review.py. |
+| 2026-10-26 | T1.2 | SHA-256(id+STUDENT_ID_SALT); migration p6l7m8n9o0p1 + core/rehash.py + scripts/rehash_student_ids.py. Local DB backed up to backups/, salt added to .env, migrated (240 scores, 9 enrollments, 60 mastery, 10 users re-keyed, 0 orphans). |

@@ -19,6 +19,13 @@ import backend.models.grade_consultation       # noqa: F401
 import backend.models.sus_survey               # noqa: F401
 import backend.models.academic_standing        # noqa: F401
 
+import logging
+
+if not settings.student_id_salt:
+    logging.getLogger("ailas").warning(
+        "STUDENT_ID_SALT is not set: student IDs are hashed without a salt (capstone §3.9.1 requires one)."
+    )
+
 app = FastAPI(
     title="AILAS API",
     description="AI-Assisted Learning Analytics System",

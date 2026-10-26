@@ -18,7 +18,8 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 
 def hash_student_id(student_id: str) -> str:
-    return hashlib.sha256(student_id.encode()).hexdigest()
+    """SHA-256(Student_ID + Salt) per capstone §3.9.1."""
+    return hashlib.sha256((str(student_id) + settings.student_id_salt).encode()).hexdigest()
 
 
 def generate_otp_password() -> str:
