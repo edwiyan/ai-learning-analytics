@@ -149,7 +149,7 @@ function MappingReview({ assessmentId, courseId, onDone }) {
   const [expandedQuestion, setExpandedQuestion] = useState(null);
 
   const pending = (items || []).filter(item => !skipped.has(item.id));
-  const filtered = pending.filter(item => !filterLow || (item.confidence_score || 0) < 0.7);
+  const filtered = pending.filter(item => !filterLow || (item.confidence_score || 0) < 0.75);
   const displayed = [...filtered].sort((a, b) => {
     const aS = a.confidence_score ?? 0; const bS = b.confidence_score ?? 0;
     return sortOrder === "asc" ? aS - bS : bS - aS;
@@ -237,7 +237,7 @@ function MappingReview({ assessmentId, courseId, onDone }) {
       {filterLow && (
         <div>
           <span className="inline-flex items-center gap-1 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-0.5 text-xs text-amber-700">
-            Filtered: low confidence only (&lt;70%)
+            Filtered: low confidence only (&lt;75%)
             <button onClick={() => setFilterLow(false)} className="text-amber-400 hover:text-amber-700 ml-0.5 transition-colors">×</button>
           </span>
         </div>
@@ -259,7 +259,7 @@ function MappingReview({ assessmentId, courseId, onDone }) {
         )}
         {displayed.map(item => (
           <div key={item.id} className={`border-l-4 border rounded-lg p-3 space-y-2 shadow-sm hover:shadow-md transition-shadow duration-200 ${
-            (item.confidence_score ?? 1) >= 0.7 ? "border-l-green-400 border-gray-200" : "border-l-amber-400 border-gray-200"
+            (item.confidence_score ?? 1) >= 0.75 ? "border-l-green-400 border-gray-200" : "border-l-amber-400 border-gray-200"
           }`}>
             <div>
               <p className={`text-sm text-gray-700 leading-snug ${expandedQuestion === item.id ? "" : "line-clamp-3"}`}>
@@ -278,7 +278,7 @@ function MappingReview({ assessmentId, courseId, onDone }) {
               <span className="text-xs text-gray-500">{item.mapped_topic_name || "Unmapped"}</span>
               {item.confidence_score !== null && (
                 <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
-                  item.confidence_score >= 0.7 ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                  item.confidence_score >= 0.75 ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
                 }`}>{Math.round((item.confidence_score || 0) * 100)}% conf.</span>
               )}
               {changedItems.has(item.id) && (
@@ -763,7 +763,7 @@ export default function ProcessingInterface() {
       (comp.competency_code || "").toLowerCase().includes(compSearch.toLowerCase()) ||
       (comp.topic_name || "").toLowerCase().includes(compSearch.toLowerCase()));
 
-  const highConfCount = editedCompetencies.filter(c => (c.confidence_score ?? 1) >= 0.7).length;
+  const highConfCount = editedCompetencies.filter(c => (c.confidence_score ?? 1) >= 0.75).length;
   const hasConfidenceData = editedCompetencies.some(c => c.confidence_score != null);
 
   const goBack = () => { if (currentStepIndex > 0) setStep(STEPS[currentStepIndex - 1]); };
@@ -1217,7 +1217,7 @@ export default function ProcessingInterface() {
                       className="flex-1 border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500" />
                     {comp.confidence_score != null && (
                       <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium shrink-0 ${
-                        comp.confidence_score >= 0.7 ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                        comp.confidence_score >= 0.75 ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
                       }`}>{Math.round(comp.confidence_score * 100)}%</span>
                     )}
                     <button onClick={() => setExpandedComp(expandedComp === origIdx ? null : origIdx)}
@@ -1596,7 +1596,7 @@ export default function ProcessingInterface() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-gray-800 group-hover:text-indigo-700 transition-colors">Review Topic Mappings</p>
-                  <p className="text-xs text-gray-500 mt-0.5">Inspect and override AI-generated question-to-competency mappings. Items below 70% confidence are flagged.</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Inspect and override AI-generated question-to-competency mappings. Items below 75% confidence are flagged.</p>
                 </div>
               </div>
               <svg className="w-5 h-5 text-indigo-400 shrink-0 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">

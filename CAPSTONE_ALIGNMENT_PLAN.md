@@ -62,7 +62,7 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 - [x] **T2.2 Log every override.**
   `override_tag` / `revert` call `log_action(...)` with the old and new competency and a `reason` (optional query or body field). Expose `override_action` = accepted | reassigned | custom.
   *Depends on* T2.1.
-- [ ] **T2.3 Mapping accuracy audit report.**
+- [x] **T2.3 Mapping accuracy audit report.**
   `GET /assessments/course/{course_id}/mapping-accuracy` returns the reviewed item count, items where the AI matched the final tag, accuracy %, and a per-competency breakdown, with the 85% target. Add a summary card on `TopicMappingPage.jsx`.
   *Depends on* T2.1. Tests: accuracy calculation.
 - [ ] **T2.4 Faculty-created custom topic tags.**
@@ -150,3 +150,4 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 | 2026-10-26 | T1.4 | services/analytics_refresh.py (per-course lock) runs after topic mapping, override and revert. Also fixed: pre-tagged CSV scores never got competency_id. |
 | 2026-10-26 | T2.1 | assessment_items.ai_suggested_competency_id/ai_confidence/ai_mapped_at (migration q7m8n9o0p1q2, backfilled for unvalidated AI maps); exposed in /items. |
 | 2026-10-26 | T2.2 | mapping_override / mapping_revert audit logs (old/new/AI pick/confidence/reason); override_action accepted|reassigned|custom|manual in /items + tag response; reason box + true AI pick in OverrideDrawer. |
+| 2026-10-26 | T2.3 | GET /assessments/course/{id}/mapping-accuracy (reviewed vs AI pick, 85% target, by competency/action) + MappingAccuracyCard. Also fixed UI '70%' confidence labels/thresholds to 0.75 (TopicMapping, ProcessingInterface). |

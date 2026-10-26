@@ -122,3 +122,38 @@ def test_override_is_audit_logged(client, db, instructor_token, mapped):
     resp = client.put(f"/assessments/items/{item.id}/tag",
                       params={"competency_id": str(comps["DSA-01"].id)}, headers=_auth(instructor_token))
     assert resp.json()["override_action"] == "accepted"
+
+
+def test_mapping_accuracy_report(client, db, instructor_token, mapped, other_instructor_token):
+    """2 reviewed AI items, 1 matched -> 50%; an auto-accepted unreviewed item is
+    reported separately and not counted toward accuracy."""
+    from datetime import datetime, timezone
+
+    comps, a = mapped["comps"], mapped["assessment"]
+    item = mapped["item"]
+    item.ai_suggested_competency_id = comps["DSA-01"].id
+    item.ai_mapped_at = datetime.now(timezone.utc)
+    second = AssessmentItem(assessment_id=a.id, question_text="Big-O of lookup?",
+                            mapped_competency_id=comps["DSA-01"].id, ai_suggested_competency_id=comps["DSA-01"].id,
+                            ai_mapped_at=datetime.now(timezone.utc), confidence_score=0.5, needs_review=True)
+    auto = AssessmentItem(assessment_id=a.id, question_text="Define a stack.",
+                          mapped_competency_id=comps["DSA-02"].id, ai_suggested_competency_id=comps["DSA-02"].id,
+                          ai_mapped_at=datetime.now(timezone.utc), confidence_score=0.9, needs_review=False)
+    db.add_all([second, auto])
+    db.commit()
+
+    h = _auth(instructor_token)
+    client.put(f"/assessments/items/{item.id}/tag", params={"competency_id": str(comps["DSA-02"].id)}, headers=h)
+    client.put(f"/assessments/items/{second.id}/tag", params={"competency_id": str(comps["DSA-01"].id)}, headers=h)
+
+    report = client.get(f"/assessments/course/{mapped['course'].id}/mapping-accuracy", headers=h).json()
+    assert report["reviewed_items"] == 2
+    assert report["matched_items"] == 1
+    assert report["accuracy_pct"] == 50.0
+    assert report["meets_target"] is False
+    assert report["auto_accepted_unreviewed"] == 1
+    assert report["by_action"] == {"accepted": 1, "reassigned": 1, "custom": 0}
+
+    resp = client.get(f"/assessments/course/{mapped['course'].id}/mapping-accuracy",
+                      headers=_auth(other_instructor_token))
+    assert resp.status_code == 403

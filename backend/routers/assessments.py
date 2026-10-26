@@ -618,6 +618,71 @@ def get_mapping_queue(
     ]
 
 
+MAPPING_ACCURACY_TARGET = 85.0
+
+
+@router.get("/course/{course_id}/mapping-accuracy")
+def get_mapping_accuracy(
+    course_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.instructor, UserRole.admin)),
+):
+    """Mapping accuracy audit (capstone §3.6.2): the AI's initial mapping vs. the final
+    faculty decision. Only items the AI mapped AND a faculty member reviewed count;
+    auto-accepted items without review have no ground truth and are reported apart."""
+    course = db.query(Course).filter(Course.id == course_id).first()
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    _assert_course_access(course, current_user)
+
+    items = (
+        db.query(AssessmentItem)
+        .join(Assessment, AssessmentItem.assessment_id == Assessment.id)
+        .filter(Assessment.course_id == course_id)
+        .all()
+    )
+    ai_items = [i for i in items if i.ai_mapped_at is not None or i.ai_suggested_competency_id is not None]
+    reviewed = [i for i in ai_items if i.validated_by is not None]
+    matched = [i for i in reviewed if i.ai_suggested_competency_id == i.mapped_competency_id]
+
+    by_comp: dict = {}
+    for i in reviewed:
+        comp = i.mapped_competency
+        key = str(i.mapped_competency_id)
+        row = by_comp.setdefault(key, {
+            "competency_id": key,
+            "competency_code": comp.competency_code if comp else None,
+            "topic_name": comp.topic_name if comp else None,
+            "reviewed": 0,
+            "matched": 0,
+        })
+        row["reviewed"] += 1
+        row["matched"] += i.ai_suggested_competency_id == i.mapped_competency_id
+    for row in by_comp.values():
+        row["accuracy_pct"] = round(row["matched"] / row["reviewed"] * 100, 1)
+
+    by_action = {"accepted": 0, "reassigned": 0, "custom": 0}
+    for i in reviewed:
+        action = _override_action(i)
+        if action in by_action:
+            by_action[action] += 1
+
+    accuracy = round(len(matched) / len(reviewed) * 100, 1) if reviewed else None
+    return {
+        "course_id": str(course_id),
+        "target_pct": MAPPING_ACCURACY_TARGET,
+        "ai_mapped_items": len(ai_items),
+        "reviewed_items": len(reviewed),
+        "matched_items": len(matched),
+        "accuracy_pct": accuracy,
+        "meets_target": accuracy is not None and accuracy >= MAPPING_ACCURACY_TARGET,
+        "auto_accepted_unreviewed": sum(1 for i in ai_items if i.validated_by is None and not i.needs_review),
+        "pending_review": sum(1 for i in ai_items if i.validated_by is None and i.needs_review),
+        "by_action": by_action,
+        "by_competency": sorted(by_comp.values(), key=lambda r: r["accuracy_pct"]),
+    }
+
+
 @router.put("/items/{item_id}/tag")
 def override_tag(
     item_id: str,

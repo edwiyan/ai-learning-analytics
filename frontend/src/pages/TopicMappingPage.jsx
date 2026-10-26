@@ -129,8 +129,8 @@ function ConfidenceHistogram({ items }) {
   const medium = mapped.filter(i => i.confidence_score >= 0.50 && i.confidence_score < 0.75).length;
   const low    = mapped.filter(i => i.confidence_score < 0.50).length;
   const bars   = [
-    { label: "High ≥70%",   count: high,   pct: Math.round(high/total*100),   color: "bg-emerald-400", text: "text-emerald-700" },
-    { label: "Mid 50–70%",  count: medium, pct: Math.round(medium/total*100), color: "bg-amber-400",   text: "text-amber-700"   },
+    { label: "High ≥75%",   count: high,   pct: Math.round(high/total*100),   color: "bg-emerald-400", text: "text-emerald-700" },
+    { label: "Mid 50–75%",  count: medium, pct: Math.round(medium/total*100), color: "bg-amber-400",   text: "text-amber-700"   },
     { label: "Low <50%",    count: low,    pct: Math.round(low/total*100),    color: "bg-red-400",     text: "text-red-600"     },
   ];
   return (
@@ -362,6 +362,65 @@ function OverrideDrawer({ item, competencies, onSave, onClose }) {
   );
 }
 
+// ── MappingAccuracyCard ───────────────────────────────────────────────────────
+// AI mapping accuracy vs. faculty decisions (capstone §3.6.2, target ≥ 85%).
+
+function MappingAccuracyCard({ courseId }) {
+  const { data: report, loading } = useApi(`/assessments/course/${courseId}/mapping-accuracy`, [courseId]);
+  if (loading) return <div className="h-28 bg-gray-100 rounded-2xl animate-pulse" />;
+  if (!report) return null;
+
+  const pct = report.accuracy_pct;
+  const tone = pct == null ? "text-gray-400" : report.meets_target ? "text-emerald-600" : "text-amber-600";
+  const weakest = (report.by_competency || []).filter(r => r.accuracy_pct < report.target_pct).slice(0, 3);
+
+  return (
+    <section aria-labelledby="mapping-accuracy-heading" className="bg-white rounded-2xl border border-gray-200 p-5">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h3 id="mapping-accuracy-heading" className="text-sm font-semibold text-gray-800">AI Mapping Accuracy</h3>
+          <p className="text-xs text-gray-500 mt-0.5 max-w-md">
+            How often the AI's first suggestion matched your final decision, across items you reviewed.
+            Target: {report.target_pct}% or higher.
+          </p>
+        </div>
+        <div className="text-right">
+          <p className={`text-3xl font-bold ${tone}`}>{pct == null ? "—" : `${pct}%`}</p>
+          <p className="text-xs text-gray-500">
+            {report.matched_items} of {report.reviewed_items} reviewed item{report.reviewed_items !== 1 ? "s" : ""}
+          </p>
+        </div>
+      </div>
+      <dl className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 text-center">
+        {[
+          ["Accepted", report.by_action.accepted],
+          ["Reassigned", report.by_action.reassigned],
+          ["Custom tag", report.by_action.custom],
+          ["Pending review", report.pending_review],
+        ].map(([label, value]) => (
+          <div key={label} className="bg-gray-50 rounded-lg py-2">
+            <dd className="text-lg font-semibold text-gray-800">{value}</dd>
+            <dt className="text-[11px] text-gray-500 uppercase tracking-wide">{label}</dt>
+          </div>
+        ))}
+      </dl>
+      {pct == null && (
+        <p className="text-xs text-gray-500 mt-3">No AI mappings have been reviewed yet. Accept or override items to measure accuracy.</p>
+      )}
+      {weakest.length > 0 && (
+        <p className="text-xs text-gray-500 mt-3">
+          Lowest accuracy: {weakest.map(r => `${r.competency_code} (${r.accuracy_pct}%)`).join(", ")}
+        </p>
+      )}
+      {report.auto_accepted_unreviewed > 0 && (
+        <p className="text-xs text-gray-400 mt-1">
+          {report.auto_accepted_unreviewed} auto-accepted item{report.auto_accepted_unreviewed !== 1 ? "s" : ""} (≥75% confidence) not yet reviewed are excluded.
+        </p>
+      )}
+    </section>
+  );
+}
+
 // ── MappingTable ──────────────────────────────────────────────────────────────
 
 function MappingTable({ assessmentId, competencies }) {
@@ -583,7 +642,7 @@ function MappingTable({ assessmentId, competencies }) {
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <StatCard label="Total Items"  value={totalCount}       accent="gray"   />
         <StatCard label="Mapped"       value={mappedCount}      sub={`${mappedPct}% of items`} accent="indigo" />
-        <StatCard label="Needs Review" value={needsReviewCount} sub="Below 70% confidence" accent="amber" />
+        <StatCard label="Needs Review" value={needsReviewCount} sub="Below 75% confidence" accent="amber" />
         <StatCard label="Validated"    value={validatedCount}   sub="Manually confirmed" accent="green" />
         <StatCard label="Unmapped"     value={unmappedCount}    sub="No competency assigned" accent="red" />
       </div>
@@ -677,7 +736,7 @@ function MappingTable({ assessmentId, competencies }) {
           </div>
 
           <p className="text-xs text-gray-400">
-            Items below <strong className="text-amber-600">70% confidence</strong> require manual review before submission.
+            Items below <strong className="text-amber-600">75% confidence</strong> require manual review before submission.
             Focus a row then press{" "}
             <kbd className="bg-gray-100 border border-gray-200 px-1 py-0.5 rounded text-gray-600 font-mono text-[10px]">A</kbd> to approve,{" "}
             <kbd className="bg-gray-100 border border-gray-200 px-1 py-0.5 rounded text-gray-600 font-mono text-[10px]">O</kbd> to override.
@@ -1021,7 +1080,7 @@ export default function TopicMappingPage() {
           </div>
           <p className="text-sm text-gray-500 leading-relaxed max-w-xl">
             Each assessment question is automatically mapped to a course competency using NLP.
-            Items below <strong className="text-amber-600 font-semibold">70% confidence</strong> are flagged for your review before results feed into analytics.
+            Items below <strong className="text-amber-600 font-semibold">75% confidence</strong> are flagged for your review before results feed into analytics.
           </p>
         </div>
       </div>
@@ -1134,6 +1193,8 @@ export default function TopicMappingPage() {
           Select an assessment below to open its topic mapping review.
         </p>
       </div>
+
+      <MappingAccuracyCard courseId={selectedCourseId} />
 
       {/* Assessments by period */}
       {assessmentsLoading ? (
