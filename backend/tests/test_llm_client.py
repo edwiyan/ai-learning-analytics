@@ -14,6 +14,8 @@ def llm(db, monkeypatch):
     calls = []
     monkeypatch.setattr(llm_client, "_session_factory", _TestingSessionLocal)
     monkeypatch.setattr(llm_client, "openai_configured", lambda: True)
+    monkeypatch.setattr(llm_client, "breakers", {"openai": llm_client.CircuitBreaker("openai")})
+    monkeypatch.setattr(llm_client, "_sleep", lambda s: None)
 
     def fake_openai(prompt, temperature):
         calls.append(prompt)
@@ -53,3 +55,62 @@ def test_provider_error_becomes_llm_unavailable(db, llm, monkeypatch):
     monkeypatch.setattr(llm_client, "_openai_json", boom)
     with pytest.raises(llm_client.LLMUnavailable):
         llm_client.complete_json("y", purpose="x")
+
+
+# ── Retry and circuit breaker (§3.9.2 API Dependency) ────────────────────────
+
+@pytest.fixture
+def fresh_breaker(monkeypatch):
+    now = [0.0]
+    breaker = llm_client.CircuitBreaker("openai", threshold=2, cooldown=60, clock=lambda: now[0])
+    monkeypatch.setattr(llm_client, "breakers", {"openai": breaker})
+    monkeypatch.setattr(llm_client, "_sleep", lambda s: None)
+    return breaker, now
+
+
+def test_transient_error_is_retried(db, llm, monkeypatch, fresh_breaker):
+    attempts = []
+
+    def flaky(prompt, temperature):
+        attempts.append(1)
+        if len(attempts) == 1:
+            raise TimeoutError("slow")
+        return {"ok": True}
+    monkeypatch.setattr(llm_client, "_openai_json", flaky)
+    assert llm_client.complete_json("p", purpose="x", use_cache=False) == {"ok": True}
+    assert len(attempts) == 2
+    assert fresh_breaker[0].status() == "closed"
+
+
+def test_breaker_opens_then_fails_fast_then_half_opens(db, llm, monkeypatch, fresh_breaker):
+    breaker, now = fresh_breaker
+    calls = []
+
+    def down(prompt, temperature):
+        calls.append(1)
+        raise RuntimeError("provider down")
+    monkeypatch.setattr(llm_client, "_openai_json", down)
+
+    for _ in range(2):
+        with pytest.raises(llm_client.LLMUnavailable):
+            llm_client.complete_json("p", purpose="x", use_cache=False)
+    assert breaker.status() == "open"
+    assert llm_client.llm_status()["available"] is False
+
+    calls.clear()
+    with pytest.raises(llm_client.LLMUnavailable, match="circuit open"):
+        llm_client.complete_json("p", purpose="x", use_cache=False)
+    assert calls == []  # failed fast, provider not called
+
+    now[0] = 61
+    assert breaker.status() == "half_open"
+    monkeypatch.setattr(llm_client, "_openai_json", lambda p, t: {"ok": 1})
+    assert llm_client.complete_json("p", purpose="x", use_cache=False) == {"ok": 1}
+    assert breaker.status() == "closed"
+
+
+def test_health_reports_llm_status(client, monkeypatch):
+    monkeypatch.setattr(llm_client, "openai_configured", lambda: True)
+    body = client.get("/health").json()
+    assert body["llm"]["configured"] is True
+    assert body["llm"]["providers"]["openai"] in {"closed", "open", "half_open"}

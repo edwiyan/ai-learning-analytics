@@ -76,10 +76,12 @@ def health_check():
         db_status = "connected"
     except Exception:
         pass
-    llm_status = "configured" if settings.openai_api_key else "missing_key"
+    from backend.services.ai.llm_client import llm_status
+    llm = llm_status()
     return {
         "status": "ok",
         "service": "ailas-backend",
         "db": db_status,
-        "llm_api": llm_status,
+        "llm_api": "configured" if llm["configured"] else "missing_key",
+        "llm": llm,
     }

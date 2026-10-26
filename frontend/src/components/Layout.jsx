@@ -2,6 +2,7 @@ import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import NotificationBell from "./NotificationBell";
+import AiStatusBanner from "./AiStatusBanner";
 
 const navItems = {
   student: [
@@ -207,7 +208,10 @@ export default function Layout({ children }) {
         </div>
       </aside>
 
-      <main id="main-content" className="flex-1 p-4 md:p-6 overflow-auto pt-[72px] md:pt-6">{children}</main>
+      <main id="main-content" className="flex-1 p-4 md:p-6 overflow-auto pt-[72px] md:pt-6">
+        {["instructor", "admin"].includes(user?.role) && <AiStatusBanner />}
+        {children}
+      </main>
     </div>
   );
 }
