@@ -181,3 +181,40 @@ def test_faculty_can_create_custom_tag_and_use_it(client, db, instructor_token, 
                       params={"competency_id": tag["id"]}, headers=h)
     assert resp.status_code == 200
     assert resp.json()["override_action"] == "custom"
+
+
+def test_mapping_batch_runs_concurrently_and_is_timed(db, mapped, monkeypatch):
+    """LLM calls for a CSV run in parallel (§3.8.1: < 5 s per mapping batch) and the
+    batch duration is recorded for the ingestion stats."""
+    import threading
+    import time as _time
+    from backend.models.audit import AuditLog
+    from backend.routers import assessments as assessments_router
+
+    a = mapped["assessment"]
+    mapped["item"].mapped_competency_id = None
+    for i in range(7):
+        db.add(AssessmentItem(assessment_id=a.id, question_text=f"Extra question {i}?", needs_review=True))
+    db.commit()
+
+    active, peak, lock = [0], [0], threading.Lock()
+
+    def slow_llm(question, comps):
+        with lock:
+            active[0] += 1
+            peak[0] = max(peak[0], active[0])
+        _time.sleep(0.2)
+        with lock:
+            active[0] -= 1
+        return {"competency_code": "DSA-01", "confidence_score": 0.9, "bloom_level": "Applying"}
+    monkeypatch.setattr(assessments_router, "map_question_to_competency", slow_llm)
+
+    started = _time.perf_counter()
+    assessments_router._map_unmapped_items(a.id, db)
+    elapsed = _time.perf_counter() - started
+
+    assert peak[0] > 1               # calls overlapped
+    assert elapsed < 8 * 0.2         # faster than 8 sequential calls
+    log = db.query(AuditLog).filter(AuditLog.action == "ingestion").one()
+    assert log.extra_data["kind"] == "topic_mapping_batch"
+    assert log.extra_data["items"] == 8 and log.extra_data["parse_ok"] is True

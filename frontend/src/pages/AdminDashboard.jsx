@@ -120,7 +120,11 @@ const AUDIT_LABELS = {
   ingestion: "File ingested",
 };
 
-const INGESTION_KIND_LABELS = { syllabus: "Syllabus (PDF/DOCX)", assessment_csv: "Assessment CSV" };
+const INGESTION_KIND_LABELS = {
+  syllabus: "Syllabus (PDF/DOCX)",
+  assessment_csv: "Assessment CSV",
+  topic_mapping_batch: "AI topic mapping (per batch, target < 5 s)",
+};
 
 const AUDIT_COLORS = {
   login: "bg-green-100 text-green-700",

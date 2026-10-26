@@ -1,0 +1,161 @@
+{
+  "date": "2026-10-26T11:06:43.850Z",
+  "base": "http://127.0.0.1:4173",
+  "dashboards": [
+    {
+      "role": "admin",
+      "route": "/admin",
+      "runs_ms": [
+        663,
+        589,
+        583
+      ],
+      "worst_ms": 663,
+      "meets_3s": true
+    },
+    {
+      "role": "instructor",
+      "route": "/instructor",
+      "runs_ms": [
+        603,
+        550,
+        559
+      ],
+      "worst_ms": 603,
+      "meets_3s": true
+    },
+    {
+      "role": "student",
+      "route": "/student",
+      "runs_ms": [
+        544,
+        550,
+        544
+      ],
+      "worst_ms": 550,
+      "meets_3s": true
+    }
+  ],
+  "api": [
+    {
+      "role": "admin",
+      "url": "/health",
+      "status": 200,
+      "ms": 22,
+      "meets_5s": true,
+      "browser_ms": 20
+    },
+    {
+      "role": "admin",
+      "url": "/notifications/unread-count",
+      "status": 200,
+      "ms": 12,
+      "meets_5s": true,
+      "browser_ms": 25
+    },
+    {
+      "role": "admin",
+      "url": "/surveys/sus/results",
+      "status": 200,
+      "ms": 14,
+      "meets_5s": true,
+      "browser_ms": 31
+    },
+    {
+      "role": "admin",
+      "url": "/analytics/admin/audit-logs",
+      "status": 200,
+      "ms": 17,
+      "meets_5s": true,
+      "browser_ms": 58
+    },
+    {
+      "role": "admin",
+      "url": "/analytics/admin/stats",
+      "status": 200,
+      "ms": 17,
+      "meets_5s": true,
+      "browser_ms": 74
+    },
+    {
+      "role": "admin",
+      "url": "/analytics/admin/subject-performance",
+      "status": 200,
+      "ms": 22,
+      "meets_5s": true,
+      "browser_ms": 75
+    },
+    {
+      "role": "admin",
+      "url": "/analytics/admin/enrollment-trends",
+      "status": 200,
+      "ms": 35,
+      "meets_5s": true,
+      "browser_ms": 75
+    },
+    {
+      "role": "admin",
+      "url": "/analytics/admin/ingestion-stats",
+      "status": 200,
+      "ms": 19,
+      "meets_5s": true,
+      "browser_ms": 76
+    },
+    {
+      "role": "instructor",
+      "url": "/health",
+      "status": 200,
+      "ms": 16,
+      "meets_5s": true,
+      "browser_ms": 13
+    },
+    {
+      "role": "instructor",
+      "url": "/notifications/unread-count",
+      "status": 200,
+      "ms": 16,
+      "meets_5s": true,
+      "browser_ms": 13
+    },
+    {
+      "role": "instructor",
+      "url": "/analytics/instructor/consultations",
+      "status": 200,
+      "ms": 15,
+      "meets_5s": true,
+      "browser_ms": 27
+    },
+    {
+      "role": "instructor",
+      "url": "/analytics/instructor/interventions",
+      "status": 200,
+      "ms": 15,
+      "meets_5s": true,
+      "browser_ms": 27
+    },
+    {
+      "role": "instructor",
+      "url": "/analytics/instructor/standing-summary",
+      "status": 200,
+      "ms": 16,
+      "meets_5s": true,
+      "browser_ms": 29
+    },
+    {
+      "role": "instructor",
+      "url": "/analytics/instructor/course-summaries",
+      "status": 200,
+      "ms": 16,
+      "meets_5s": true,
+      "browser_ms": 36
+    },
+    {
+      "role": "student",
+      "url": "/consent/status",
+      "status": 200,
+      "ms": 20,
+      "meets_5s": true,
+      "browser_ms": 11
+    }
+  ]
+}

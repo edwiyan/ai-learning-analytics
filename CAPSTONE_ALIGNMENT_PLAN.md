@@ -123,7 +123,7 @@ Recommended defaults are already used in the tasks below. Change them here if yo
   Run `zap-baseline.py` via Docker against the running stack, save the report in `qa-output/security/`, and fix or triage the findings.
 - [x] **T8.4 TLS 1.3 in production Nginx.**
   Add a 443 server block (`ssl_protocols TLSv1.3`, certs from `nginx/certs`) and enable the HTTP→HTTPS redirect. Document self-signed cert generation for the pilot.
-- [ ] **T8.5 Measure the remaining targets.**
+- [x] **T8.5 Measure the remaining targets.**
   Re-run the dashboard (< 3 s) and API (< 5 s) measurements after Phases 1–5, plus LLM mapping-batch latency (< 5 s).
 
 ## Phase 9 — Document updates (for the proponent; Claude drafts the text)
@@ -168,3 +168,4 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 | 2026-10-26 | T8.2 | qa/jmeter/ailas.jmx + README; 50 users x 5 loops: 1502 samples, mean 398 ms, p95 656 ms, 1 connect timeout (0.07%, Docker->host networking); all connected requests < 1.3 s vs 5 s target. HTML report in qa-output/performance/jmeter/run-20261026-185437/. |
 | 2026-10-26 | T8.3 | ZAP baseline (frontend): 0 FAIL/9 WARN; ZAP API scan (OpenAPI, unauthenticated): 0 FAIL/1 WARN/119 PASS. Fixed CORP header in API; frontend header warnings fixed via Nginx in T8.4; rest triaged in qa-output/security/zap/README.md. |
 | 2026-10-26 | T8.4 | nginx.conf: 443 TLSv1.3-only + HTTP->HTTPS + HSTS/CSP/XFO/nosniff/Permissions-Policy; verified with openssl (1.3 ok, 1.2 refused). FIXED prod routing: proxied only 7 of 15 API prefixes. FIXED prod frontend: compose used the dev Dockerfile (Vite :5173) while nginx proxied :80 -> new frontend/Dockerfile.prod + nginx-spa.conf (SPA fallback verified). Prod compose passes STUDENT_ID_SALT/GEMINI/SMTP. nginx/README.md + make-self-signed-cert.sh. |
+| 2026-10-26 | T8.5 | qa/perf/measure_targets.js: dashboards 0.54-0.66 s (<3 s PASS), APIs worst 35 ms (<5 s PASS); JMeter 50 users p95 656 ms. LLM batch latency pending (no OpenAI key here): mapping calls now run 8-way concurrent and each batch is timed into ingestion stats. Summary: qa-output/performance/TARGETS.md. |

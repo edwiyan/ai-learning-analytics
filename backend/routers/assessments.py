@@ -1,5 +1,6 @@
 import time
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Request, UploadFile, status
@@ -77,6 +78,9 @@ def _override_action(item: AssessmentItem) -> str | None:
     return "accepted" if item.ai_suggested_competency_id == item.mapped_competency_id else "reassigned"
 
 
+MAPPING_CONCURRENCY = 8
+
+
 def _run_topic_mapping(assessment_id: str, db: Session):
     """Background job after a CSV upload: AI-map untagged items, then refresh the
     course's competency mastery (also needed when every item was pre-tagged)."""
@@ -113,9 +117,23 @@ def _map_unmapped_items(assessment_id: str, db: Session):
     ]
     comp_map = {c.competency_code: c for c in competencies}
 
-    for item in items:
+    # LLM calls run concurrently so a whole CSV maps within the capstone's
+    # "< 5 s per mapping batch" target; DB writes stay on this thread.
+    def _map(question_text):
         try:
-            result = map_question_to_competency(item.question_text, comp_list)
+            return map_question_to_competency(question_text, comp_list)
+        except Exception as exc:
+            return exc
+
+    started = time.perf_counter()
+    with ThreadPoolExecutor(max_workers=MAPPING_CONCURRENCY) as pool:
+        results = list(pool.map(_map, [item.question_text for item in items]))
+    batch_ms = (time.perf_counter() - started) * 1000
+
+    for item, result in zip(items, results):
+        try:
+            if isinstance(result, Exception):
+                raise result
             code = result.get("competency_code")
             score = result.get("confidence_score", 0.0)
             item.confidence_score = score
@@ -130,6 +148,9 @@ def _map_unmapped_items(assessment_id: str, db: Session):
             item.needs_review = True
 
     db.flush()
+    failed = sum(1 for r in results if isinstance(r, Exception))
+    record_ingestion(db, None, "topic_mapping_batch", failed == 0, batch_ms,
+                     assessment_id=str(assessment_id), items=len(items), failed=failed)
 
     # Propagate mapped competency to linked student scores
     for item in items:
