@@ -119,7 +119,7 @@ Recommended defaults are already used in the tasks below. Change them here if yo
   Add vitest + @testing-library/react and an `npm test` script. Cover `RiskBadge`, `ProtectedRoute`, `AuthContext` and the mastery-level helper. Add the step to CI.
 - [x] **T8.2 JMeter load test.**
   Add `qa/jmeter/ailas.jmx` (login → dashboards → at-risk list, 50 users). Save the results to `qa-output/performance/`.
-- [ ] **T8.3 OWASP ZAP baseline scan.**
+- [x] **T8.3 OWASP ZAP baseline scan.**
   Run `zap-baseline.py` via Docker against the running stack, save the report in `qa-output/security/`, and fix or triage the findings.
 - [ ] **T8.4 TLS 1.3 in production Nginx.**
   Add a 443 server block (`ssl_protocols TLSv1.3`, certs from `nginx/certs`) and enable the HTTP→HTTPS redirect. Document self-signed cert generation for the pilot.
@@ -166,3 +166,4 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 | 2026-10-26 | T7.2 | programs.program_outcomes (v2r3s4t5u6v7) editable on ProgramsPage; services/ai/syllabus_alignment.py: rule-based measurable-verb check + LLM CLO->PO mapping (hallucinated codes dropped); GET /syllabi/{id}/alignment-check; shown in syllabus approval dialog. Advisory only. |
 | 2026-10-26 | T8.1 | Vitest 5 + Testing Library + jsdom; npm test; 13 tests (RiskBadge, ProtectedRoute, AuthContext, AiStatusBanner) instead of a separate mastery helper (none exists in the frontend). CI: Node 22 + npm test step. |
 | 2026-10-26 | T8.2 | qa/jmeter/ailas.jmx + README; 50 users x 5 loops: 1502 samples, mean 398 ms, p95 656 ms, 1 connect timeout (0.07%, Docker->host networking); all connected requests < 1.3 s vs 5 s target. HTML report in qa-output/performance/jmeter/run-20261026-185437/. |
+| 2026-10-26 | T8.3 | ZAP baseline (frontend): 0 FAIL/9 WARN; ZAP API scan (OpenAPI, unauthenticated): 0 FAIL/1 WARN/119 PASS. Fixed CORP header in API; frontend header warnings fixed via Nginx in T8.4; rest triaged in qa-output/security/zap/README.md. |
