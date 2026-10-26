@@ -34,6 +34,8 @@ export default defineConfig({
       // Trailing slash so this matches /consent/status & /consent/accept (API) but
       // NOT the SPA route /consent (the student consent page) on a hard refresh.
       '/consent/':    BACKEND,
+      // Trailing slash: API calls (/reports/...) go to the backend, the SPA page /reports does not.
+      '/reports/':    BACKEND,
     },
   },
 })
