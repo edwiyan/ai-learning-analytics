@@ -108,7 +108,7 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 
 ## Phase 7 — Optional: Phase 1/2 workflow AI (doc §3.11.2, post-pilot) — D4
 
-- [ ] **T7.1 Assessment difficulty/misalignment hints.**
+- [x] **T7.1 Assessment difficulty/misalignment hints.**
   On the assessment approval view, compare item Bloom levels and mapped competencies against the TOS and flag items whose competency isn't in the TOS, or whose Bloom level is far from the TOS target. Advisory only.
 - [ ] **T7.2 Syllabus alignment check.**
   On the syllabus approval view, have the LLM check the extracted CLOs against the program's outcomes (from `programs`). Advisory only.
@@ -162,3 +162,4 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 | 2026-10-26 | T5.3 | CircuitBreaker (3 failures -> open 60s -> half-open) + 1 retry on transient errors in llm_client; /health returns llm {configured, available, providers}; AiStatusBanner in Layout for instructor/admin. |
 | 2026-10-26 | T5.4 | GEMINI_API_KEY/GEMINI_MODEL settings; llm_client tries OpenAI then Gemini (REST via httpx, key in header, JSON mime type), each with its own breaker; cache row records answering provider. Disabled when key blank. |
 | 2026-10-26 | T6.1 | core/ingestion.py records each syllabus/CSV upload attempt (parse_ok, processing/extract/parse ms) as 'ingestion' audit entries; GET /analytics/admin/ingestion-stats (parse rate, median/p95, % under 2 s); File Ingestion card on AdminDashboard. T6.2 stays descoped (D3). |
+| 2026-10-26 | T7.1 | services/assessment/alignment.py compares drafted exam questions (competency + Bloom) to the TOS: unlinked, outside-TOS, Bloom gap >=2, under/over coverage, higher-order share; GET /assessments/{id}/alignment-hints (owner, admin, PD/Dean same college, VPAA); shown in PD Approve modal. Advisory only. |

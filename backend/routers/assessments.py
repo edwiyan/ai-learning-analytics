@@ -21,6 +21,7 @@ from backend.schemas.assessment import (
 )
 from backend.schemas.tos import TosCreate, TosResponse
 from backend.models.tos import TableOfSpecifications
+from backend.services.assessment.alignment import alignment_hints
 from backend.services.assessment.csv_parser import parse_assessment_csv
 from backend.services.ai.topic_mapper import map_question_to_competency
 from backend.services.analytics_refresh import refresh_course_analytics
@@ -156,6 +157,32 @@ def get_pending_approval(
             .filter(User.college == current_user.college)
         )
     return q.all()
+
+
+REVIEWER_ROLES = {UserRole.program_director, UserRole.dean, UserRole.vp_academic_affairs}
+
+
+@router.get("/{assessment_id}/alignment-hints")
+def get_alignment_hints(
+    assessment_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Advisory TOS / Bloom alignment hints for the assessment review (§3.11.2)."""
+    assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
+    if not assessment:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+    course = db.query(Course).filter(Course.id == assessment.course_id).first()
+    if current_user.role in REVIEWER_ROLES:
+        if current_user.college and current_user.role != UserRole.vp_academic_affairs:
+            instructor = db.query(User).filter(User.id == course.instructor_id).first() if course else None
+            if not instructor or instructor.college != current_user.college:
+                raise HTTPException(status_code=403, detail="Assessment is outside your college")
+    elif current_user.role in (UserRole.instructor, UserRole.admin):
+        _assert_course_access(course, current_user)
+    else:
+        raise HTTPException(status_code=403, detail="Not allowed")
+    return alignment_hints(assessment, db)
 
 
 @router.get("/course/{course_id}", response_model=list[AssessmentResponse])

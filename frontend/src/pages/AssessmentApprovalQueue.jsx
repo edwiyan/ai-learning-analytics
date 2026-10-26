@@ -10,6 +10,43 @@ const CRITERIA_LABELS = {
   outcomes_covered: "Assessment items cover the stated course outcomes",
 };
 
+// Advisory TOS / Bloom alignment hints (capstone §3.11.2 Phase 2), shown while reviewing.
+function AlignmentHints({ assessmentId }) {
+  const [data, setData] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    api.get(`/assessments/${assessmentId}/alignment-hints`)
+      .then(res => { if (!cancelled) setData(res.data); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [assessmentId]);
+
+  if (!data) return null;
+  const warnings = data.hints.filter(h => h.severity === "warning");
+  const infos = data.hints.filter(h => h.severity !== "warning");
+  return (
+    <section aria-labelledby={`hints-${assessmentId}`} className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5">
+      <p id={`hints-${assessmentId}`} className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+        Alignment check <span className="font-normal normal-case text-gray-400">(advisory)</span>
+      </p>
+      {data.hints.length === 0 ? (
+        <p className="text-xs text-emerald-700 mt-1">
+          All {data.question_count} drafted questions match the Table of Specifications.
+        </p>
+      ) : (
+        <ul className="mt-1.5 space-y-1 max-h-40 overflow-y-auto">
+          {[...warnings, ...infos].map((h, i) => (
+            <li key={i} className={`text-xs ${h.severity === "warning" ? "text-amber-700" : "text-gray-500"}`}>
+              {h.question_number ? <span className="font-semibold">Q{h.question_number}: </span> : null}
+              {h.message}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 function ApproveModal({ assessment, onClose, onDone }) {
   const [criteria, setCriteria] = useState({
     content_validity: false,
@@ -42,6 +79,7 @@ function ApproveModal({ assessment, onClose, onDone }) {
           <p className="text-xs text-gray-500 mt-0.5">{assessment.title} &bull; {assessment.type} &bull; {assessment.grading_period}</p>
         </div>
         <div className="px-6 py-4 space-y-3">
+          <AlignmentHints assessmentId={assessment.id} />
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Review Criteria</p>
           {Object.entries(CRITERIA_LABELS).map(([key, label]) => (
             <label key={key} className="flex items-start gap-3 cursor-pointer group">
