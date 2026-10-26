@@ -9,6 +9,7 @@ from collections import defaultdict
 from sqlalchemy.orm import Session
 
 from backend.services.ai.feature_engineering import recompute_competency_mastery
+from backend.services.ai.risk_snapshot import refresh_course_risk
 
 # Recompute deletes and re-inserts a course's rows; serialize per course so two
 # overlapping refreshes (e.g. a bulk accept in the UI) cannot interleave.
@@ -19,4 +20,5 @@ def refresh_course_analytics(course_id, db: Session) -> dict:
     course_id = str(course_id)
     with _course_locks[course_id]:
         mastery_rows = recompute_competency_mastery(course_id, db)
-    return {"mastery_rows": mastery_rows}
+        transitions = refresh_course_risk(course_id, db)
+    return {"mastery_rows": mastery_rows, "risk_transitions": transitions}

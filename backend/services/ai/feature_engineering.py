@@ -192,6 +192,7 @@ def build_student_features(student_id_hash: str, course_id: str, db: Session) ->
         "semi_final_avg": round(semi, 2),
         "score_trend": round(midterm - prelim, 2),
         "grade_decline_pct": round(grade_decline_pct, 2),
+        "latest_period": getattr(present_periods[-1][0], "value", present_periods[-1][0]) if present_periods else None,
         "weak_competencies_ratio": round(weak_ratio, 2),
         "below_passing_count": len(weak),
         "weak_competency_ids": weak,
