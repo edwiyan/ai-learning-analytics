@@ -37,7 +37,7 @@ from backend.models.instructor_intervention import InstructorIntervention
 from backend.models.attendance import AttendanceRecord, AttendanceStatus
 from backend.models.grade_consultation import GradeConsultation, AcademicStatus
 from backend.models.academic_standing import AcademicStanding, AcademicStandingLevel
-from backend.schemas.instructor_intervention import InterventionCreate, InterventionOut
+from backend.schemas.instructor_intervention import InterventionCreate, InterventionOut, InterventionStatusUpdate
 from backend.schemas.grade_consultation import GradeConsultationCreate, GradeConsultationResponse
 from backend.services.academic_standing import upsert_academic_standing
 
@@ -1228,8 +1228,41 @@ def create_intervention(
         target_score=body.target_score,
         target_period=body.target_period,
         follow_up_date=follow_up,
+        ai_feedback=_intervention_ai_feedback(body.student_id_hash, course_id, db),
     )
     db.add(intervention)
+    db.commit()
+    db.refresh(intervention)
+    return InterventionOut.model_validate(intervention)
+
+
+def _intervention_ai_feedback(student_id_hash: str, course_id: str, db: Session) -> str | None:
+    """AI feedback logged with the intervention (capstone §3.4): the recommender's
+    GPT encouragement for the student's current gaps, or None when the LLM is off."""
+    try:
+        weak = predict_risk(student_id_hash, course_id, db).get("weak_competency_ids", [])
+        recs = get_recommendations(weak, course_id, db) if weak else []
+        return recs[0].get("personalized_message") if recs else None
+    except Exception:
+        return None
+
+
+@router.put("/interventions/{intervention_id}/status")
+def update_intervention_status(
+    intervention_id: uuid.UUID,
+    body: InterventionStatusUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.instructor, UserRole.admin)),
+):
+    """Track an intervention through open -> in_progress -> resolved (capstone §3.4)."""
+    from datetime import datetime as _dt
+    intervention = db.query(InstructorIntervention).filter(InstructorIntervention.id == intervention_id).first()
+    if not intervention:
+        raise HTTPException(status_code=404, detail="Intervention not found")
+    if current_user.role != UserRole.admin and str(intervention.instructor_id) != str(current_user.id):
+        raise HTTPException(status_code=403, detail="You did not log this intervention")
+    intervention.status = body.status
+    intervention.status_updated_at = _dt.utcnow()
     db.commit()
     db.refresh(intervention)
     return InterventionOut.model_validate(intervention)

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Layout from "../components/Layout";
 import Pagination from "../components/Pagination";
+import api from "../services/api";
 import { useApi } from "../hooks/useApi";
 import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
@@ -148,7 +149,14 @@ export default function InstructorDashboard() {
   const interventionUrl = interventionTypeFilter
     ? `/analytics/instructor/interventions?type=${interventionTypeFilter}`
     : "/analytics/instructor/interventions";
-  const { data: recentInterventions } = useApi(interventionUrl, [interventionTypeFilter]);
+  const { data: recentInterventions, refetch: refetchInterventions } = useApi(interventionUrl, [interventionTypeFilter]);
+  const updateInterventionStatus = async (id, status) => {
+    try {
+      await api.put(`/analytics/interventions/${id}/status`, { status });
+    } finally {
+      refetchInterventions();
+    }
+  };
   const { data: allConsultations } = useApi("/analytics/instructor/consultations");
   const { data: standingSummary } = useApi("/analytics/instructor/standing-summary");
 
@@ -627,6 +635,9 @@ export default function InstructorDashboard() {
                       </span>
                       <div className="flex-1 min-w-0">
                         {iv.note && <p className="text-xs text-gray-600 truncate">{iv.note}</p>}
+                        {iv.ai_feedback && (
+                          <p className="text-xs text-indigo-600 truncate" title={iv.ai_feedback}>AI: {iv.ai_feedback}</p>
+                        )}
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="text-xs text-gray-400">{new Date(iv.created_at).toLocaleDateString()}</p>
                           {followUpPastDue && (
@@ -637,6 +648,21 @@ export default function InstructorDashboard() {
                           )}
                         </div>
                       </div>
+                      <label className="sr-only" htmlFor={`iv-status-${iv.id}`}>Intervention status</label>
+                      <select
+                        id={`iv-status-${iv.id}`}
+                        value={iv.status || "open"}
+                        onChange={e => updateInterventionStatus(iv.id, e.target.value)}
+                        className={`shrink-0 border rounded-md px-1.5 py-0.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                          iv.status === "resolved" ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                          : iv.status === "in_progress" ? "border-amber-200 bg-amber-50 text-amber-700"
+                          : "border-gray-200 bg-white text-gray-600"
+                        }`}
+                      >
+                        <option value="open">Open</option>
+                        <option value="in_progress">In progress</option>
+                        <option value="resolved">Resolved</option>
+                      </select>
                     </div>
                   );
                 })}

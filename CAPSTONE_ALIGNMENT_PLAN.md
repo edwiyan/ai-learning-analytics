@@ -85,7 +85,7 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 
 - [x] **T4.1 Student feedback on recommendations.**
   New table `recommendation_feedback` (student hash, resource_id, helpful bool, comment, created_at). Add `POST /analytics/me/recommendations/{resource_id}/feedback`, thumbs up/down on the student dashboard recommendation cards, and a helpfulness % on `ResourcesPage.jsx` for faculty.
-- [ ] **T4.2 Interventions table: AI feedback and status** (§3.4).
+- [x] **T4.2 Interventions table: AI feedback and status** (§3.4).
   Add `ai_feedback` (the encouragement text the recommender generated) and `status` (open | in_progress | resolved) to `instructor_interventions`. Add `PUT /interventions/{id}/status` and a status selector in `InterventionAlertsPage.jsx`.
 
 ## Phase 5 — LLM robustness (doc §3.9.2 mitigation matrix)
@@ -156,3 +156,4 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 | 2026-10-26 | T3.2 | services/risk_alerts.py: on transition into At-Risk, in-app notify instructor (student_at_risk) + student (at_risk_alert) with Table 3.8.2 reason; no repeat while still At-Risk; bell icons added. |
 | 2026-10-26 | T3.3 | core/email.py: smtp_configured()+send_email(); enrollment welcome reuses it; At-Risk alerts emailed to instructor+student when SMTP set (HTML-escaped). T3.4/T3.5 stay descoped (D1). |
 | 2026-10-26 | T4.1 | recommendation_feedback table (s9o0p1q2r3s4), POST /analytics/me/recommendations/{id}/feedback (upsert), my_feedback on recs, helpful counts on /analytics/resources; thumbs on StudentDashboard + counts on ResourcesPage. Also now shows the GPT encouragement message (was generated but never displayed). |
+| 2026-10-26 | T4.2 | instructor_interventions.ai_feedback/status/status_updated_at (t0p1q2r3s4t5); AI feedback stored on create; PUT /analytics/interventions/{id}/status (owner/admin); status selector + AI line on InstructorDashboard. |

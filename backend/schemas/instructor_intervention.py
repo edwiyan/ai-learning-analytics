@@ -1,5 +1,5 @@
 from datetime import datetime, date as DateType
-from typing import Optional
+from typing import Literal, Optional
 from uuid import UUID
 from pydantic import BaseModel
 
@@ -16,6 +16,10 @@ class InterventionCreate(BaseModel):
     follow_up_date: Optional[str] = None  # ISO date "YYYY-MM-DD"
 
 
+class InterventionStatusUpdate(BaseModel):
+    status: Literal["open", "in_progress", "resolved"]
+
+
 class InterventionOut(BaseModel):
     id: UUID
     instructor_id: UUID
@@ -30,5 +34,8 @@ class InterventionOut(BaseModel):
     target_period: Optional[str] = None
     follow_up_date: Optional[DateType] = None
     plan_accepted_by_student: bool = False
+    ai_feedback: Optional[str] = None
+    status: str = "open"
+    status_updated_at: Optional[datetime] = None
     created_at: datetime
     model_config = {"from_attributes": True}

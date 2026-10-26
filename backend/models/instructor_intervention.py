@@ -18,6 +18,12 @@ class InterventionType(str, enum.Enum):
     general_note = "general_note"
 
 
+class InterventionStatus(str, enum.Enum):
+    open = "open"
+    in_progress = "in_progress"
+    resolved = "resolved"
+
+
 class InstructorIntervention(Base):
     __tablename__ = "instructor_interventions"
 
@@ -34,4 +40,9 @@ class InstructorIntervention(Base):
     target_period = Column(String(50), nullable=True)
     follow_up_date = Column(Date, nullable=True)
     plan_accepted_by_student = Column(Boolean, nullable=False, default=False, server_default="false")
+    # Capstone §3.4 Interventions: the AI-generated feedback logged with the
+    # intervention, and its status tracking.
+    ai_feedback = Column(Text, nullable=True)
+    status = Column(String(20), nullable=False, default=InterventionStatus.open.value, server_default="open")
+    status_updated_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
