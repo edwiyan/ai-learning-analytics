@@ -38,6 +38,27 @@ def _assert_course_access(course: Course, current_user: User):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not own this course")
 
 
+def _parse_uuid(value: str, field: str) -> uuid.UUID:
+    try:
+        return uuid.UUID(str(value))
+    except ValueError:
+        raise HTTPException(status_code=422, detail=f"Invalid {field}")
+
+
+def _get_item_for_edit(item_id: str, db: Session, current_user: User) -> AssessmentItem:
+    """Load an assessment item and verify the caller owns its course."""
+    item = db.query(AssessmentItem).filter(
+        AssessmentItem.id == _parse_uuid(item_id, "item_id")
+    ).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    course = db.query(Course).filter(Course.id == item.assessment.course_id).first()
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    _assert_course_access(course, current_user)
+    return item
+
+
 def _run_topic_mapping(assessment_id: str, db: Session):
     items = db.query(AssessmentItem).filter(
         AssessmentItem.assessment_id == assessment_id,
@@ -565,9 +586,20 @@ def override_tag(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.instructor, UserRole.admin)),
 ):
-    item = db.query(AssessmentItem).filter(AssessmentItem.id == item_id).first()
-    if not item:
-        raise HTTPException(status_code=404, detail="Item not found")
+    item = _get_item_for_edit(item_id, db, current_user)
+    competency = (
+        db.query(Competency)
+        .join(Competency.syllabus)
+        .filter(Competency.id == _parse_uuid(competency_id, "competency_id"))
+        .filter_by(course_id=item.assessment.course_id, status=SyllabusStatus.validated)
+        .first()
+    )
+    if not competency:
+        raise HTTPException(
+            status_code=422,
+            detail="Competency does not belong to this course's validated syllabus",
+        )
+    competency_id = competency.id
     item.mapped_competency_id = competency_id
     item.needs_review = False
     item.validated_by = current_user.id
@@ -585,9 +617,7 @@ def revert_item(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.instructor, UserRole.admin)),
 ):
-    item = db.query(AssessmentItem).filter(AssessmentItem.id == item_id).first()
-    if not item:
-        raise HTTPException(status_code=404, detail="Item not found")
+    item = _get_item_for_edit(item_id, db, current_user)
     item.needs_review = True
     item.validated_by = None
     db.commit()

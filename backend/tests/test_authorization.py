@@ -195,8 +195,6 @@ def test_foreign_instructor_cannot_read_grade_submission(
     assert resp.status_code == 403
 
 
-@pytest.mark.xfail(reason="Finding 3: PUT /assessments/items/{id}/tag does not verify the "
-                          "item belongs to the caller's course (assessments.py:490)", strict=True)
 def test_foreign_instructor_cannot_override_tag(
     client, other_instructor_token, db, instructor_user
 ):
@@ -207,3 +205,27 @@ def test_foreign_instructor_cannot_override_tag(
         headers=_auth(other_instructor_token),
     )
     assert resp.status_code == 403
+
+
+def test_foreign_instructor_cannot_revert_item(
+    client, other_instructor_token, db, instructor_user
+):
+    _, _, item, *_ = _seed_course_with_data(db, instructor_user)
+    resp = client.put(
+        f"/assessments/items/{item.id}/revert", headers=_auth(other_instructor_token)
+    )
+    assert resp.status_code == 403
+
+
+def test_override_rejects_competency_from_another_course(
+    client, instructor_token, db, instructor_user
+):
+    """The owner may only tag items with competencies from this course's
+    validated syllabus, not an arbitrary competency id."""
+    _, _, item, *_ = _seed_course_with_data(db, instructor_user)
+    resp = client.put(
+        f"/assessments/items/{item.id}/tag",
+        params={"competency_id": str(uuid.uuid4())},
+        headers=_auth(instructor_token),
+    )
+    assert resp.status_code == 422

@@ -33,12 +33,12 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 
 ## Phase 0 — Baseline
 
-- [ ] **T0.1 Baseline commit.** Review `.gitignore` (exclude logs, `*.db`, `~$*.docx`, `qa-output/`, `.playwright-cli/`), then make the initial commit on a branch. *Needs your go-ahead.*
-- [ ] **T0.2 Test baseline.** Run pytest and the frontend build, and record the pass/fail counts in the progress log, so later regressions are visible.
+- [x] **T0.1 Baseline commit.** Review `.gitignore` (exclude logs, `*.db`, `~$*.docx`, `qa-output/`, `.playwright-cli/`), then make the initial commit on a branch. *Needs your go-ahead.*
+- [x] **T0.2 Test baseline.** Run pytest and the frontend build, and record the pass/fail counts in the progress log, so later regressions are visible.
 
 ## Phase 1 — Correctness and security (doc §3.8.2, §3.9.1)
 
-- [ ] **T1.1 Ownership check on mapping overrides.**
+- [x] **T1.1 Ownership check on mapping overrides.**
   `PUT /assessments/items/{id}/tag` and `/revert` must call `_assert_course_access` the way upload does. Also check that `competency_id` belongs to the course's validated syllabus.
   Files: `backend/routers/assessments.py`, `backend/tests/test_authorization.py`.
   Done when: another instructor gets a 403; tests cover this.
@@ -142,3 +142,6 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 | Date | Task | Result / notes |
 |---|---|---|
 | 2026-10-26 | — | Plan created from the cross-check. |
+| 2026-10-26 | T0.1 | Baseline commit 89a7df0 on branch capstone-alignment; .gitignore extended (logs, *.db, QA artifacts). |
+| 2026-10-26 | T0.2 | Baseline: pytest 62 passed / 1 skipped / 6 xfailed; frontend build OK. |
+| 2026-10-26 | T1.1 | tag/revert now check course ownership + competency belongs to course's validated syllabus (422). Removed Finding-3 xfail; added test_mapping_review.py. |
