@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, act } from "@testing-library/react";
 import { AuthProvider, useAuth } from "../context/AuthContext";
@@ -6,9 +7,12 @@ import api from "../services/api";
 vi.mock("../services/api", () => ({ default: { get: vi.fn(), post: vi.fn() } }));
 
 let ctx;
+const capture = value => { ctx = value; };
+
 function Probe() {
-  ctx = useAuth();
-  return <p>{ctx.loading ? "loading" : ctx.user ? `user:${ctx.user.role}` : "anonymous"}</p>;
+  const auth = useAuth();
+  useEffect(() => { capture(auth); });
+  return <p>{auth.loading ? "loading" : auth.user ? `user:${auth.user.role}` : "anonymous"}</p>;
 }
 
 describe("AuthContext", () => {
