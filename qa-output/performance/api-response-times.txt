@@ -1,0 +1,9 @@
+GET /analytics/instructor/course-summaries             0.043s  PASS
+GET /analytics/instructor/at-risk-students             0.115s  PASS
+GET /courses/                                          0.013s  PASS
+GET /syllabi/mine                                      0.021s  PASS
+GET /analytics/admin/stats                             0.038s  PASS
+GET /analytics/admin/audit-logs                        0.022s  PASS
+GET /analytics/me/competency-scores                    0.013s  PASS
+GET /analytics/me/risk                                 0.011s  PASS
+--- concurrency: 5x /analytics/instructor/at-risk-students ---

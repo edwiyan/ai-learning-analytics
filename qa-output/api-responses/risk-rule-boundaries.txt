@@ -1,0 +1,7 @@
+2 gaps, 10% decline (on-track)                               -> On-Track
+3 gaps -> AT-RISK boundary                                   -> At-Risk
+2 gaps, exactly 15% decline (NOT at-risk, >15 strict)        -> On-Track
+2 gaps, 15.01% decline -> AT-RISK                            -> At-Risk
+avg 85, 0 gaps -> EXCELLING                                  -> Excelling
+avg 84.9, 0 gaps -> on-track                                 -> On-Track
+absence ignored: 0 gaps, 0 decline, (no absence field) -> on-track -> On-Track

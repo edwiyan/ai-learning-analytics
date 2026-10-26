@@ -1,0 +1,1615 @@
+{
+  "config": {
+    "configFile": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\playwright.config.ts",
+    "rootDir": "C:/Users/edria/ai-learning-analytics/qa-audit/tests",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/edria/ai-learning-analytics/qa-audit/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/Users/edria/ai-learning-analytics/qa-audit/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "reports/playwright-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.60.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "phase6-ux.spec.ts",
+      "file": "phase6-ux.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Visual: Desktop Screenshots (1440x900)",
+          "file": "phase6-ux.spec.ts",
+          "line": 21,
+          "column": 6,
+          "specs": [
+            {
+              "title": "desktop: admin-dashboard",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6891,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:01:39.366Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-2ab63-900-desktop-admin-dashboard-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-2ab63-900-desktop-admin-dashboard-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-2ff949225de68c93f243",
+              "file": "phase6-ux.spec.ts",
+              "line": 23,
+              "column": 9
+            },
+            {
+              "title": "desktop: admin-users",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6547,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:01:46.605Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-86bb4-440x900-desktop-admin-users-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-86bb4-440x900-desktop-admin-users-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-0c9726e1336c72616de9",
+              "file": "phase6-ux.spec.ts",
+              "line": 23,
+              "column": 9
+            },
+            {
+              "title": "desktop: admin-audit",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7623,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:01:53.300Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-d523a-440x900-desktop-admin-audit-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-d523a-440x900-desktop-admin-audit-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-1e7cf9cf0bdfc2b736fb",
+              "file": "phase6-ux.spec.ts",
+              "line": 23,
+              "column": 9
+            },
+            {
+              "title": "desktop: instructor-dashboard",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6799,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:02:01.157Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-7f607-esktop-instructor-dashboard-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-7f607-esktop-instructor-dashboard-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-b63fc2d9314894bac36b",
+              "file": "phase6-ux.spec.ts",
+              "line": 23,
+              "column": 9
+            },
+            {
+              "title": "desktop: instructor-classes",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7727,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:02:08.108Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-57703--desktop-instructor-classes-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-57703--desktop-instructor-classes-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-323effb62783a87154e2",
+              "file": "phase6-ux.spec.ts",
+              "line": 23,
+              "column": 9
+            },
+            {
+              "title": "desktop: instructor-grades",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6530,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:02:16.082Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-36101-0-desktop-instructor-grades-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-36101-0-desktop-instructor-grades-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-0efd4cf34d2f5c0984a9",
+              "file": "phase6-ux.spec.ts",
+              "line": 23,
+              "column": 9
+            },
+            {
+              "title": "desktop: instructor-syllabi",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6520,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:02:22.810Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-9e0ff--desktop-instructor-syllabi-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-9e0ff--desktop-instructor-syllabi-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-138deeda77109b071e29",
+              "file": "phase6-ux.spec.ts",
+              "line": 23,
+              "column": 9
+            },
+            {
+              "title": "desktop: student-dashboard",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6675,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:02:29.454Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-abb75-0-desktop-student-dashboard-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-abb75-0-desktop-student-dashboard-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-86694dd615205dfb8abd",
+              "file": "phase6-ux.spec.ts",
+              "line": 23,
+              "column": 9
+            },
+            {
+              "title": "desktop: student-analytics",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6121,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:02:36.283Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-76273-0-desktop-student-analytics-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-76273-0-desktop-student-analytics-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-f8b380eb1900a5551ff4",
+              "file": "phase6-ux.spec.ts",
+              "line": 23,
+              "column": 9
+            },
+            {
+              "title": "desktop: student-resources",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6417,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:02:42.549Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-2223b-0-desktop-student-resources-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-2223b-0-desktop-student-resources-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-6fbb3e17ad88913041e8",
+              "file": "phase6-ux.spec.ts",
+              "line": 23,
+              "column": 9
+            },
+            {
+              "title": "desktop: pd-dashboard",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6753,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:02:49.096Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-ef9bb-40x900-desktop-pd-dashboard-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-ef9bb-40x900-desktop-pd-dashboard-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-8815b72cddbd1c8c60d1",
+              "file": "phase6-ux.spec.ts",
+              "line": 23,
+              "column": 9
+            },
+            {
+              "title": "desktop: pd-syllabus-queue",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6663,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:02:56.022Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-b3b54-0-desktop-pd-syllabus-queue-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-b3b54-0-desktop-pd-syllabus-queue-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-051b5193a51cbb44a4c9",
+              "file": "phase6-ux.spec.ts",
+              "line": 23,
+              "column": 9
+            },
+            {
+              "title": "desktop: dean-dashboard",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7084,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:03:02.833Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-eb329-x900-desktop-dean-dashboard-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-eb329-x900-desktop-dean-dashboard-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-f9d084a86abfc282c843",
+              "file": "phase6-ux.spec.ts",
+              "line": 23,
+              "column": 9
+            },
+            {
+              "title": "desktop: vp-dashboard",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6560,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:03:10.088Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-c68f3-40x900-desktop-vp-dashboard-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Desktop-S-c68f3-40x900-desktop-vp-dashboard-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-8282cbcd39f6ef23e7d7",
+              "file": "phase6-ux.spec.ts",
+              "line": 23,
+              "column": 9
+            }
+          ]
+        },
+        {
+          "title": "Visual: Mobile Screenshots (390x844)",
+          "file": "phase6-ux.spec.ts",
+          "line": 42,
+          "column": 6,
+          "specs": [
+            {
+              "title": "mobile: admin-dashboard",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5816,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[MOBILE] admin-dashboard: horizontal-scroll=false\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:03:16.795Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-d42cb-x844-mobile-admin-dashboard-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-d42cb-x844-mobile-admin-dashboard-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-a8a9bc892a3b7ff74660",
+              "file": "phase6-ux.spec.ts",
+              "line": 44,
+              "column": 9
+            },
+            {
+              "title": "mobile: admin-users",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6261,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[MOBILE] admin-users: horizontal-scroll=false\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:03:22.748Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-a53a5--390x844-mobile-admin-users-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-a53a5--390x844-mobile-admin-users-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-948841d6e61493395e17",
+              "file": "phase6-ux.spec.ts",
+              "line": 44,
+              "column": 9
+            },
+            {
+              "title": "mobile: admin-audit",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6513,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[MOBILE] admin-audit: horizontal-scroll=false\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:03:29.213Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-fa924--390x844-mobile-admin-audit-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-fa924--390x844-mobile-admin-audit-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-e48a098404cd5a8bb72c",
+              "file": "phase6-ux.spec.ts",
+              "line": 44,
+              "column": 9
+            },
+            {
+              "title": "mobile: instructor-dashboard",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5846,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[MOBILE] instructor-dashboard: horizontal-scroll=false\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:03:35.967Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-a9362-mobile-instructor-dashboard-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-a9362-mobile-instructor-dashboard-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-8739133f2ee9d5ff5b55",
+              "file": "phase6-ux.spec.ts",
+              "line": 44,
+              "column": 9
+            },
+            {
+              "title": "mobile: instructor-classes",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7125,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[MOBILE] instructor-classes: horizontal-scroll=false\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:03:41.957Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-70c25-4-mobile-instructor-classes-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-70c25-4-mobile-instructor-classes-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-c7de4b2299f9114cd0f0",
+              "file": "phase6-ux.spec.ts",
+              "line": 44,
+              "column": 9
+            },
+            {
+              "title": "mobile: instructor-grades",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5821,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[MOBILE] instructor-grades: horizontal-scroll=false\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:03:49.258Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-8a4d2-44-mobile-instructor-grades-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-8a4d2-44-mobile-instructor-grades-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-6cd35c12f1b98c87e033",
+              "file": "phase6-ux.spec.ts",
+              "line": 44,
+              "column": 9
+            },
+            {
+              "title": "mobile: instructor-syllabi",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5982,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[MOBILE] instructor-syllabi: horizontal-scroll=false\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:03:55.236Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-61ad5-4-mobile-instructor-syllabi-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-61ad5-4-mobile-instructor-syllabi-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-800329a0929d93be40f0",
+              "file": "phase6-ux.spec.ts",
+              "line": 44,
+              "column": 9
+            },
+            {
+              "title": "mobile: student-dashboard",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5806,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[MOBILE] student-dashboard: horizontal-scroll=false\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:04:01.382Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-523e5-44-mobile-student-dashboard-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-523e5-44-mobile-student-dashboard-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-1aba954954c020f5bc78",
+              "file": "phase6-ux.spec.ts",
+              "line": 44,
+              "column": 9
+            },
+            {
+              "title": "mobile: student-analytics",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5394,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[MOBILE] student-analytics: horizontal-scroll=false\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:04:07.323Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-f1269-44-mobile-student-analytics-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-f1269-44-mobile-student-analytics-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-929fa4b5451519410d7a",
+              "file": "phase6-ux.spec.ts",
+              "line": 44,
+              "column": 9
+            },
+            {
+              "title": "mobile: student-resources",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5553,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[MOBILE] student-resources: horizontal-scroll=false\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:04:12.840Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-f6732-44-mobile-student-resources-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-f6732-44-mobile-student-resources-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-a19fd8c04b6c7a7bcebb",
+              "file": "phase6-ux.spec.ts",
+              "line": 44,
+              "column": 9
+            },
+            {
+              "title": "mobile: pd-dashboard",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6087,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[MOBILE] pd-dashboard: horizontal-scroll=false\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:04:18.524Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-98410-390x844-mobile-pd-dashboard-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-98410-390x844-mobile-pd-dashboard-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-97e99fe78ad50fd666a3",
+              "file": "phase6-ux.spec.ts",
+              "line": 44,
+              "column": 9
+            },
+            {
+              "title": "mobile: pd-syllabus-queue",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6062,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[MOBILE] pd-syllabus-queue: horizontal-scroll=false\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:04:24.807Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-4846c-44-mobile-pd-syllabus-queue-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-4846c-44-mobile-pd-syllabus-queue-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-d5278b4a764df010bd9c",
+              "file": "phase6-ux.spec.ts",
+              "line": 44,
+              "column": 9
+            },
+            {
+              "title": "mobile: dean-dashboard",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5871,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[MOBILE] dean-dashboard: horizontal-scroll=false\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:04:31.016Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-6bdfe-0x844-mobile-dean-dashboard-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-6bdfe-0x844-mobile-dean-dashboard-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-da11c27c5fdd321da463",
+              "file": "phase6-ux.spec.ts",
+              "line": 44,
+              "column": 9
+            },
+            {
+              "title": "mobile: vp-dashboard",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6410,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[MOBILE] vp-dashboard: horizontal-scroll=false\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:04:37.039Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-662fb-390x844-mobile-vp-dashboard-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-Visual-Mobile-Sc-662fb-390x844-mobile-vp-dashboard-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-198fa8c2e2b9fe4cb033",
+              "file": "phase6-ux.spec.ts",
+              "line": 44,
+              "column": 9
+            }
+          ]
+        },
+        {
+          "title": "UX: Empty States & Error States",
+          "file": "phase6-ux.spec.ts",
+          "line": 64,
+          "column": 6,
+          "specs": [
+            {
+              "title": "404 page renders meaningful content",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5160,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[404] page has error message: true\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:04:43.953Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-UX-Empty-States--a4729--renders-meaningful-content-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-UX-Empty-States--a4729--renders-meaningful-content-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-e7b560a6112973300860",
+              "file": "phase6-ux.spec.ts",
+              "line": 65,
+              "column": 7
+            },
+            {
+              "title": "login page with wrong credentials shows inline error",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3564,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[ERROR STATE] invalid login shows error: false\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:04:49.284Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-UX-Empty-States--1e713-dentials-shows-inline-error-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-UX-Empty-States--1e713-dentials-shows-inline-error-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-86f857071b89f7981c65",
+              "file": "phase6-ux.spec.ts",
+              "line": 76,
+              "column": 7
+            },
+            {
+              "title": "grade submissions empty state",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5712,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:04:52.942Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-UX-Empty-States--ffe8e-ade-submissions-empty-state-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-UX-Empty-States--ffe8e-ade-submissions-empty-state-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-61cc953c4acdb9ac4f25",
+              "file": "phase6-ux.spec.ts",
+              "line": 87,
+              "column": 7
+            },
+            {
+              "title": "admin dashboard — check for debug artifacts",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4786,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[CONSOLE] admin-dashboard errors:\n[error] Failed to load resource: the server responded with a status of 403 (Forbidden)\n[error] Failed to load resource: the server responded with a status of 403 (Forbidden)\n"
+                        },
+                        {
+                          "text": "[CONSOLE] admin-dashboard: 2 console errors/warnings\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-22T14:04:58.861Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-UX-Empty-States--d8d59-—-check-for-debug-artifacts-chromium\\test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\edria\\ai-learning-analytics\\qa-audit\\test-results\\phase6-ux-UX-Empty-States--d8d59-—-check-for-debug-artifacts-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "49379341f3b3a34c6338-14c206bf4b4ccafc93f6",
+              "file": "phase6-ux.spec.ts",
+              "line": 95,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-05-22T14:01:38.121Z",
+    "duration": 206457.534,
+    "expected": 32,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

@@ -1,0 +1,1070 @@
+
+Running 57 tests using 2 workers
+
+  ok  1 [chromium] › qa-audit\specs\02-instructor.spec.js:6:7 › Instructor role journey › Dashboard loads with stat cards (10.2s)
+  ok  2 [chromium] › qa-audit\specs\01-admin.spec.js:6:7 › Admin role journey › UI login form works and redirects to /admin (10.1s)
+  ok  3 [chromium] › qa-audit\specs\02-instructor.spec.js:12:7 › Instructor role journey › Dashboard shows course performance section (6.0s)
+  ok  4 [chromium] › qa-audit\specs\01-admin.spec.js:12:7 › Admin role journey › Admin dashboard loads stat cards and SUS score card (6.4s)
+  ok  5 [chromium] › qa-audit\specs\02-instructor.spec.js:19:7 › Instructor role journey › My Classes page loads (8.9s)
+  ok  6 [chromium] › qa-audit\specs\01-admin.spec.js:21:7 › Admin role journey › Programs page - list and create form visible (12.4s)
+  ok  7 [chromium] › qa-audit\specs\02-instructor.spec.js:27:7 › Instructor role journey › My Syllabi page loads (7.7s)
+  ok  8 [chromium] › qa-audit\specs\01-admin.spec.js:29:7 › Admin role journey › Curricula page loads (6.8s)
+  ok  9 [chromium] › qa-audit\specs\02-instructor.spec.js:35:7 › Instructor role journey › Processing Interface (ingestion module) loads all steps (7.5s)
+  x  11 [chromium] › qa-audit\specs\02-instructor.spec.js:44:7 › Instructor role journey › Attendance page loads with course selector (713ms)
+  ok 10 [chromium] › qa-audit\specs\01-admin.spec.js:37:7 › Admin role journey › Sections page loads (8.1s)
+  x  12 [chromium] › qa-audit\specs\01-admin.spec.js:45:7 › Admin role journey › Enrollment page loads (398ms)
+  x  13 [chromium] › qa-audit\specs\02-instructor.spec.js:44:7 › Instructor role journey › Attendance page loads with course selector (retry #1) (1.0s)
+  x  14 [chromium] › qa-audit\specs\01-admin.spec.js:45:7 › Admin role journey › Enrollment page loads (retry #1) (698ms)
+  x  15 [chromium] › qa-audit\specs\02-instructor.spec.js:52:7 › Instructor role journey › Grade consultation page loads (1.5s)
+  x  16 [chromium] › qa-audit\specs\01-admin.spec.js:53:7 › Admin role journey › User management page loads and shows user table (1.1s)
+  x  17 [chromium] › qa-audit\specs\02-instructor.spec.js:52:7 › Instructor role journey › Grade consultation page loads (retry #1) (1.1s)
+  ok 19 [chromium] › qa-audit\specs\02-instructor.spec.js:60:7 › Instructor role journey › Grade submissions page loads (5.7s)
+  x  18 [chromium] › qa-audit\specs\01-admin.spec.js:53:7 › Admin role journey › User management page loads and shows user table (retry #1) (14.9s)
+  ok 20 [chromium] › qa-audit\specs\02-instructor.spec.js:68:7 › Instructor role journey › Intervention alerts page loads (6.3s)
+  ok 22 [chromium] › qa-audit\specs\02-instructor.spec.js:76:7 › Instructor role journey › Analytics page loads (5.6s)
+  ok 21 [chromium] › qa-audit\specs\01-admin.spec.js:61:7 › Admin role journey › Audit logs page loads (8.0s)
+  ok 23 [chromium] › qa-audit\specs\02-instructor.spec.js:84:7 › Instructor role journey › Topic mapping page loads (7.9s)
+  ok 24 [chromium] › qa-audit\specs\01-admin.spec.js:69:7 › Admin role journey › Retrain model button is present on dashboard (8.9s)
+  ok 25 [chromium] › qa-audit\specs\02-instructor.spec.js:93:7 › Instructor role journey › Instructor blocked from /admin (8.1s)
+  ok 26 [chromium] › qa-audit\specs\01-admin.spec.js:77:7 › Admin role journey › Admin blocked from /student route (7.3s)
+  ok 27 [chromium] › qa-audit\specs\02-instructor.spec.js:105:7 › Instructor role journey › Instructor cannot call syllabus approve endpoint directly (5.1s)
+  x  29 [chromium] › qa-audit\specs\03-student.spec.js:6:7 › Student role journey › Student dashboard loads with course selector (359ms)
+  ok 28 [chromium] › qa-audit\specs\01-admin.spec.js:90:7 › Admin role journey › Wrong password shows error on login page (5.0s)
+  x  30 [chromium] › qa-audit\specs\04-pd.spec.js:6:7 › Program Director role journey › PD dashboard loads (384ms)
+  x  31 [chromium] › qa-audit\specs\03-student.spec.js:6:7 › Student role journey › Student dashboard loads with course selector (retry #1) (1.1s)
+  x  32 [chromium] › qa-audit\specs\04-pd.spec.js:6:7 › Program Director role journey › PD dashboard loads (retry #1) (1.4s)
+  x  33 [chromium] › qa-audit\specs\03-student.spec.js:12:7 › Student role journey › Dashboard shows course dropdown when courses exist (929ms)
+  x  34 [chromium] › qa-audit\specs\04-pd.spec.js:13:7 › Program Director role journey › Syllabus approval queue loads (802ms)
+  ok 35 [chromium] › qa-audit\specs\03-student.spec.js:12:7 › Student role journey › Dashboard shows course dropdown when courses exist (retry #1) (3.9s)
+  ok 36 [chromium] › qa-audit\specs\03-student.spec.js:19:7 › Student role journey › Selecting a course loads stat cards and charts (7.0s)
+  ok 37 [chromium] › qa-audit\specs\04-pd.spec.js:13:7 › Program Director role journey › Syllabus approval queue loads (retry #1) (6.9s)
+  ok 38 [chromium] › qa-audit\specs\03-student.spec.js:40:7 › Student role journey › Academic standing banner only shows when standing is not good (6.7s)
+  ok 39 [chromium] › qa-audit\specs\04-pd.spec.js:23:7 › Program Director role journey › Assessment approval queue loads (5.7s)
+  ok 40 [chromium] › qa-audit\specs\03-student.spec.js:54:7 › Student role journey › My Courses page loads (6.1s)
+  ok 41 [chromium] › qa-audit\specs\04-pd.spec.js:32:7 › Program Director role journey › Grade approval queue loads (6.1s)
+  ok 43 [chromium] › qa-audit\specs\04-pd.spec.js:40:7 › Program Director role journey › Notification bell is visible (3.9s)
+  ok 42 [chromium] › qa-audit\specs\03-student.spec.js:62:7 › Student role journey › My Competencies page loads (5.0s)
+  x  45 [chromium] › qa-audit\specs\03-student.spec.js:70:7 › Student role journey › Interventions page loads (722ms)
+  ok 44 [chromium] › qa-audit\specs\04-pd.spec.js:50:7 › Program Director role journey › PD blocked from /admin (4.1s)
+  x  46 [chromium] › qa-audit\specs\04-pd.spec.js:62:7 › Program Director role journey › PD calling approve on non-pending syllabus gets appropriate error (324ms)
+  x  47 [chromium] › qa-audit\specs\03-student.spec.js:70:7 › Student role journey › Interventions page loads (retry #1) (765ms)
+  x  48 [chromium] › qa-audit\specs\04-pd.spec.js:62:7 › Program Director role journey › PD calling approve on non-pending syllabus gets appropriate error (retry #1) (747ms)
+  x  49 [chromium] › qa-audit\specs\03-student.spec.js:78:7 › Student role journey › SUS survey page loads with 10 Likert items (1.0s)
+  x  50 [chromium] › qa-audit\specs\04-pd.spec.js:78:7 › Program Director role journey › PD cannot access student-only /analytics/me/risk (4.2s)
+  x  51 [chromium] › qa-audit\specs\03-student.spec.js:78:7 › Student role journey › SUS survey page loads with 10 Likert items (retry #1) (3.8s)
+  x  52 [chromium] › qa-audit\specs\04-pd.spec.js:78:7 › Program Director role journey › PD cannot access student-only /analytics/me/risk (retry #1) (2.2s)
+  x  53 [chromium] › qa-audit\specs\03-student.spec.js:88:7 › Student role journey › Student blocked from /instructor (1.9s)
+  ok 54 [chromium] › qa-audit\specs\05-dean.spec.js:6:7 › Dean role journey › Dean dashboard loads (11.5s)
+  ok 55 [chromium] › qa-audit\specs\03-student.spec.js:88:7 › Student role journey › Student blocked from /instructor (retry #1) (7.3s)
+  ok 56 [chromium] › qa-audit\specs\05-dean.spec.js:13:7 › Dean role journey › Syllabus approval queue accessible to Dean (4.6s)
+  ok 57 [chromium] › qa-audit\specs\03-student.spec.js:100:7 › Student role journey › Student blocked from instructor-only API endpoint (5.3s)
+  ok 58 [chromium] › qa-audit\specs\05-dean.spec.js:22:7 › Dean role journey › Grade approval queue accessible to Dean (5.9s)
+  ok 59 [chromium] › qa-audit\specs\03-student.spec.js:113:7 › Student role journey › Student /analytics/me/risk only returns own data (4.5s)
+  ok 60 [chromium] › qa-audit\specs\05-dean.spec.js:31:7 › Dean role journey › Dean blocked from /admin (5.7s)
+  ok 61 [chromium] › qa-audit\specs\06-vp.spec.js:6:7 › VP Academic Affairs role journey › VP dashboard loads (6.4s)
+  ok 62 [chromium] › qa-audit\specs\05-dean.spec.js:43:7 › Dean role journey › Dean blocked from /assessment-approval (PD-only) (8.2s)
+  ok 63 [chromium] › qa-audit\specs\06-vp.spec.js:13:7 › VP Academic Affairs role journey › Syllabus approval queue accessible to VP (9.8s)
+  x  64 [chromium] › qa-audit\specs\05-dean.spec.js:56:7 › Dean role journey › Dean cannot call assessment approve endpoint (PD-only) (308ms)
+  x  65 [chromium] › qa-audit\specs\06-vp.spec.js:22:7 › VP Academic Affairs role journey › Grade approval queue accessible to VP (387ms)
+  x  66 [chromium] › qa-audit\specs\05-dean.spec.js:56:7 › Dean role journey › Dean cannot call assessment approve endpoint (PD-only) (retry #1) (674ms)
+  x  67 [chromium] › qa-audit\specs\06-vp.spec.js:22:7 › VP Academic Affairs role journey › Grade approval queue accessible to VP (retry #1) (673ms)
+  x  68 [chromium] › qa-audit\specs\06-vp.spec.js:30:7 › VP Academic Affairs role journey › VP dashboard shows top-level metrics or approval summary (855ms)
+  x  69 [chromium] › qa-audit\specs\06-vp.spec.js:30:7 › VP Academic Affairs role journey › VP dashboard shows top-level metrics or approval summary (retry #1) (841ms)
+  x  70 [chromium] › qa-audit\specs\06-vp.spec.js:37:7 › VP Academic Affairs role journey › VP blocked from /admin (1.1s)
+  ok 71 [chromium] › qa-audit\specs\06-vp.spec.js:37:7 › VP Academic Affairs role journey › VP blocked from /admin (retry #1) (5.4s)
+  ok 72 [chromium] › qa-audit\specs\06-vp.spec.js:49:7 › VP Academic Affairs role journey › VP blocked from /assessment-approval (PD-only) (4.1s)
+  ok 73 [chromium] › qa-audit\specs\06-vp.spec.js:61:7 › VP Academic Affairs role journey › VP cannot create a grade submission (instructor-only) (3.1s)
+  x  74 [chromium] › qa-audit\specs\06-vp.spec.js:76:7 › VP Academic Affairs role journey › VP cannot access /analytics/me/risk (student-only) (3.4s)
+  x  75 [chromium] › qa-audit\specs\06-vp.spec.js:76:7 › VP Academic Affairs role journey › VP cannot access /analytics/me/risk (student-only) (retry #1) (5.1s)
+
+
+  1) [chromium] › qa-audit\specs\01-admin.spec.js:45:7 › Admin role journey › Enrollment page loads 
+
+    Error: Login failed for admin: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\01-admin.spec.js:46:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\01-admin-Admin-role-journey-Enrollment-page-loads-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\01-admin-Admin-role-journey-Enrollment-page-loads-chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\01-admin-Admin-role-journey-Enrollment-page-loads-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\01-admin-Admin-role-journey-Enrollment-page-loads-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: Login failed for admin: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\01-admin.spec.js:46:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\01-admin-Admin-role-journey-Enrollment-page-loads-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\01-admin-Admin-role-journey-Enrollment-page-loads-chromium-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\01-admin-Admin-role-journey-Enrollment-page-loads-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\01-admin-Admin-role-journey-Enrollment-page-loads-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [chromium] › qa-audit\specs\01-admin.spec.js:53:7 › Admin role journey › User management page loads and shows user table 
+
+    Error: Login failed for admin: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\01-admin.spec.js:54:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\01-admin-Admin-role-journe-f3704--loads-and-shows-user-table-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\01-admin-Admin-role-journe-f3704--loads-and-shows-user-table-chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\01-admin-Admin-role-journe-f3704--loads-and-shows-user-table-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\01-admin-Admin-role-journe-f3704--loads-and-shows-user-table-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator: locator('body')
+    Expected pattern: [32m/student|instructor|admin/i[39m
+    Received string:  [31m"{\"detail\":\"Not authenticated\"}"[39m
+    Timeout: 8000ms
+
+    Call log:
+    [2m  - Expect "toContainText" with timeout 8000ms[22m
+    [2m  - waiting for locator('body')[22m
+    [2m    19 × locator resolved to <body>…</body>[22m
+    [2m       - unexpected value "{"detail":"Not authenticated"}"[22m
+
+
+      56 |     await page.waitForLoadState("networkidle");
+      57 |     await shot(page, "admin/07-users");
+    > 58 |     await expect(page.locator("body")).toContainText(/student|instructor|admin/i);
+         |                                        ^
+      59 |   });
+      60 |
+      61 |   test("Audit logs page loads", async ({ page }) => {
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\01-admin.spec.js:58:40
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\01-admin-Admin-role-journe-f3704--loads-and-shows-user-table-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\01-admin-Admin-role-journe-f3704--loads-and-shows-user-table-chromium-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\01-admin-Admin-role-journe-f3704--loads-and-shows-user-table-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\01-admin-Admin-role-journe-f3704--loads-and-shows-user-table-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [chromium] › qa-audit\specs\02-instructor.spec.js:44:7 › Instructor role journey › Attendance page loads with course selector 
+
+    Error: Login failed for instructor: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\02-instructor.spec.js:45:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\02-instructor-Instructor-r-86f22--loads-with-course-selector-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\02-instructor-Instructor-r-86f22--loads-with-course-selector-chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\02-instructor-Instructor-r-86f22--loads-with-course-selector-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\02-instructor-Instructor-r-86f22--loads-with-course-selector-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: Login failed for instructor: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\02-instructor.spec.js:45:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\02-instructor-Instructor-r-86f22--loads-with-course-selector-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\02-instructor-Instructor-r-86f22--loads-with-course-selector-chromium-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\02-instructor-Instructor-r-86f22--loads-with-course-selector-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\02-instructor-Instructor-r-86f22--loads-with-course-selector-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [chromium] › qa-audit\specs\02-instructor.spec.js:52:7 › Instructor role journey › Grade consultation page loads 
+
+    Error: Login failed for instructor: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\02-instructor.spec.js:53:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\02-instructor-Instructor-r-53bb2-ade-consultation-page-loads-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\02-instructor-Instructor-r-53bb2-ade-consultation-page-loads-chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\02-instructor-Instructor-r-53bb2-ade-consultation-page-loads-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\02-instructor-Instructor-r-53bb2-ade-consultation-page-loads-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: Login failed for instructor: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\02-instructor.spec.js:53:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\02-instructor-Instructor-r-53bb2-ade-consultation-page-loads-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\02-instructor-Instructor-r-53bb2-ade-consultation-page-loads-chromium-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\02-instructor-Instructor-r-53bb2-ade-consultation-page-loads-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\02-instructor-Instructor-r-53bb2-ade-consultation-page-loads-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) [chromium] › qa-audit\specs\03-student.spec.js:6:7 › Student role journey › Student dashboard loads with course selector 
+
+    Error: Login failed for student: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\03-student.spec.js:7:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\03-student-Student-role-jo-81854--loads-with-course-selector-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\03-student-Student-role-jo-81854--loads-with-course-selector-chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\03-student-Student-role-jo-81854--loads-with-course-selector-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\03-student-Student-role-jo-81854--loads-with-course-selector-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: Login failed for student: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\03-student.spec.js:7:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\03-student-Student-role-jo-81854--loads-with-course-selector-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\03-student-Student-role-jo-81854--loads-with-course-selector-chromium-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\03-student-Student-role-jo-81854--loads-with-course-selector-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\03-student-Student-role-jo-81854--loads-with-course-selector-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6) [chromium] › qa-audit\specs\03-student.spec.js:70:7 › Student role journey › Interventions page loads 
+
+    Error: Login failed for student: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\03-student.spec.js:71:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\03-student-Student-role-journey-Interventions-page-loads-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\03-student-Student-role-journey-Interventions-page-loads-chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\03-student-Student-role-journey-Interventions-page-loads-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\03-student-Student-role-journey-Interventions-page-loads-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: Login failed for student: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\03-student.spec.js:71:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\03-student-Student-role-journey-Interventions-page-loads-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\03-student-Student-role-journey-Interventions-page-loads-chromium-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\03-student-Student-role-journey-Interventions-page-loads-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\03-student-Student-role-journey-Interventions-page-loads-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  7) [chromium] › qa-audit\specs\03-student.spec.js:78:7 › Student role journey › SUS survey page loads with 10 Likert items 
+
+    Error: Login failed for student: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\03-student.spec.js:79:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\03-student-Student-role-jo-05e8a--loads-with-10-Likert-items-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\03-student-Student-role-jo-05e8a--loads-with-10-Likert-items-chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\03-student-Student-role-jo-05e8a--loads-with-10-Likert-items-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\03-student-Student-role-jo-05e8a--loads-with-10-Likert-items-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: Login failed for student: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\03-student.spec.js:79:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\03-student-Student-role-jo-05e8a--loads-with-10-Likert-items-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\03-student-Student-role-jo-05e8a--loads-with-10-Likert-items-chromium-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\03-student-Student-role-jo-05e8a--loads-with-10-Likert-items-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\03-student-Student-role-jo-05e8a--loads-with-10-Likert-items-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  8) [chromium] › qa-audit\specs\04-pd.spec.js:6:7 › Program Director role journey › PD dashboard loads 
+
+    Error: Login failed for pd: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\04-pd.spec.js:7:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\04-pd-Program-Director-role-journey-PD-dashboard-loads-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\04-pd-Program-Director-role-journey-PD-dashboard-loads-chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\04-pd-Program-Director-role-journey-PD-dashboard-loads-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\04-pd-Program-Director-role-journey-PD-dashboard-loads-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: Login failed for pd: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\04-pd.spec.js:7:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\04-pd-Program-Director-role-journey-PD-dashboard-loads-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\04-pd-Program-Director-role-journey-PD-dashboard-loads-chromium-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\04-pd-Program-Director-role-journey-PD-dashboard-loads-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\04-pd-Program-Director-role-journey-PD-dashboard-loads-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  9) [chromium] › qa-audit\specs\04-pd.spec.js:62:7 › Program Director role journey › PD calling approve on non-pending syllabus gets appropriate error 
+
+    Error: Login failed for pd: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\04-pd.spec.js:63:19
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\04-pd-Program-Director-rol-cbc86-abus-gets-appropriate-error-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\04-pd-Program-Director-rol-cbc86-abus-gets-appropriate-error-chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\04-pd-Program-Director-rol-cbc86-abus-gets-appropriate-error-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\04-pd-Program-Director-rol-cbc86-abus-gets-appropriate-error-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: Login failed for pd: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\04-pd.spec.js:63:19
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\04-pd-Program-Director-rol-cbc86-abus-gets-appropriate-error-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\04-pd-Program-Director-rol-cbc86-abus-gets-appropriate-error-chromium-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\04-pd-Program-Director-rol-cbc86-abus-gets-appropriate-error-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\04-pd-Program-Director-rol-cbc86-abus-gets-appropriate-error-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  10) [chromium] › qa-audit\specs\04-pd.spec.js:78:7 › Program Director role journey › PD cannot access student-only /analytics/me/risk 
+
+    Error: Login failed for pd: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\04-pd.spec.js:79:19
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\04-pd-Program-Director-rol-09d73-dent-only-analytics-me-risk-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\04-pd-Program-Director-rol-09d73-dent-only-analytics-me-risk-chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\04-pd-Program-Director-rol-09d73-dent-only-analytics-me-risk-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\04-pd-Program-Director-rol-09d73-dent-only-analytics-me-risk-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: Login failed for pd: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\04-pd.spec.js:79:19
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\04-pd-Program-Director-rol-09d73-dent-only-analytics-me-risk-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\04-pd-Program-Director-rol-09d73-dent-only-analytics-me-risk-chromium-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\04-pd-Program-Director-rol-09d73-dent-only-analytics-me-risk-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\04-pd-Program-Director-rol-09d73-dent-only-analytics-me-risk-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  11) [chromium] › qa-audit\specs\05-dean.spec.js:56:7 › Dean role journey › Dean cannot call assessment approve endpoint (PD-only) 
+
+    Error: Login failed for dean: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\05-dean.spec.js:57:19
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\05-dean-Dean-role-journey--b4f67-t-approve-endpoint-PD-only--chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\05-dean-Dean-role-journey--b4f67-t-approve-endpoint-PD-only--chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\05-dean-Dean-role-journey--b4f67-t-approve-endpoint-PD-only--chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\05-dean-Dean-role-journey--b4f67-t-approve-endpoint-PD-only--chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: Login failed for dean: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\05-dean.spec.js:57:19
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\05-dean-Dean-role-journey--b4f67-t-approve-endpoint-PD-only--chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\05-dean-Dean-role-journey--b4f67-t-approve-endpoint-PD-only--chromium-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\05-dean-Dean-role-journey--b4f67-t-approve-endpoint-PD-only--chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\05-dean-Dean-role-journey--b4f67-t-approve-endpoint-PD-only--chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  12) [chromium] › qa-audit\specs\06-vp.spec.js:22:7 › VP Academic Affairs role journey › Grade approval queue accessible to VP 
+
+    Error: Login failed for vp: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\06-vp.spec.js:23:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\06-vp-VP-Academic-Affairs--437b7-oval-queue-accessible-to-VP-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\06-vp-VP-Academic-Affairs--437b7-oval-queue-accessible-to-VP-chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\06-vp-VP-Academic-Affairs--437b7-oval-queue-accessible-to-VP-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\06-vp-VP-Academic-Affairs--437b7-oval-queue-accessible-to-VP-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: Login failed for vp: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\06-vp.spec.js:23:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\06-vp-VP-Academic-Affairs--437b7-oval-queue-accessible-to-VP-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\06-vp-VP-Academic-Affairs--437b7-oval-queue-accessible-to-VP-chromium-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\06-vp-VP-Academic-Affairs--437b7-oval-queue-accessible-to-VP-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\06-vp-VP-Academic-Affairs--437b7-oval-queue-accessible-to-VP-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  13) [chromium] › qa-audit\specs\06-vp.spec.js:30:7 › VP Academic Affairs role journey › VP dashboard shows top-level metrics or approval summary 
+
+    Error: Login failed for vp: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\06-vp.spec.js:31:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\06-vp-VP-Academic-Affairs--75cec-metrics-or-approval-summary-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\06-vp-VP-Academic-Affairs--75cec-metrics-or-approval-summary-chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\06-vp-VP-Academic-Affairs--75cec-metrics-or-approval-summary-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\06-vp-VP-Academic-Affairs--75cec-metrics-or-approval-summary-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: Login failed for vp: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\06-vp.spec.js:31:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\06-vp-VP-Academic-Affairs--75cec-metrics-or-approval-summary-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\06-vp-VP-Academic-Affairs--75cec-metrics-or-approval-summary-chromium-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\06-vp-VP-Academic-Affairs--75cec-metrics-or-approval-summary-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\06-vp-VP-Academic-Affairs--75cec-metrics-or-approval-summary-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  14) [chromium] › qa-audit\specs\06-vp.spec.js:76:7 › VP Academic Affairs role journey › VP cannot access /analytics/me/risk (student-only) 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoContain[2m([22m[32mexpected[39m[2m) // indexOf[22m
+
+    Expected value: [32m400[39m
+    Received array: [31m[403, 401, 404, 422][39m
+
+      82 |       return r.status;
+      83 |     }, token);
+    > 84 |     expect([403, 401, 404, 422]).toContain(status);
+         |                                  ^
+      85 |   });
+      86 |
+      87 | });
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\06-vp.spec.js:84:34
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\06-vp-VP-Academic-Affairs--44d39-ytics-me-risk-student-only--chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\06-vp-VP-Academic-Affairs--44d39-ytics-me-risk-student-only--chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\06-vp-VP-Academic-Affairs--44d39-ytics-me-risk-student-only--chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\06-vp-VP-Academic-Affairs--44d39-ytics-me-risk-student-only--chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoContain[2m([22m[32mexpected[39m[2m) // indexOf[22m
+
+    Expected value: [32m400[39m
+    Received array: [31m[403, 401, 404, 422][39m
+
+      82 |       return r.status;
+      83 |     }, token);
+    > 84 |     expect([403, 401, 404, 422]).toContain(status);
+         |                                  ^
+      85 |   });
+      86 |
+      87 | });
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\06-vp.spec.js:84:34
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\06-vp-VP-Academic-Affairs--44d39-ytics-me-risk-student-only--chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\06-vp-VP-Academic-Affairs--44d39-ytics-me-risk-student-only--chromium-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\06-vp-VP-Academic-Affairs--44d39-ytics-me-risk-student-only--chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\06-vp-VP-Academic-Affairs--44d39-ytics-me-risk-student-only--chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  15) [chromium] › qa-audit\specs\03-student.spec.js:12:7 › Student role journey › Dashboard shows course dropdown when courses exist 
+
+    Error: Login failed for student: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\03-student.spec.js:13:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\03-student-Student-role-jo-28e91-dropdown-when-courses-exist-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\03-student-Student-role-jo-28e91-dropdown-when-courses-exist-chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\03-student-Student-role-jo-28e91-dropdown-when-courses-exist-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\03-student-Student-role-jo-28e91-dropdown-when-courses-exist-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  16) [chromium] › qa-audit\specs\03-student.spec.js:88:7 › Student role journey › Student blocked from /instructor 
+
+    Error: Login failed for student: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\03-student.spec.js:89:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\03-student-Student-role-jo-deacf-ent-blocked-from-instructor-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\03-student-Student-role-jo-deacf-ent-blocked-from-instructor-chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\03-student-Student-role-jo-deacf-ent-blocked-from-instructor-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\03-student-Student-role-jo-deacf-ent-blocked-from-instructor-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  17) [chromium] › qa-audit\specs\04-pd.spec.js:13:7 › Program Director role journey › Syllabus approval queue loads 
+
+    Error: Login failed for pd: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\04-pd.spec.js:14:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\04-pd-Program-Director-rol-e97e3-llabus-approval-queue-loads-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\04-pd-Program-Director-rol-e97e3-llabus-approval-queue-loads-chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\04-pd-Program-Director-rol-e97e3-llabus-approval-queue-loads-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\04-pd-Program-Director-rol-e97e3-llabus-approval-queue-loads-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  18) [chromium] › qa-audit\specs\06-vp.spec.js:37:7 › VP Academic Affairs role journey › VP blocked from /admin 
+
+    Error: Login failed for vp: 429
+
+       at helpers.js:23
+
+      21 |     body: JSON.stringify({ email, password }),
+      22 |   });
+    > 23 |   if (!res.ok) throw new Error(`Login failed for ${role}: ${res.status}`);
+         |                      ^
+      24 |   const { access_token } = await res.json();
+      25 |
+      26 |   await page.goto("/login");
+        at loginAs (C:\Users\edria\ai-learning-analytics\qa-audit\specs\helpers.js:23:22)
+        at C:\Users\edria\ai-learning-analytics\qa-audit\specs\06-vp.spec.js:38:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    qa-audit\traces\06-vp-VP-Academic-Affairs-role-journey-VP-blocked-from-admin-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: qa-audit\traces\06-vp-VP-Academic-Affairs-role-journey-VP-blocked-from-admin-chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    qa-audit\traces\06-vp-VP-Academic-Affairs-role-journey-VP-blocked-from-admin-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace qa-audit\traces\06-vp-VP-Academic-Affairs-role-journey-VP-blocked-from-admin-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  14 failed
+    [chromium] › qa-audit\specs\01-admin.spec.js:45:7 › Admin role journey › Enrollment page loads ─
+    [chromium] › qa-audit\specs\01-admin.spec.js:53:7 › Admin role journey › User management page loads and shows user table 
+    [chromium] › qa-audit\specs\02-instructor.spec.js:44:7 › Instructor role journey › Attendance page loads with course selector 
+    [chromium] › qa-audit\specs\02-instructor.spec.js:52:7 › Instructor role journey › Grade consultation page loads 
+    [chromium] › qa-audit\specs\03-student.spec.js:6:7 › Student role journey › Student dashboard loads with course selector 
+    [chromium] › qa-audit\specs\03-student.spec.js:70:7 › Student role journey › Interventions page loads 
+    [chromium] › qa-audit\specs\03-student.spec.js:78:7 › Student role journey › SUS survey page loads with 10 Likert items 
+    [chromium] › qa-audit\specs\04-pd.spec.js:6:7 › Program Director role journey › PD dashboard loads 
+    [chromium] › qa-audit\specs\04-pd.spec.js:62:7 › Program Director role journey › PD calling approve on non-pending syllabus gets appropriate error 
+    [chromium] › qa-audit\specs\04-pd.spec.js:78:7 › Program Director role journey › PD cannot access student-only /analytics/me/risk 
+    [chromium] › qa-audit\specs\05-dean.spec.js:56:7 › Dean role journey › Dean cannot call assessment approve endpoint (PD-only) 
+    [chromium] › qa-audit\specs\06-vp.spec.js:22:7 › VP Academic Affairs role journey › Grade approval queue accessible to VP 
+    [chromium] › qa-audit\specs\06-vp.spec.js:30:7 › VP Academic Affairs role journey › VP dashboard shows top-level metrics or approval summary 
+    [chromium] › qa-audit\specs\06-vp.spec.js:76:7 › VP Academic Affairs role journey › VP cannot access /analytics/me/risk (student-only) 
+  4 flaky
+    [chromium] › qa-audit\specs\03-student.spec.js:12:7 › Student role journey › Dashboard shows course dropdown when courses exist 
+    [chromium] › qa-audit\specs\03-student.spec.js:88:7 › Student role journey › Student blocked from /instructor 
+    [chromium] › qa-audit\specs\04-pd.spec.js:13:7 › Program Director role journey › Syllabus approval queue loads 
+    [chromium] › qa-audit\specs\06-vp.spec.js:37:7 › VP Academic Affairs role journey › VP blocked from /admin 
+  39 passed (4.6m)

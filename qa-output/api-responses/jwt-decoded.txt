@@ -1,0 +1,3 @@
+header: {"alg": "HS256", "typ": "JWT"}
+payload: {"sub": "b5304d01-580b-4a5d-930f-475224b427b8", "role": "instructor", "jti": "d332c25f-5337-4681-a3eb-b22f6f351b08", "exp": 1780437748}
+expires_in_min: 29.8

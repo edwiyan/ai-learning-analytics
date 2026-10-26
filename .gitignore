@@ -1,0 +1,38 @@
+node_modules/
+venv/
+.env
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+backend/tests/_pytest.db
+dist/
+build/
+*.egg-info/
+.alembic_version
+# ML model artifacts — no trained model files should ever be committed
+*.pkl
+backend/services/ai/models/
+uploads/
+
+# Logs and local run output
+*.log
+*_out.txt
+*_err.txt
+uvicorn_*.txt
+logs/
+# Local databases
+*.db
+# Office lock files
+~$*
+# Large / generated QA artifacts
+.playwright-cli/
+demo-output/
+qa-audit/playwright-report/
+qa-audit/test-results/
+qa-audit/traces/
+qa-audit/screenshots/
+qa-audit/lighthouse/
+qa-output/screenshots/
+qa-output/sessions/
+backend/uploads/

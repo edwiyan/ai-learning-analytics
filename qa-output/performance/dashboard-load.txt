@@ -1,0 +1,2 @@
+instructor /instructor : "{\"domContentLoaded\":283,\"loadComplete\":284,\"duration\":284}"
+student /student      : "{\"domContentLoaded\":281,\"loadComplete\":284,\"duration\":284}"

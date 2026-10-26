@@ -1,0 +1,21 @@
+student_id,question_text,score,max_score,submission_date
+2023-00001,What is the difference between a class and an object in object-oriented programming?,8,10,2025-10-01
+2023-00001,Explain the concept of inheritance and give an example.,9,10,2025-10-01
+2023-00001,What is a primary key in a relational database?,10,10,2025-10-01
+2023-00001,Describe the Software Development Life Cycle (SDLC) phases.,7,10,2025-10-01
+2023-00002,What is the difference between a class and an object in object-oriented programming?,6,10,2025-10-01
+2023-00002,Explain the concept of inheritance and give an example.,5,10,2025-10-01
+2023-00002,What is a primary key in a relational database?,8,10,2025-10-01
+2023-00002,Describe the Software Development Life Cycle (SDLC) phases.,4,10,2025-10-01
+2023-00003,What is the difference between a class and an object in object-oriented programming?,10,10,2025-10-01
+2023-00003,Explain the concept of inheritance and give an example.,10,10,2025-10-01
+2023-00003,What is a primary key in a relational database?,9,10,2025-10-01
+2023-00003,Describe the Software Development Life Cycle (SDLC) phases.,10,10,2025-10-01
+2023-00004,What is the difference between a class and an object in object-oriented programming?,3,10,2025-10-02
+2023-00004,Explain the concept of inheritance and give an example.,4,10,2025-10-02
+2023-00004,What is a primary key in a relational database?,5,10,2025-10-02
+2023-00004,Describe the Software Development Life Cycle (SDLC) phases.,3,10,2025-10-02
+2023-00005,What is the difference between a class and an object in object-oriented programming?,7,10,2025-10-02
+2023-00005,Explain the concept of inheritance and give an example.,8,10,2025-10-02
+2023-00005,What is a primary key in a relational database?,6,10,2025-10-02
+2023-00005,Describe the Software Development Life Cycle (SDLC) phases.,9,10,2025-10-02
