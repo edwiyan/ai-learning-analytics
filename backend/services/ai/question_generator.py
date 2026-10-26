@@ -1,10 +1,6 @@
-import json
 import re
 
-from openai import OpenAI
-
-from backend.core.config import settings
-from backend.services.ai.syllabus_parser import _is_openai_configured
+from backend.services.ai.llm_client import complete_json, llm_configured
 
 QUESTION_TYPES = ("multiple_choice", "short_answer", "problem")
 DEFAULT_POINTS = {"multiple_choice": 1.0, "short_answer": 5.0, "problem": 10.0}
@@ -114,17 +110,12 @@ def _llm_questions(plan: list[dict], question_type: str, course: str, period: st
         outcomes = "; ".join(_outcome_phrases(comp))
         lines.append(f"- {comp['competency_code']} | {comp['topic_name']} | {outcomes} | "
                      f"{entry['count']} | {entry.get('bloom_level') or 'any'}")
-    client = OpenAI(api_key=settings.openai_api_key)
-    response = client.chat.completions.create(
-        model=settings.openai_model,
-        messages=[{"role": "user", "content": GENERATE_PROMPT.format(
-            course=course, period=period, type_rule=_TYPE_RULES.get(question_type, _TYPE_RULES["mixed"]),
-            plan="\n".join(lines),
-        )}],
-        temperature=0.4,
-        response_format={"type": "json_object"},
+    prompt = GENERATE_PROMPT.format(
+        course=course, period=period, type_rule=_TYPE_RULES.get(question_type, _TYPE_RULES["mixed"]),
+        plan="\n".join(lines),
     )
-    return json.loads(response.choices[0].message.content).get("questions", [])
+    # Not cached: instructors regenerate to get different drafts.
+    return complete_json(prompt, purpose="question_generation", temperature=0.4, use_cache=False).get("questions", [])
 
 
 def _clean(raw: dict, valid_codes: set[str]) -> dict | None:
@@ -165,7 +156,7 @@ def generate_questions(plan: list[dict], question_type: str = "mixed",
         return [], "template"
     valid_codes = {p["competency"]["competency_code"].strip().upper() for p in plan}
 
-    if _is_openai_configured():
+    if llm_configured():
         try:
             raw = _llm_questions(plan, question_type, course, period)
             cleaned = [q for q in (_clean(r, valid_codes) for r in raw) if q]

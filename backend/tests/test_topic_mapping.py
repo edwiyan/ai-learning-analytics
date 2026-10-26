@@ -11,7 +11,7 @@ Mock run  : always runs; proves test structure and 100% mock accuracy
 import os
 import json
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 # ── Ground truth dataset (faculty-validated) ─────────────────────────────────
 # Each tuple: (question_text, expected_competency_code, competency_set_key)
@@ -143,21 +143,16 @@ def _mock_mapper(question_text: str, competencies: list[dict]) -> dict:
     return {"competency_code": None, "confidence_score": 0.0}
 
 
-@patch("backend.services.ai.topic_mapper.client")
-def test_topic_mapping_accuracy_mock(mock_client):
+@patch("backend.services.ai.topic_mapper.complete_json")
+def test_topic_mapping_accuracy_mock(mock_complete):
     """Verifies test harness correctness with a perfect mock mapper."""
     from backend.services.ai.topic_mapper import map_question_to_competency
 
     correct = 0
 
     for question, expected_code, course_key in GROUND_TRUTH:
-        # Build a mock response that returns the correct competency
-        mock_response = MagicMock()
-        mock_response.choices[0].message.content = json.dumps({
-            "competency_code": expected_code,
-            "confidence_score": 0.95,
-        })
-        mock_client.chat.completions.create.return_value = mock_response
+        # The LLM client returns the correct competency
+        mock_complete.return_value = {"competency_code": expected_code, "confidence_score": 0.95}
 
         result = map_question_to_competency(question, COMPETENCIES[course_key])
         if result.get("competency_code") == expected_code:
@@ -168,38 +163,29 @@ def test_topic_mapping_accuracy_mock(mock_client):
     print(f"Correct : {correct}/{TOTAL}")
     print(f"Accuracy: {accuracy:.1%}")
     assert accuracy >= THRESHOLD
+    assert mock_complete.call_args.kwargs["purpose"] == "topic_mapping"
 
 
 # ── Confidence threshold test ─────────────────────────────────────────────────
 
-@patch("backend.services.ai.topic_mapper.client")
-def test_low_confidence_returns_null_competency(mock_client):
+@patch("backend.services.ai.topic_mapper.complete_json")
+def test_low_confidence_returns_null_competency(mock_complete):
     """Items below 0.30 confidence must return competency_code=None."""
     from backend.services.ai.topic_mapper import map_question_to_competency
 
-    mock_response = MagicMock()
-    mock_response.choices[0].message.content = json.dumps({
-        "competency_code": None,
-        "confidence_score": 0.15,
-    })
-    mock_client.chat.completions.create.return_value = mock_response
+    mock_complete.return_value = {"competency_code": None, "confidence_score": 0.15}
 
     result = map_question_to_competency("An unrelated question about cooking.", COMPETENCIES["gec103"])
     assert result["competency_code"] is None
     assert result["confidence_score"] < 0.30
 
 
-@patch("backend.services.ai.topic_mapper.client")
-def test_result_keys_present(mock_client):
+@patch("backend.services.ai.topic_mapper.complete_json")
+def test_result_keys_present(mock_complete):
     """Response always contains competency_code and confidence_score keys."""
     from backend.services.ai.topic_mapper import map_question_to_competency
 
-    mock_response = MagicMock()
-    mock_response.choices[0].message.content = json.dumps({
-        "competency_code": "MMW-01",
-        "confidence_score": 0.92,
-    })
-    mock_client.chat.completions.create.return_value = mock_response
+    mock_complete.return_value = {"competency_code": "MMW-01", "confidence_score": 0.92}
 
     result = map_question_to_competency("Convert 1101 binary to decimal.", COMPETENCIES["gec103"])
     assert "competency_code" in result

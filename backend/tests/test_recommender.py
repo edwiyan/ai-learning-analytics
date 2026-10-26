@@ -172,8 +172,8 @@ def test_personalized_message_none_when_openai_unconfigured():
     """personalized_message must be None when OpenAI key is blank."""
     from backend.services.ai import recommender as rec
 
-    original_settings = rec.settings
-    rec.settings = types.SimpleNamespace(openai_api_key="", openai_model="gpt-4o-mini")
+    original_configured = rec.llm_configured
+    rec.llm_configured = lambda: False
 
     try:
         competencies = [_make_competency("CLO1", "OOP", "id-clo1")]
@@ -189,7 +189,7 @@ def test_personalized_message_none_when_openai_unconfigured():
         assert len(results) == 1
         assert results[0]["personalized_message"] is None
     finally:
-        rec.settings = original_settings
+        rec.llm_configured = original_configured
 
 
 def test_result_keys_present():

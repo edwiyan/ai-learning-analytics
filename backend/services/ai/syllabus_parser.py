@@ -1,13 +1,11 @@
-import json
 import re
-from openai import OpenAI, AuthenticationError, APIConnectionError
-from backend.core.config import settings
+from backend.services.ai.llm_client import complete_json, llm_configured
 from backend.services.ai.prompts import build_syllabus_prompt
 
 
 def _is_openai_configured() -> bool:
-    key = settings.openai_api_key or ""
-    return bool(key) and not key.startswith("placeholder") and not key.startswith("sk-test")
+    """Kept for existing imports; true when any LLM provider is configured."""
+    return llm_configured()
 
 
 # A line that starts with an explicit code: topic-level ("DSA-01", "IM-3") or outcome-level ("CLO1", "CO-2")
@@ -108,19 +106,10 @@ def _extract_competencies_from_text(raw_text: str) -> dict:
 
 
 def parse_syllabus(raw_text: str) -> dict:
-    if not _is_openai_configured():
+    if not llm_configured():
         return _extract_competencies_from_text(raw_text)
-
     try:
-        client = OpenAI(api_key=settings.openai_api_key)
-        response = client.chat.completions.create(
-            model=settings.openai_model,
-            messages=[{"role": "user", "content": build_syllabus_prompt(raw_text)}],
-            temperature=0.1,
-            response_format={"type": "json_object"},
-        )
-        return json.loads(response.choices[0].message.content)
-    except (AuthenticationError, APIConnectionError):
-        return _extract_competencies_from_text(raw_text)
+        return complete_json(build_syllabus_prompt(raw_text), purpose="syllabus_parse", temperature=0.0)
     except Exception:
+        # LLM unavailable or bad output: degrade to the rule-based parser
         return _extract_competencies_from_text(raw_text)

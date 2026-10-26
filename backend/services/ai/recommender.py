@@ -2,30 +2,17 @@ from sqlalchemy.orm import Session
 
 from backend.models.resource import Resource
 from backend.models.syllabus import Competency
-from backend.core.config import settings
+from backend.services.ai.llm_client import complete_text, llm_configured
 from backend.services.ai.prompts import build_encouragement_prompt
-
-
-def _is_openai_configured() -> bool:
-    key = settings.openai_api_key or ""
-    return bool(key) and not key.startswith("placeholder") and not key.startswith("sk-test")
 
 
 def _generate_encouragement(weak_competencies: list, resource_title: str) -> str | None:
     """Generate one personalized encouragement message via GPT-4o-mini for the first recommendation."""
-    if not _is_openai_configured():
+    if not llm_configured():
         return None
     try:
-        from openai import OpenAI
-        client = OpenAI(api_key=settings.openai_api_key)
         prompt = build_encouragement_prompt([c.topic_name for c in weak_competencies], resource_title)
-        resp = client.chat.completions.create(
-            model=settings.openai_model,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
-            max_tokens=80,
-        )
-        return resp.choices[0].message.content.strip()
+        return complete_text(prompt, purpose="encouragement", temperature=0.7, max_tokens=80)
     except Exception:
         return None
 

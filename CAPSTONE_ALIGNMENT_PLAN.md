@@ -92,7 +92,7 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 
 - [x] **T5.1 Prompt library and input sanitization.**
   Move `PARSE_PROMPT`, `MAP_PROMPT` and the encouragement prompt into `services/ai/prompts.py`, add 2–3 few-shot examples to the mapping prompt, and add `sanitize(text)` (strip control characters, cap length, neutralise "ignore previous instructions"-style injections in question text).
-- [ ] **T5.2 Single LLM client + response cache.**
+- [x] **T5.2 Single LLM client + response cache.**
   `services/ai/llm_client.py: complete_json(prompt, ...)` is used by the parser, mapper and recommender. Cache results in a new `llm_cache` table, keyed by `sha256(model + prompt)`, so identical prompts return the stored answer (deterministic output).
   *Depends on* T5.1.
 - [ ] **T5.3 Retry and circuit breaker.**
@@ -158,3 +158,4 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 | 2026-10-26 | T4.1 | recommendation_feedback table (s9o0p1q2r3s4), POST /analytics/me/recommendations/{id}/feedback (upsert), my_feedback on recs, helpful counts on /analytics/resources; thumbs on StudentDashboard + counts on ResourcesPage. Also now shows the GPT encouragement message (was generated but never displayed). |
 | 2026-10-26 | T4.2 | instructor_interventions.ai_feedback/status/status_updated_at (t0p1q2r3s4t5); AI feedback stored on create; PUT /analytics/interventions/{id}/status (owner/admin); status selector + AI line on InstructorDashboard. |
 | 2026-10-26 | T5.1 | services/ai/prompts.py (syllabus/mapping/encouragement prompts, 3 few-shot mapping examples, sanitize() + <<< >>> data delimiters). FIXED: old PARSE_PROMPT had unescaped braces -> KeyError -> GPT syllabus parsing never ran (always rule-based fallback). |
+| 2026-10-26 | T5.2 | services/ai/llm_client.py (complete_json/complete_text, LLMUnavailable) used by parser, mapper, recommender, question generator; llm_cache table (u1q2r3s4t5u6) caches JSON answers by sha256(model+temp+prompt). |

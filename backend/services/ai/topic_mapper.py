@@ -1,21 +1,12 @@
-import json
-from openai import OpenAI
-from backend.core.config import settings
+from backend.services.ai.llm_client import complete_json
 from backend.services.ai.prompts import build_mapping_prompt
 
 
-client = OpenAI(api_key=settings.openai_api_key)
-
 def map_question_to_competency(question_text: str, competencies: list[dict]) -> dict:
-    response = client.chat.completions.create(
-        model=settings.openai_model,
-        messages=[
-            {"role": "user", "content": build_mapping_prompt(question_text, competencies)}
-        ],
-        temperature=0.0,
-        response_format={"type": "json_object"},
-    )
-    result = json.loads(response.choices[0].message.content)
+    """Ask the LLM which competency a question assesses. Raises LLMUnavailable when
+    no provider can answer; the caller then routes the item to manual review."""
+    result = complete_json(build_mapping_prompt(question_text, competencies),
+                           purpose="topic_mapping", temperature=0.0)
     return {
         "competency_code": result.get("competency_code"),
         "confidence_score": float(result.get("confidence_score", 0.0)),

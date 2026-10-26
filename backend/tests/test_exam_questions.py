@@ -19,7 +19,7 @@ from backend.services.ai import question_generator
 @pytest.fixture(autouse=True)
 def _offline(monkeypatch):
     monkeypatch.setattr(limiter, "enabled", False)
-    monkeypatch.setattr(question_generator, "_is_openai_configured", lambda: False)
+    monkeypatch.setattr(question_generator, "llm_configured", lambda: False)
 
     def _no_llm(*args, **kwargs):
         raise RuntimeError("LLM unavailable in tests")
@@ -87,7 +87,7 @@ def test_generate_follows_tos_and_replaces(client, db, instructor_token, setup):
 
 
 def test_llm_output_is_validated(monkeypatch):
-    monkeypatch.setattr(question_generator, "_is_openai_configured", lambda: True)
+    monkeypatch.setattr(question_generator, "llm_configured", lambda: True)
     monkeypatch.setattr(question_generator, "_llm_questions", lambda *a, **k: [
         {"competency_code": "dsa-01", "question_type": "multiple_choice", "question_text": "Big-O of array access?",
          "choices": ["A. O(1)", "B. O(n)", "C. O(log n)", "D. O(n^2)"], "answer_key": "A", "bloom_level": "Remembering"},
