@@ -161,6 +161,7 @@ export default function InstructorDashboard() {
   };
   const { data: allConsultations } = useApi("/analytics/instructor/consultations");
   const { data: standingSummary } = useApi("/analytics/instructor/standing-summary");
+  const { data: earlyWarning } = useApi("/analytics/early-warning");
 
   const today = new Date().toISOString().slice(0, 10);
   const incConsultations = (allConsultations ?? []).filter(c => c.academic_status === "incomplete");
@@ -502,6 +503,29 @@ export default function InstructorDashboard() {
               </>
             )}
           </SectionCard>
+          {/* Early-warning timeliness (panel comment 3) */}
+          {earlyWarning?.summary?.flagged > 0 && (
+            <SectionCard title="Early-Warning Timeliness">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-xl font-bold text-gray-800">{earlyWarning.summary.flagged_early}/{earlyWarning.summary.flagged}</p>
+                  <p className="text-xs text-gray-500">first flagged in {earlyWarning.summary.early_period} (before Midterm)</p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-xl font-bold text-gray-800">{earlyWarning.summary.median_school_days_to_intervention ?? "—"}</p>
+                  <p className="text-xs text-gray-500">median school days from alert to intervention</p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-xl font-bold text-emerald-700">{earlyWarning.summary.within_target}</p>
+                  <p className="text-xs text-gray-500">interventions within {earlyWarning.summary.target_school_days} school days</p>
+                </div>
+                <div className={`rounded-lg p-3 ${earlyWarning.summary.overdue ? "bg-red-50" : "bg-gray-50"}`}>
+                  <p className={`text-xl font-bold ${earlyWarning.summary.overdue ? "text-red-600" : "text-gray-800"}`}>{earlyWarning.summary.overdue}</p>
+                  <p className="text-xs text-gray-500">overdue follow-ups</p>
+                </div>
+              </div>
+            </SectionCard>
+          )}
           {/* My Course Performance */}
           <SectionCard title="My Course Performance">
           {loadingCourses && !instructorCourses ? (

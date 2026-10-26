@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from backend.services.ai.feature_engineering import recompute_competency_mastery
 from backend.services.ai.risk_snapshot import refresh_course_risk
+from backend.services.early_warning import remind_overdue
 from backend.services.risk_alerts import dispatch_risk_alerts
 
 # Recompute deletes and re-inserts a course's rows; serialize per course so two
@@ -23,4 +24,6 @@ def refresh_course_analytics(course_id, db: Session) -> dict:
         mastery_rows = recompute_competency_mastery(course_id, db)
         transitions = refresh_course_risk(course_id, db)
         alerted = dispatch_risk_alerts(course_id, transitions, db)
-    return {"mastery_rows": mastery_rows, "risk_transitions": transitions, "alerted": alerted}
+        reminders = remind_overdue([course_id], db)
+    return {"mastery_rows": mastery_rows, "risk_transitions": transitions, "alerted": alerted,
+            "overdue_reminders": reminders}

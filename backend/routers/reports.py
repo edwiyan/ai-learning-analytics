@@ -73,6 +73,7 @@ def report_preview(
         "breakdowns": data["breakdowns"],
         "competency_gaps": data["competency_gaps"][:15],
         "interventions": data["interventions"],
+        "early_warning": data["early_warning"]["summary"],
         "at_risk": [{k: r[k] for k in slim} for r in rows if r["risk_level"] == "At-Risk"],
         "excelling": [{k: r[k] for k in slim} for r in rows if r["risk_level"] == "Excelling"],
     }

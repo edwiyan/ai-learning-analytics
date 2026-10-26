@@ -771,6 +771,11 @@ def get_instructor_at_risk(
     ).all()
     hash_to_user = {hash_student_id(s.student_number): s for s in all_students}
 
+    from backend.services.early_warning import remind_overdue, timeliness
+    course_ids = [c.id for c in courses]
+    remind_overdue(course_ids, db)
+    timing = {(r["course_id"], r["student_id_hash"]): r for r in timeliness(course_ids, db)["rows"]}
+
     results = []
     for course in courses:
         student_hashes = get_all_students_in_course(str(course.id), db)
@@ -779,6 +784,7 @@ def get_instructor_at_risk(
             risk_result = predict_risk(sid_hash, str(course.id), db)
             if risk_result["risk_level"] != RiskLevel.at_risk:
                 continue
+            t = timing.get((str(course.id), sid_hash), {})
 
             user = hash_to_user.get(sid_hash)
             avg = features["avg_score"] if features else None
@@ -802,6 +808,9 @@ def get_instructor_at_risk(
                 "weak_count": len(risk_result.get("weak_competency_ids", [])),
                 "grade_decline_pct": round((features or {}).get("grade_decline_pct", 0.0) or 0.0, 1),
                 "reason": risk_result["reason"],
+                "flagged_on": t.get("current_episode_started"),
+                "school_days_waiting": t.get("school_days_waiting"),
+                "overdue": bool(t.get("overdue")),
             })
 
     return sorted(results, key=lambda x: (x["avg_score"] if x["avg_score"] is not None else 100))
@@ -1629,3 +1638,29 @@ def get_instructor_standing_summary(
     }
 
 
+
+
+@router.get("/early-warning")
+def early_warning_timeliness(
+    course_id: str | None = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.instructor, UserRole.admin, UserRole.program_director,
+                                              UserRole.dean, UserRole.vp_academic_affairs)),
+):
+    """Panel comment 3: how early students are flagged and how fast interventions follow."""
+    from backend.services.early_warning import timeliness
+    from backend.services.reports.data import scoped_courses
+
+    courses = scoped_courses(db, current_user)
+    if course_id:
+        courses = [c for c in courses if str(c.id) == course_id]
+    data = timeliness([c.id for c in courses], db)
+    names = {hash_student_id(u.student_number): u for u in db.query(User).filter(
+        User.role == UserRole.student, User.student_number.isnot(None)).all()}
+    codes = {str(c.id): c.code for c in courses}
+    for r in data["rows"]:
+        u = names.get(r["student_id_hash"])
+        r["full_name"] = u.full_name if u else f"Student {r['student_id_hash'][:8]}"
+        r["course_code"] = codes.get(r["course_id"])
+    data["rows"].sort(key=lambda r: (not r["overdue"], not r["currently_at_risk"], r["first_flagged_on"] or ""))
+    return data

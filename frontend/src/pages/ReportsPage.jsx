@@ -234,6 +234,13 @@ export default function ReportsPage() {
                 <p className="text-3xl font-bold text-gray-800">{pct(report.interventions.coverage_pct)}</p>
                 <p className="text-xs text-gray-500">of At-Risk enrolments have an intervention logged</p>
                 <p className="text-sm mt-3 text-gray-700">{report.interventions.with_intervention} with a plan · <span className="text-red-600 font-medium">{report.interventions.without_intervention} awaiting follow-up</span></p>
+                {report.early_warning?.flagged > 0 && (
+                  <div className="mt-4 pt-3 border-t border-gray-100 text-sm text-gray-700 space-y-1">
+                    <p><strong>{report.early_warning.flagged_early}</strong> of {report.early_warning.flagged} first flagged in {report.early_warning.early_period} (before Midterm)</p>
+                    <p>Median {report.early_warning.median_school_days_to_intervention ?? "—"} school days from alert to intervention</p>
+                    {report.early_warning.overdue > 0 && <p className="text-red-600">{report.early_warning.overdue} overdue follow-up{report.early_warning.overdue === 1 ? "" : "s"}</p>}
+                  </div>
+                )}
               </section>
             </div>
 

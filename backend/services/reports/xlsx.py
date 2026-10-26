@@ -135,6 +135,15 @@ def render_xlsx(data: dict) -> bytes:
            student_widths, risk_col=14, pct_cols=(11, 13))
     _sheet(wb, "Excelling", student_header, [student_row(r) for r in rows if r["risk_level"] == "Excelling"],
            student_widths, risk_col=14, pct_cols=(11, 13))
+    ew = data["early_warning"]
+    _sheet(wb, "Early Warning", ["Student", "Student no.", "Section", "Course", "First flagged", "Period", "Early",
+                                 "Intervention logged", "School days to intervention", "Within target",
+                                 "Currently At-Risk", "Overdue"],
+           [[r["name"], r["student_number"], r["section"], r["course"], r["first_flagged_on"], r["first_flagged_period"],
+             "Yes" if r["early"] else "No", r["intervention_on"] or "", r["school_days_to_intervention"],
+             "Yes" if r["within_target"] else "No", "Yes" if r["currently_at_risk"] else "No",
+             "Yes" if r["overdue"] else "No"] for r in ew["rows"]],
+           [22, 12, 11, 10, 12, 10, 8, 14, 12, 10, 10, 9])
     _sheet(wb, "Competency Gaps", ["Course", "Code", "Competency", "Students", "Avg mastery %", "Below 75%",
                                    "% below 75%"],
            [[g["course"], g["code"], g["topic"], g["students"], g["avg_mastery"], g["below"], g["below_pct"]]

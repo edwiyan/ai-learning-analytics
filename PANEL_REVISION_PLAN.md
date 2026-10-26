@@ -100,15 +100,15 @@ Acceptance: `grep -ri "predict\|real-time" frontend/src` shows no claims about A
 
 ## Phase 4 — Early-warning timing (comment 3) · ~1 day
 
-- [ ] **T4.1 First-flag record.** From `risk_predictions` snapshots (written on change), derive per
+- [x] **T4.1 First-flag record.** From `risk_predictions` snapshots (written on change), derive per
   student-course: first At-Risk date and grading period. Helper in `services/early_warning.py`.
-- [ ] **T4.2 Time to intervention.** First At-Risk date → first logged intervention for that
+- [x] **T4.2 Time to intervention.** First At-Risk date → first logged intervention for that
   student-course, in school days (weekdays); overdue when > target.
-- [ ] **T4.3 Metrics.** % of At-Risk enrolments first flagged in the early period (before
+- [x] **T4.3 Metrics.** % of At-Risk enrolments first flagged in the early period (before
   Midterm), median school days to intervention, % within target, median lead time to Final
   (if term dates unknown, report grading period instead). Instructor dashboard card + Reports
   (PDF section 8 and an Excel sheet). Tests.
-- [ ] **T4.4 Overdue follow-ups.** "Overdue" badge and filter on Intervention Alerts; one
+- [x] **T4.4 Overdue follow-ups.** "Overdue" badge and filter on Intervention Alerts; one
   in-app reminder to the instructor when an alert passes the target with no intervention
   (checked when analytics refresh or the alerts page loads — no scheduler needed).
 

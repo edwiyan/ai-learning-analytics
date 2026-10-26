@@ -184,6 +184,14 @@ def build_report(db: Session, user: User, filters: ReportFilters) -> dict:
         rows = [r for r in rows if r["section"] == filters.section]
 
     kept_courses = {r["course_id"] for r in rows}
+    from backend.services.early_warning import timeliness
+    early = timeliness([c.id for c in courses if str(c.id) in kept_courses], db)
+    kept_pairs = {(r["course_id"], r["student_hash"]) for r in rows}
+    early_rows = [e for e in early["rows"] if (e["course_id"], e["student_id_hash"]) in kept_pairs]
+    by_pair = {(r["course_id"], r["student_hash"]): r for r in rows}
+    for e in early_rows:
+        r = by_pair[(e["course_id"], e["student_id_hash"])]
+        e.update(name=r["name"], student_number=r["student_number"], course=r["course"], section=r["section"])
     return {
         "institution": INSTITUTION,
         "title": "Academic Performance and Early Intervention Report",
@@ -207,6 +215,7 @@ def build_report(db: Session, user: User, filters: ReportFilters) -> dict:
         "thresholds": thresholds,
         "thresholds_updated_at": last_updated(db)[0],
         "interventions": _intervention_summary(rows),
+        "early_warning": {"summary": _early_summary(early_rows, early["summary"]), "rows": early_rows},
     }
 
 
@@ -277,3 +286,19 @@ def _intervention_summary(rows):
         "coverage_pct": round(len(with_plan) / len(at_risk) * 100, 1) if at_risk else None,
         "by_status": dict(status),
     }
+
+
+def _early_summary(rows, base):
+    """Recompute the timeliness summary for a filtered subset of enrolments."""
+    n = len(rows)
+    days = sorted(r["school_days_to_intervention"] for r in rows if r["school_days_to_intervention"] is not None)
+    from statistics import median
+    return {**base,
+            "flagged": n,
+            "flagged_early": sum(1 for r in rows if r["early"]),
+            "flagged_early_pct": round(sum(1 for r in rows if r["early"]) / n * 100, 1) if n else None,
+            "with_intervention": len(days),
+            "median_school_days_to_intervention": median(days) if days else None,
+            "within_target": sum(1 for r in rows if r["within_target"]),
+            "within_target_pct": round(sum(1 for r in rows if r["within_target"]) / n * 100, 1) if n else None,
+            "overdue": sum(1 for r in rows if r["overdue"])}

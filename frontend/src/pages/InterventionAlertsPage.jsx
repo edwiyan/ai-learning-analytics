@@ -36,6 +36,7 @@ export default function InterventionAlertsPage() {
   const T = useThresholds();
   const { data: alerts, loading, error } = useApi("/analytics/instructor/at-risk-students");
   const [courseFilter, setCourseFilter] = useState("All");
+  const [overdueOnly, setOverdueOnly] = useState(false);
   const [reviewed, setReviewed] = useState(new Set());
   const [page, setPage] = useState(1);
   const [logOpen, setLogOpen] = useState(null); // { studentKey, courseId, student_id_hash }
@@ -90,8 +91,9 @@ export default function InterventionAlertsPage() {
     : ["All"];
 
   const filtered = (alerts || []).filter(
-    a => courseFilter === "All" || a.course_code === courseFilter
+    a => (courseFilter === "All" || a.course_code === courseFilter) && (!overdueOnly || a.overdue)
   );
+  const overdueCount = (alerts || []).filter(a => a.overdue).length;
 
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const unreviewedCount = filtered.filter(a => !reviewed.has(a.student_id_hash + a.course_id)).length;
@@ -204,6 +206,16 @@ export default function InterventionAlertsPage() {
                   {c === "All" ? `All Courses (${alerts.length})` : c}
                 </button>
               ))}
+              {overdueCount > 0 && (
+                <button
+                  onClick={() => { setOverdueOnly(v => !v); setPage(1); }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                    overdueOnly ? "bg-red-600 border-red-600 text-white" : "bg-white border-red-200 text-red-600 hover:bg-red-50"
+                  }`}
+                >
+                  Overdue follow-ups ({overdueCount})
+                </button>
+              )}
             </div>
 
             {/* Alerts table */}
@@ -259,6 +271,13 @@ export default function InterventionAlertsPage() {
                             <td className="px-5 py-3 text-gray-400 text-xs">{(page - 1) * PAGE_SIZE + i + 1}</td>
                             <td className="px-5 py-3">
                               <p className="font-medium text-gray-800">{a.full_name}</p>
+                              {a.overdue ? (
+                                <span className="inline-block mt-0.5 text-[11px] font-medium px-1.5 py-0.5 rounded bg-red-100 text-red-700">
+                                  Overdue · {a.school_days_waiting} school days without intervention
+                                </span>
+                              ) : a.flagged_on ? (
+                                <span className="text-[11px] text-gray-400">Flagged {a.flagged_on}</span>
+                              ) : null}
                             </td>
                             <td className="px-5 py-3 font-mono text-xs text-gray-500">
                               {a.student_number || <span className="text-gray-300">—</span>}

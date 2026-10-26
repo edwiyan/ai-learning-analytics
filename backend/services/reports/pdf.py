@@ -422,6 +422,20 @@ def render_pdf(data: dict) -> bytes:
                    ["Coverage", _fmt_pct(iv["coverage_pct"])]]
     status_rows += [[f"Latest status: {k}", v] for k, v in sorted(iv["by_status"].items())]
     story.append(_table(["Measure", "Value"], status_rows, [CONTENT_W * 0.6, CONTENT_W * 0.4], numeric_cols=(1,)))
+    ew = data["early_warning"]["summary"]
+    story += [Paragraph("Early-warning timeliness", S["h2"]),
+              Paragraph(f"An At-Risk flag raised in the {ew['early_period']} period (before the Midterm examination) counts "
+                        f"as early; the target is an intervention within {ew['target_school_days']} school days of the "
+                        "alert.", S["small"]), Spacer(1, 2 * mm)]
+    story.append(_table(["Measure", "Value"], [
+        ["Students ever flagged At-Risk (enrolments)", ew["flagged"]],
+        [f"First flagged in the {ew['early_period']} period", f"{ew['flagged_early']} ({_fmt_pct(ew['flagged_early_pct'])})"],
+        ["Intervention logged after the first flag", ew["with_intervention"]],
+        ["Median school days from alert to intervention",
+         "—" if ew["median_school_days_to_intervention"] is None else ew["median_school_days_to_intervention"]],
+        [f"Intervention within {ew['target_school_days']} school days", f"{ew['within_target']} ({_fmt_pct(ew['within_target_pct'])})"],
+        ["Currently overdue (no intervention past the target)", ew["overdue"]],
+    ], [CONTENT_W * 0.6, CONTENT_W * 0.4], numeric_cols=(1,)))
     pending = [r for r in at_risk if not r["intervention_count"]]
     if pending:
         story += [Paragraph("At-Risk students awaiting an intervention", S["h2"]),

@@ -150,7 +150,7 @@ def test_xlsx_export_has_every_view(client, admin_token, campus):
     assert r.status_code == 200
     wb = load_workbook(io.BytesIO(r.content))
     assert wb.sheetnames == ["Summary", "By College", "By Program", "By Curriculum", "By Year Level", "By Section",
-                             "By Course", "All Students", "At-Risk", "Excelling", "Competency Gaps"]
+                             "By Course", "All Students", "At-Risk", "Excelling", "Early Warning", "Competency Gaps"]
     at_risk_names = sorted(row[0] for row in wb["At-Risk"].iter_rows(min_row=2, values_only=True))
     assert at_risk_names == ["Ana Weak", "Dee"]
 
