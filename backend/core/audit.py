@@ -7,7 +7,7 @@ def log_action(db: Session, user_id: str, action: str, target_table: str = None,
         user_id=user_id,
         action=action,
         target_table=target_table,
-        target_id=target_id,
+        target_id=str(target_id) if target_id is not None else None,
         extra_data=extra,
     )
     db.add(entry)

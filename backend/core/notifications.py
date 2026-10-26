@@ -11,7 +11,7 @@ def notify(db: Session, user_id: str, type: str, title: str, message: str, relat
         type=type,
         title=title,
         message=message,
-        related_id=related_id,
+        related_id=str(related_id) if related_id is not None else None,
     ))
 
 

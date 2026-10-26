@@ -16,7 +16,10 @@ from backend.core.notifications import notify, notify_roles
 from backend.models.user import User, UserRole, COLLEGE_SCOPED_ROLES
 from backend.models.course import Course
 from backend.models.syllabus import Syllabus, SyllabusStatus, Competency, SyllabusApproval, ApprovalStage
-from backend.schemas.syllabus import CustomCompetencyCreate, SyllabusResponse, SyllabusWithCourseResponse, SyllabusValidateRequest, SyllabusApprovalCreate, SyllabusApprovalResponse
+from backend.schemas.syllabus import (
+    CustomCompetencyCreate, SyllabusApprovalCreate, SyllabusApprovalResponse, SyllabusCompetenciesUpdate,
+    SyllabusResponse, SyllabusValidateRequest, SyllabusWithCourseResponse,
+)
 from backend.services.ocr.extractor import extract_text
 from backend.services.ai.syllabus_parser import parse_syllabus
 
@@ -28,6 +31,11 @@ APPROVAL_CHAIN = {
 }
 
 APPROVER_ROLES = {UserRole.program_director, UserRole.dean, UserRole.vp_academic_affairs}
+
+# Instructors may edit the AI-extracted competencies only before the syllabus enters
+# the approval chain (or after a rejection). Once submitted, approvers review that
+# exact list, and after final endorsement it is locked.
+EDITABLE_STAGES = (ApprovalStage.draft, ApprovalStage.rejected)
 
 router = APIRouter(prefix="/syllabi", tags=["syllabi"])
 
@@ -333,6 +341,46 @@ def get_approval_history(
     return db.query(SyllabusApproval).filter(SyllabusApproval.syllabus_id == syllabus_id).order_by(SyllabusApproval.reviewed_at).all()
 
 
+@router.put("/{syllabus_id}/competencies", response_model=SyllabusResponse)
+def update_competencies(
+    syllabus_id: uuid.UUID,
+    payload: SyllabusCompetenciesUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.instructor, UserRole.admin)),
+):
+    """Save the instructor's edits to the AI-extracted competencies (draft or rejected only)."""
+    syllabus = db.query(Syllabus).filter(Syllabus.id == syllabus_id).first()
+    if not syllabus:
+        raise HTTPException(status_code=404, detail="Syllabus not found")
+    course = db.query(Course).filter(Course.id == syllabus.course_id).first()
+    if course:
+        _assert_course_access(course, current_user)
+    if syllabus.approval_stage not in EDITABLE_STAGES:
+        raise HTTPException(
+            status_code=409,
+            detail="Competencies are locked once the syllabus is submitted for approval",
+        )
+    codes = [c.competency_code.strip().upper() for c in payload.competencies]
+    if any(not c for c in codes) or any(not c.topic_name.strip() for c in payload.competencies):
+        raise HTTPException(status_code=422, detail="Every competency needs a code and a topic name")
+    if len(set(codes)) != len(codes):
+        raise HTTPException(status_code=422, detail="Competency codes must be unique")
+
+    db.query(Competency).filter(Competency.syllabus_id == syllabus_id).delete()
+    for comp in payload.competencies:
+        db.add(Competency(
+            syllabus_id=syllabus.id,
+            competency_code=comp.competency_code.strip(),
+            topic_name=comp.topic_name.strip(),
+            learning_outcomes=[lo.strip() for lo in comp.learning_outcomes if lo.strip()],
+        ))
+    db.commit()
+    db.refresh(syllabus)
+    log_action(db, str(current_user.id), "edit_syllabus_competencies", target_table="syllabi",
+               target_id=syllabus_id, extra={"count": len(payload.competencies)})
+    return syllabus
+
+
 @router.post("/{syllabus_id}/submit-for-review", response_model=SyllabusResponse)
 def submit_for_review(
     syllabus_id: uuid.UUID,
@@ -382,6 +430,11 @@ def approve_syllabus(
     )
     db.add(approval)
     syllabus.approval_stage = next_stage
+    if next_stage == ApprovalStage.fully_approved:
+        # Final endorsement: the reviewed competency list becomes the course's
+        # validated (and now locked) competency set.
+        syllabus.status = SyllabusStatus.validated
+        syllabus.validated_at = datetime.now(timezone.utc)
     # Notify instructor that stage advanced
     course = db.query(Course).filter(Course.id == syllabus.course_id).first()
     if course:
@@ -390,8 +443,9 @@ def approve_syllabus(
         if instructor:
             if next_stage == ApprovalStage.fully_approved:
                 notify(db, str(instructor.id), "syllabus_approved",
-                       "Syllabus Fully Approved",
-                       "Your syllabus has been fully approved. You can now validate topics.",
+                       "Syllabus Endorsed",
+                       "Your syllabus has been endorsed by the VP for Academic Affairs. Its competencies "
+                       "are now final and you can create assessments.",
                        related_id=syllabus_id)
             else:
                 notify(db, str(instructor.id), "syllabus_approved",
@@ -405,11 +459,12 @@ def approve_syllabus(
                          "A syllabus is ready for your endorsement.", related_id=syllabus_id)
         elif next_stage == ApprovalStage.pending_vp:
             notify_roles(db, [UserRole.vp_academic_affairs], None,
-                         "syllabus_submitted", "Syllabus Pending Final Approval",
-                         "A syllabus is ready for your final approval.", related_id=syllabus_id)
+                         "syllabus_submitted", "Syllabus Pending Your Endorsement",
+                         "A syllabus is ready for your final endorsement.", related_id=syllabus_id)
     db.commit()
     db.refresh(syllabus)
-    log_action(db, str(current_user.id), "approve_syllabus", target_table="syllabi", target_id=syllabus_id,
+    action = "endorse_syllabus" if current_user.role == UserRole.vp_academic_affairs else "approve_syllabus"
+    log_action(db, str(current_user.id), action, target_table="syllabi", target_id=syllabus_id,
                extra={"next_stage": next_stage.value})
     return syllabus
 
@@ -496,17 +551,20 @@ def validate_syllabus(
     if course:
         _assert_course_access(course, current_user)
 
-    db.query(Competency).filter(Competency.syllabus_id == syllabus_id).delete()
+    if payload.competencies is not None:
+        approved = sorted((c.competency_code, c.topic_name, tuple(c.learning_outcomes or []))
+                          for c in syllabus.competencies if c.source != "faculty")
+        sent = sorted((c.competency_code, c.topic_name, tuple(c.learning_outcomes or []))
+                      for c in payload.competencies)
+        if sent != approved:
+            raise HTTPException(
+                status_code=409,
+                detail="Competencies are locked after approval; edit them before submitting the syllabus",
+            )
 
-    for comp in payload.competencies:
-        competency = Competency(
-            syllabus_id=syllabus.id,
-            **comp.model_dump(),
-        )
-        db.add(competency)
-
-    syllabus.status = SyllabusStatus.validated
-    syllabus.validated_at = datetime.now(timezone.utc)
+    if syllabus.status != SyllabusStatus.validated:
+        syllabus.status = SyllabusStatus.validated
+        syllabus.validated_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(syllabus)
     log_action(db, str(current_user.id), "validate_syllabus", target_table="syllabi",

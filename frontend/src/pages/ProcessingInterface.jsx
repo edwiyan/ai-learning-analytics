@@ -4,12 +4,14 @@ import ExamQuestionsPanel from "../components/ExamQuestionsPanel";
 import api from "../services/api";
 import { useApi } from "../hooks/useApi";
 
+// Competencies can be edited only before submission or after a rejection (locked once endorsed).
+const EDITABLE_STAGES = ["draft", "rejected"];
 const STEPS = ["course", "syllabus", "validate", "assessment", "csv", "mapping", "done"];
-const STEP_LABELS = ["Create Course", "Upload Syllabus", "Validate Topics", "Create Assessment", "Upload CSV", "Review Mapping", "Complete"];
+const STEP_LABELS = ["Create Course", "Upload Syllabus", "Review & Approval", "Create Assessment", "Upload CSV", "Review Mapping", "Complete"];
 const STEP_DESCRIPTIONS = {
   course: "Define the course details before uploading materials.",
   syllabus: "Upload the syllabus — AI will extract competencies and topics automatically.",
-  validate: "Review and confirm AI-extracted competencies before proceeding.",
+  validate: "Edit the AI-extracted competencies, then submit them with the syllabus for approval. They are locked once endorsed.",
   assessment: "Define the assessment type and grading period for score tracking.",
   csv: "Upload a CSV of student scores to be mapped to competencies.",
   mapping: "Review how each question was mapped to a competency — approve or reassign.",
@@ -496,6 +498,7 @@ export default function ProcessingInterface() {
   const [submittingReview, setSubmittingReview] = useState(false);
 
   const currentStepIndex = STEPS.indexOf(step);
+  const competenciesLocked = !!syllabus && !EDITABLE_STAGES.includes(approvalStage || "draft");
 
   const canProceed = (() => {
     if (step === "course") return !!(courseForm.title.trim() && courseForm.code.trim() && courseForm.academic_period.trim());
@@ -523,7 +526,8 @@ export default function ProcessingInterface() {
       if (!raw) return;
       const draft = JSON.parse(raw);
       if (!draft.step || draft.step === "course" || draft.step === "done") return;
-      setStep(draft.step);
+      // Older drafts parked an uploaded syllabus on step 2; its review now lives on step 3.
+      setStep(draft.step === "syllabus" && draft.syllabus ? "validate" : draft.step);
       if (draft.course)              setCourse(draft.course);
       if (draft.syllabus)            setSyllabus(draft.syllabus);
       if (draft.editedCompetencies)  setEditedCompetencies(draft.editedCompetencies);
@@ -561,7 +565,7 @@ export default function ProcessingInterface() {
 
   const resumeDraft = () => {
     if (!draftData) return;
-    if (draftData.step) setStep(draftData.step);
+    if (draftData.step) setStep(draftData.step === "syllabus" && draftData.syllabus ? "validate" : draftData.step);
     if (draftData.course) setCourse(draftData.course);
     if (draftData.syllabus) setSyllabus(draftData.syllabus);
     if (draftData.editedCompetencies) setEditedCompetencies(draftData.editedCompetencies);
@@ -590,6 +594,13 @@ export default function ProcessingInterface() {
       const res = await api.get(`/syllabi/${target.id}`);
       const stage = res.data.approval_stage || "draft";
       setApprovalStage(stage);
+      let comps = editedCompetencies;
+      if (!EDITABLE_STAGES.includes(stage)) {
+        // Submitted or endorsed: show exactly what the approvers reviewed.
+        comps = res.data.competencies || [];
+        setEditedCompetencies(comps);
+        setOriginalCompetencies(comps);
+      }
       let feedback = null;
       if (stage === "rejected") {
         const hist = await api.get(`/syllabi/${target.id}/approval-history`);
@@ -597,13 +608,13 @@ export default function ProcessingInterface() {
         feedback = last?.feedback || null;
         setRejectionFeedback(feedback);
       }
-      saveDraft({ step: "syllabus", course, syllabus: target, editedCompetencies, originalCompetencies, assessmentForm, approvalStage: stage });
+      saveDraft({ step: "validate", course, syllabus: target, editedCompetencies: comps, originalCompetencies, assessmentForm, approvalStage: stage });
     } catch {}
   }, [syllabus, course, editedCompetencies, originalCompetencies, assessmentForm]);
 
-  // Auto-refresh approval stage whenever the syllabus step becomes active with a known syllabus
+  // Auto-refresh approval stage whenever the review step becomes active with a known syllabus
   useEffect(() => {
-    if (step === "syllabus" && syllabus?.id) {
+    if (step === "validate" && syllabus?.id) {
       refreshApprovalStage(syllabus);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -622,7 +633,8 @@ export default function ProcessingInterface() {
           setOriginalCompetencies(comps);
           const stage = s.approval_stage || "draft";
           setApprovalStage(stage);
-          saveDraft({ step: "syllabus", course, syllabus: s, editedCompetencies: comps, originalCompetencies: comps, assessmentForm, approvalStage: stage });
+          setStep("validate");
+          saveDraft({ step: "validate", course, syllabus: s, editedCompetencies: comps, originalCompetencies: comps, assessmentForm, approvalStage: stage });
         })
         .catch(() => { /* no syllabus yet — show upload form */ });
     }
@@ -657,17 +669,35 @@ export default function ProcessingInterface() {
       const stage = res.data.approval_stage || "draft";
       setApprovalStage(stage);
       setRejectionFeedback(null);
-      saveDraft({ step: "syllabus", course, syllabus: res.data, editedCompetencies: comps, originalCompetencies: comps, assessmentForm, approvalStage: stage });
-      // Stay on syllabus step to show approval panel — do NOT jump to validate yet
+      saveDraft({ step: "validate", course, syllabus: res.data, editedCompetencies: comps, originalCompetencies: comps, assessmentForm, approvalStage: stage });
+      setStep("validate");
     } catch (err) {
       setOcrDone(false); setError(err.response?.data?.detail || "Failed to upload syllabus");
     } finally { setLoading(false); }
   };
 
+  // Save the edited competencies and send the syllabus into the approval chain.
+  const handleSubmitForApproval = async () => {
+    setError(""); setSubmittingReview(true);
+    try {
+      const saved = await api.put(`/syllabi/${syllabus.id}/competencies`, { competencies: editedCompetencies });
+      const comps = saved.data.competencies || editedCompetencies;
+      const action = approvalStage === "rejected" ? "resubmit" : "submit-for-review";
+      const res = await api.post(`/syllabi/${syllabus.id}/${action}`);
+      const stage = res.data.approval_stage;
+      setEditedCompetencies(comps); setOriginalCompetencies(comps);
+      setApprovalStage(stage); setRejectionFeedback(null);
+      saveDraft({ step: "validate", course, syllabus, editedCompetencies: comps, originalCompetencies: comps, assessmentForm, approvalStage: stage });
+    } catch (err) {
+      setError(err.response?.data?.detail || "Submit failed");
+    } finally { setSubmittingReview(false); }
+  };
+
   const handleValidate = async () => {
     setError(""); setLoading(true);
     try {
-      await api.put(`/syllabi/${syllabus.id}/validate`, { competencies: editedCompetencies });
+      // Endorsed competencies are locked; this only confirms them.
+      await api.put(`/syllabi/${syllabus.id}/validate`, {});
       setStep("assessment");
       saveDraft({ step: "assessment", course, syllabus, editedCompetencies, originalCompetencies, assessmentForm });
     } catch (err) {
@@ -1018,7 +1048,6 @@ export default function ProcessingInterface() {
                 </button>
               </form>
             ) : (
-              /* Approval panel — shown after upload */
               <div className="space-y-4">
                 <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                   <svg className="w-4 h-4 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1026,122 +1055,10 @@ export default function ProcessingInterface() {
                   </svg>
                   <span className="text-sm text-green-700 font-medium">Syllabus uploaded and parsed — {editedCompetencies.length} competencies extracted</span>
                 </div>
-
-                {/* Rejection feedback */}
-                {approvalStage === "rejected" && (
-                  <div className="p-4 bg-red-50 border border-red-200 rounded-xl space-y-2">
-                    <p className="text-sm font-semibold text-red-700">Syllabus Rejected</p>
-                    {rejectionFeedback && <p className="text-sm text-red-600 italic">"{rejectionFeedback}"</p>}
-                    <p className="text-xs text-red-500">Revise the syllabus and resubmit for review.</p>
-                    <button
-                      onClick={async () => {
-                        setSubmittingReview(true);
-                        try {
-                          const res = await api.post(`/syllabi/${syllabus.id}/resubmit`);
-                          const stage = res.data.approval_stage;
-                          setApprovalStage(stage);
-                          setRejectionFeedback(null);
-                          saveDraft({ step: "syllabus", course, syllabus, editedCompetencies, originalCompetencies, assessmentForm, approvalStage: stage });
-                        } catch (err) { setError(err.response?.data?.detail || "Resubmit failed"); }
-                        finally { setSubmittingReview(false); }
-                      }}
-                      disabled={submittingReview}
-                      className="mt-1 px-4 py-1.5 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors">
-                      {submittingReview ? "Resubmitting…" : "Resubmit for Review"}
-                    </button>
-                  </div>
-                )}
-
-                {/* Approval chain progress */}
-                {approvalStage && !["draft", "fully_approved", "rejected"].includes(approvalStage) && (() => {
-                  const CHAIN = [
-                    { key: "pd",   label: "Program Director" },
-                    { key: "dean", label: "Dean" },
-                    { key: "vp",   label: "VP Academic Affairs" },
-                  ];
-                  const stageOrder = ["pending_pd", "pending_dean", "pending_vp"];
-                  const currentIdx = stageOrder.indexOf(approvalStage);
-                  return (
-                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-4">
-                      <p className="text-sm font-semibold text-amber-800">Awaiting Approval</p>
-                      <div className="flex items-start">
-                        {CHAIN.map((node, i) => {
-                          const isDone = i < currentIdx;
-                          const isCurrent = i === currentIdx;
-                          return (
-                            <div key={node.key} className="flex items-start flex-1 min-w-0">
-                              <div className="flex flex-col items-center">
-                                <div className={`w-9 h-9 rounded-full flex items-center justify-center ${
-                                  isDone    ? "bg-green-500"
-                                  : isCurrent ? "border-2 border-amber-500 bg-white"
-                                  : "bg-gray-200"
-                                }`}>
-                                  {isDone ? (
-                                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                  ) : isCurrent ? (
-                                    <svg className="w-4 h-4 text-amber-500 animate-spin" viewBox="0 0 24 24" fill="none">
-                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
-                                      <path className="opacity-80" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                                    </svg>
-                                  ) : (
-                                    <span className="text-xs font-bold text-gray-400">{i + 1}</span>
-                                  )}
-                                </div>
-                                <p className={`text-xs mt-1.5 text-center leading-tight px-0.5 ${
-                                  isDone ? "text-green-700 font-medium" : isCurrent ? "text-amber-700 font-semibold" : "text-gray-400"
-                                }`}>{node.label}</p>
-                                <p className={`text-xs mt-0.5 ${
-                                  isDone ? "text-green-500" : isCurrent ? "text-amber-500 animate-pulse" : "text-gray-300"
-                                }`}>{isDone ? "Approved ✓" : isCurrent ? "Reviewing…" : "Waiting"}</p>
-                              </div>
-                              {i < CHAIN.length - 1 && (
-                                <div className={`flex-1 h-0.5 mt-4 mx-1 rounded-full transition-colors ${isDone ? "bg-green-400" : "bg-gray-200"}`} />
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <button
-                        onClick={() => refreshApprovalStage(syllabus)}
-                        className="w-full py-2 text-sm font-medium text-amber-700 bg-amber-100 hover:bg-amber-200 rounded-lg border border-amber-300 transition-colors">
-                        ↻ Refresh Status
-                      </button>
-                    </div>
-                  );
-                })()}
-
-                {/* Submit for Review (draft state) */}
-                {approvalStage === "draft" && (
-                  <button
-                    onClick={async () => {
-                      setSubmittingReview(true);
-                      try {
-                        const res = await api.post(`/syllabi/${syllabus.id}/submit-for-review`);
-                        const stage = res.data.approval_stage;
-                        setApprovalStage(stage);
-                        saveDraft({ step: "syllabus", course, syllabus, editedCompetencies, originalCompetencies, assessmentForm, approvalStage: stage });
-                      } catch (err) { setError(err.response?.data?.detail || "Submit failed"); }
-                      finally { setSubmittingReview(false); }
-                    }}
-                    disabled={submittingReview}
-                    className="w-full border-2 border-indigo-300 text-indigo-700 py-2 rounded-lg text-sm font-semibold hover:bg-indigo-50 disabled:opacity-50 transition-colors">
-                    {submittingReview ? "Submitting…" : "Submit for Review →"}
-                  </button>
-                )}
-
-                {/* Proceed to Validate (fully approved) */}
-                {approvalStage === "fully_approved" && (
-                  <button
-                    onClick={() => {
-                      saveDraft({ step: "validate", course, syllabus, editedCompetencies, originalCompetencies: editedCompetencies, assessmentForm });
-                      setStep("validate");
-                    }}
-                    className="w-full bg-green-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors">
-                    Syllabus Approved — Proceed to Validate Topics →
-                  </button>
-                )}
+                <button onClick={() => setStep("validate")}
+                  className="w-full bg-indigo-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-colors">
+                  Review Extracted Competencies →
+                </button>
               </div>
             )}
           </div>
@@ -1152,17 +1069,107 @@ export default function ProcessingInterface() {
           <div className="bg-white rounded-xl border border-indigo-100 shadow-md p-6 space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-xs bg-indigo-50 text-indigo-600 font-medium px-2 py-0.5 rounded-full">Step 3 of 7</span>
-              <div className="flex gap-2">
-                <button onClick={() => { setEditedCompetencies([...originalCompetencies]); setCompSearch(""); setPendingDeleteIdx(null); }}
-                  className="text-xs border border-gray-300 text-gray-600 px-2 py-1 rounded-lg hover:bg-gray-50 transition-colors">
-                  Reset to AI suggestions
-                </button>
+              <div className="flex gap-2 items-center">
+                {approvalStage && (
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                    approvalStage === "fully_approved" ? "bg-green-100 text-green-700"
+                    : approvalStage === "rejected" ? "bg-red-100 text-red-600"
+                    : approvalStage === "draft" ? "bg-gray-100 text-gray-500"
+                    : "bg-amber-100 text-amber-700"
+                  }`}>
+                    {approvalStage === "draft" ? "Draft" : approvalStage === "fully_approved" ? "Endorsed · Locked" : approvalStage === "rejected" ? "Returned" : "Pending Approval"}
+                  </span>
+                )}
+                {!competenciesLocked && (
+                  <button onClick={() => { setEditedCompetencies([...originalCompetencies]); setCompSearch(""); setPendingDeleteIdx(null); }}
+                    className="text-xs border border-gray-300 text-gray-600 px-2 py-1 rounded-lg hover:bg-gray-50 transition-colors">
+                    Reset to AI suggestions
+                  </button>
+                )}
               </div>
             </div>
             <div>
               <h2 className="text-base font-semibold text-gray-700">Review AI-Extracted Competencies</h2>
               <p className="text-sm text-gray-500 mt-0.5">{STEP_DESCRIPTIONS.validate}</p>
             </div>
+
+            {/* Rejection feedback */}
+            {approvalStage === "rejected" && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-xl space-y-1">
+                <p className="text-sm font-semibold text-red-700">Syllabus Returned</p>
+                {rejectionFeedback && <p className="text-sm text-red-600 italic">"{rejectionFeedback}"</p>}
+                <p className="text-xs text-red-500">Revise the competencies below, then resubmit for approval.</p>
+              </div>
+            )}
+
+            {/* Approval chain progress */}
+            {approvalStage && !["draft", "fully_approved", "rejected"].includes(approvalStage) && (() => {
+              const CHAIN = [
+                { key: "pd",   label: "Program Director",    done: "Approved ✓" },
+                { key: "dean", label: "Dean",                done: "Approved ✓" },
+                { key: "vp",   label: "VP Academic Affairs", done: "Endorsed ✓" },
+              ];
+              const stageOrder = ["pending_pd", "pending_dean", "pending_vp"];
+              const currentIdx = stageOrder.indexOf(approvalStage);
+              return (
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-4">
+                  <p className="text-sm font-semibold text-amber-800">Awaiting Approval — competencies are read-only while under review</p>
+                  <div className="flex items-start">
+                    {CHAIN.map((node, i) => {
+                      const isDone = i < currentIdx;
+                      const isCurrent = i === currentIdx;
+                      return (
+                        <div key={node.key} className="flex items-start flex-1 min-w-0">
+                          <div className="flex flex-col items-center">
+                            <div className={`w-9 h-9 rounded-full flex items-center justify-center ${
+                              isDone    ? "bg-green-500"
+                              : isCurrent ? "border-2 border-amber-500 bg-white"
+                              : "bg-gray-200"
+                            }`}>
+                              {isDone ? (
+                                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                </svg>
+                              ) : isCurrent ? (
+                                <svg className="w-4 h-4 text-amber-500 animate-spin" viewBox="0 0 24 24" fill="none">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                                  <path className="opacity-80" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                </svg>
+                              ) : (
+                                <span className="text-xs font-bold text-gray-400">{i + 1}</span>
+                              )}
+                            </div>
+                            <p className={`text-xs mt-1.5 text-center leading-tight px-0.5 ${
+                              isDone ? "text-green-700 font-medium" : isCurrent ? "text-amber-700 font-semibold" : "text-gray-400"
+                            }`}>{node.label}</p>
+                            <p className={`text-xs mt-0.5 ${
+                              isDone ? "text-green-500" : isCurrent ? "text-amber-500 animate-pulse" : "text-gray-300"
+                            }`}>{isDone ? node.done : isCurrent ? "Reviewing…" : "Waiting"}</p>
+                          </div>
+                          {i < CHAIN.length - 1 && (
+                            <div className={`flex-1 h-0.5 mt-4 mx-1 rounded-full transition-colors ${isDone ? "bg-green-400" : "bg-gray-200"}`} />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <button
+                    onClick={() => refreshApprovalStage(syllabus)}
+                    className="w-full py-2 text-sm font-medium text-amber-700 bg-amber-100 hover:bg-amber-200 rounded-lg border border-amber-300 transition-colors">
+                    ↻ Refresh Status
+                  </button>
+                </div>
+              );
+            })()}
+
+            {approvalStage === "fully_approved" && (
+              <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <svg className="w-4 h-4 text-green-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <span className="text-sm text-green-700">Endorsed by the VP for Academic Affairs — these competencies are final and can no longer be edited.</span>
+              </div>
+            )}
 
             {/* Confidence indicator */}
             {hasConfidenceData && editedCompetencies.length > 0 && (
@@ -1192,19 +1199,19 @@ export default function ProcessingInterface() {
                 {compSearch && ` · ${filteredComps.length} shown`}
               </span>
             </div>
-            {compSearch && <p className="text-xs text-gray-400 -mt-2">Clear search to enable drag-to-reorder</p>}
+            {compSearch && !competenciesLocked && <p className="text-xs text-gray-400 -mt-2">Clear search to enable drag-to-reorder</p>}
 
-            <div className="space-y-2 max-h-96 overflow-y-auto">
+            <fieldset disabled={competenciesLocked} className="space-y-2 max-h-96 overflow-y-auto min-w-0">
               {filteredComps.map(({ comp, origIdx }) => (
                 <div key={origIdx}
-                  draggable={!compSearch}
+                  draggable={!compSearch && !competenciesLocked}
                   onDragStart={e => !compSearch && handleDragStart(e, origIdx)}
                   onDragOver={e => !compSearch && handleDragOver(e, origIdx)}
                   onDragEnd={handleDragEnd}
                   className={`border border-gray-200 rounded-lg p-2.5 space-y-2 transition-opacity ${draggedIdx === origIdx ? "opacity-50" : "opacity-100"}`}
                 >
                   <div className="flex gap-2 items-center">
-                    {!compSearch && (
+                    {!compSearch && !competenciesLocked && (
                       <span className="text-gray-300 cursor-grab active:cursor-grabbing shrink-0 text-lg leading-none select-none">⠿</span>
                     )}
                     <input value={comp.competency_code}
@@ -1227,7 +1234,7 @@ export default function ProcessingInterface() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </button>
-                    {pendingDeleteIdx === origIdx ? (
+                    {competenciesLocked ? null : pendingDeleteIdx === origIdx ? (
                       <div className="flex items-center gap-1 shrink-0">
                         <span className="text-xs text-gray-500">Remove?</span>
                         <button onClick={() => { setEditedCompetencies(editedCompetencies.filter((_, j) => j !== origIdx)); setPendingDeleteIdx(null); }}
@@ -1271,19 +1278,31 @@ export default function ProcessingInterface() {
                   )}
                 </div>
               ))}
-            </div>
+            </fieldset>
 
-            <div className="flex items-center gap-3">
-              <button onClick={() => setEditedCompetencies([...editedCompetencies, { competency_code: "", topic_name: "", learning_outcomes: [] }])}
-                className="text-indigo-600 text-sm hover:underline">
-                + Add competency
+            {!competenciesLocked && (
+              <div className="flex items-center gap-3">
+                <button onClick={() => setEditedCompetencies([...editedCompetencies, { competency_code: "", topic_name: "", learning_outcomes: [] }])}
+                  className="text-indigo-600 text-sm hover:underline">
+                  + Add competency
+                </button>
+                <span className="text-xs text-gray-400">{editedCompetencies.length} competencies</span>
+              </div>
+            )}
+            {!competenciesLocked && (
+              <button disabled={submittingReview || !canProceed} onClick={handleSubmitForApproval}
+                className="w-full bg-indigo-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                {submittingReview ? "Submitting…"
+                  : approvalStage === "rejected" ? `Save & Resubmit ${editedCompetencies.length} Competencies →`
+                  : `Save & Submit ${editedCompetencies.length} Competencies for Approval →`}
               </button>
-              <span className="text-xs text-gray-400">{editedCompetencies.length} competencies</span>
-            </div>
-            <button disabled={loading || !canProceed} onClick={handleValidate}
-              className="w-full bg-indigo-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors">
-              {loading ? "Saving…" : `Confirm ${editedCompetencies.length} Competencies →`}
-            </button>
+            )}
+            {approvalStage === "fully_approved" && (
+              <button disabled={loading} onClick={handleValidate}
+                className="w-full bg-green-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-green-700 disabled:opacity-50 transition-colors">
+                {loading ? "Continuing…" : "Continue to Create Assessment →"}
+              </button>
+            )}
           </div>
         )}
 

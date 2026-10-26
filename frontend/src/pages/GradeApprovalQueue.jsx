@@ -1,12 +1,16 @@
 import { useEffect, useState, useCallback } from "react";
 import api from "../services/api";
 import Layout from "../components/Layout";
+import { useAuth } from "../context/AuthContext";
 
 const PERIOD_LABELS = {
   prelim: "Prelim", midterm: "Midterm", semi_final: "Semi-Final", final: "Final",
 };
 
-function ApproveModal({ submission, onClose, onDone }) {
+// The VP for Academic Affairs gives the final endorsement rather than an approval.
+const actionVerb = (role) => (role === "vp_academic_affairs" ? "Endorse" : "Approve");
+
+function ApproveModal({ submission, verb, onClose, onDone }) {
   const [feedback, setFeedback] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -17,7 +21,7 @@ function ApproveModal({ submission, onClose, onDone }) {
       await api.post(`/grade-submissions/${submission.id}/approve`, { feedback: feedback || null });
       onDone();
     } catch (err) {
-      setError(err?.response?.data?.detail || "Approval failed.");
+      setError(err?.response?.data?.detail || `${verb} failed.`);
     } finally { setLoading(false); }
   };
 
@@ -25,7 +29,7 @@ function ApproveModal({ submission, onClose, onDone }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
         <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="text-base font-semibold text-gray-800">Approve Grade Submission</h2>
+          <h2 className="text-base font-semibold text-gray-800">{verb} Grade Submission</h2>
           <p className="text-xs text-gray-500 mt-0.5">{PERIOD_LABELS[submission.grading_period] || submission.grading_period}</p>
         </div>
         <div className="px-6 py-4 space-y-3">
@@ -41,7 +45,7 @@ function ApproveModal({ submission, onClose, onDone }) {
           <button onClick={onClose} disabled={loading} className="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200">Cancel</button>
           <button onClick={handleSubmit} disabled={loading}
             className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50">
-            {loading ? "Approving…" : "Approve"}
+            {loading ? (verb === "Endorse" ? "Endorsing…" : "Approving…") : verb}
           </button>
         </div>
       </div>
@@ -93,7 +97,7 @@ function RejectModal({ submission, onClose, onDone }) {
   );
 }
 
-function SubmissionCard({ submission, onApprove, onReject }) {
+function SubmissionCard({ submission, verb, onApprove, onReject }) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between gap-3">
@@ -112,7 +116,7 @@ function SubmissionCard({ submission, onApprove, onReject }) {
       <div className="mt-4 flex gap-2">
         <button onClick={() => onApprove(submission)}
           className="flex-1 px-3 py-1.5 text-xs font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-          Approve
+          {verb}
         </button>
         <button onClick={() => onReject(submission)}
           className="flex-1 px-3 py-1.5 text-xs font-medium bg-white text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors">
@@ -124,6 +128,8 @@ function SubmissionCard({ submission, onApprove, onReject }) {
 }
 
 export default function GradeApprovalQueue() {
+  const { user } = useAuth();
+  const verb = actionVerb(user?.role);
   const [submissions, setSubmissions] = useState([]);
   const [fetching, setFetching] = useState(true);
   const [approveTarget, setApproveTarget] = useState(null);
@@ -151,7 +157,7 @@ export default function GradeApprovalQueue() {
     setApproveTarget(null);
     setRejectTarget(null);
     setSubmissions(prev => prev.filter(s => s.id !== target.id));
-    showToast(`Grade submission ${action} successfully.`, action === "approved" ? "success" : "info");
+    showToast(`Grade submission ${action} successfully.`, action === "rejected" ? "info" : "success");
   };
 
   return (
@@ -189,7 +195,7 @@ export default function GradeApprovalQueue() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {submissions.map(s => (
-              <SubmissionCard key={s.id} submission={s} onApprove={setApproveTarget} onReject={setRejectTarget} />
+              <SubmissionCard key={s.id} submission={s} verb={verb} onApprove={setApproveTarget} onReject={setRejectTarget} />
             ))}
           </div>
         )}
@@ -197,8 +203,9 @@ export default function GradeApprovalQueue() {
         {approveTarget && (
           <ApproveModal
             submission={approveTarget}
+            verb={verb}
             onClose={() => setApproveTarget(null)}
-            onDone={() => handleDone("approved", approveTarget)}
+            onDone={() => handleDone(verb === "Endorse" ? "endorsed" : "approved", approveTarget)}
           />
         )}
         {rejectTarget && (

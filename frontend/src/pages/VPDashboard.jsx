@@ -237,7 +237,7 @@ export default function VPDashboard() {
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-xl font-bold text-gray-800">VP for Academic Affairs Dashboard</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Institution-wide academic overview and final approval authority</p>
+            <p className="text-sm text-gray-500 mt-0.5">Institution-wide academic overview and final endorsement authority</p>
           </div>
           <div className="flex items-center gap-2 mt-1">
             {lastRefreshed && (
@@ -324,7 +324,7 @@ export default function VPDashboard() {
 
         {/* Approval queue — VP sees Syllabi + Grade Submissions */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <ApprovalStatCard label="Syllabi Awaiting Final Approval" count={approvalCounts.syllabi}
+          <ApprovalStatCard label="Syllabi Awaiting Endorsement" count={approvalCounts.syllabi}
             color="bg-rose-50 border-rose-200 text-rose-700" to="/syllabus-approval" />
           <ApprovalStatCard label="Grades Awaiting Posting Authorization" count={approvalCounts.grades}
             color="bg-purple-50 border-purple-200 text-purple-700" to="/grade-approval" />

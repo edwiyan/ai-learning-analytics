@@ -74,7 +74,7 @@ function ApprovalChain({ stage }) {
   );
 }
 
-function SyllabusCard({ syllabus, onRefresh, onSubmit, onResubmit, onContinue, loading }) {
+function SyllabusCard({ syllabus, onRefresh, onContinue, loading }) {
   const stage = syllabus.approval_stage || "draft";
   const status = syllabus.status || "pending";
   const compCount = (syllabus.competencies || []).length;
@@ -107,11 +107,11 @@ function SyllabusCard({ syllabus, onRefresh, onSubmit, onResubmit, onContinue, l
       <div className="mt-4 flex items-center gap-2 flex-wrap">
         {stage === "draft" && (
           <button
-            onClick={() => onSubmit(syllabus)}
+            onClick={() => onContinue(syllabus)}
             disabled={loading}
             className="px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
           >
-            Submit for Review
+            Review Competencies &amp; Submit
           </button>
         )}
         {(stage === "pending_pd" || stage === "pending_dean" || stage === "pending_vp") && (
@@ -134,7 +134,7 @@ function SyllabusCard({ syllabus, onRefresh, onSubmit, onResubmit, onContinue, l
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
-            Continue to Validate Topics
+            Continue to Assessments
           </button>
         )}
         {stage === "fully_approved" && status === "validated" && (
@@ -142,16 +142,16 @@ function SyllabusCard({ syllabus, onRefresh, onSubmit, onResubmit, onContinue, l
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            Validated
+            Endorsed · competencies locked
           </span>
         )}
         {stage === "rejected" && (
           <button
-            onClick={() => onResubmit(syllabus)}
+            onClick={() => onContinue(syllabus)}
             disabled={loading}
             className="px-3 py-1.5 text-xs font-medium bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
           >
-            Resubmit
+            Revise &amp; Resubmit
           </button>
         )}
       </div>
@@ -214,36 +214,6 @@ export default function MySyllabiPage() {
     }
   };
 
-  const handleSubmit = async (syllabus) => {
-    setActionLoading(true);
-    try {
-      await api.post(`/syllabi/${syllabus.id}/submit-for-review`);
-      setSyllabi(prev =>
-        prev.map(s => s.id === syllabus.id ? { ...s, approval_stage: "pending_pd" } : s)
-      );
-      showToast("Submitted for review.", "success");
-    } catch (err) {
-      showToast(err?.response?.data?.detail || "Submit failed.", "error");
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleResubmit = async (syllabus) => {
-    setActionLoading(true);
-    try {
-      await api.post(`/syllabi/${syllabus.id}/resubmit`);
-      setSyllabi(prev =>
-        prev.map(s => s.id === syllabus.id ? { ...s, approval_stage: "pending_pd" } : s)
-      );
-      showToast("Resubmitted for review.", "success");
-    } catch (err) {
-      showToast(err?.response?.data?.detail || "Resubmit failed.", "error");
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
   const handleContinue = (syllabus) => {
     const draft = {
       step: "syllabus",
@@ -263,7 +233,7 @@ export default function MySyllabiPage() {
       },
       editedCompetencies: syllabus.competencies || [],
       originalCompetencies: syllabus.competencies || [],
-      approvalStage: "fully_approved",
+      approvalStage: syllabus.approval_stage,
     };
     try { localStorage.setItem(DRAFT_KEY, JSON.stringify(draft)); } catch {}
     navigate("/instructor/processing");
@@ -367,8 +337,6 @@ export default function MySyllabiPage() {
                 key={syllabus.id}
                 syllabus={syllabus}
                 onRefresh={handleRefresh}
-                onSubmit={handleSubmit}
-                onResubmit={handleResubmit}
                 onContinue={handleContinue}
                 loading={actionLoading}
               />

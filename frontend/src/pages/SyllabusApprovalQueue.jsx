@@ -35,8 +35,11 @@ const STAGE_COLORS = {
 const NEXT_STAGE_LABEL = {
   program_director: "Pending Dean Review",
   dean: "Pending VP Review",
-  vp_academic_affairs: "Fully Approved",
+  vp_academic_affairs: "Endorsed (final)",
 };
+
+// The VP for Academic Affairs gives the final endorsement rather than an approval.
+const actionVerb = (role) => (role === "vp_academic_affairs" ? "Endorse" : "Approve");
 
 // Advisory measurable-outcome and program-outcome check (capstone §3.11.2 Phase 1).
 function AlignmentCheck({ syllabusId }) {
@@ -89,7 +92,7 @@ function AlignmentCheck({ syllabusId }) {
   );
 }
 
-function SyllabusCard({ s, acting, onApprove, onReject, onHistory }) {
+function SyllabusCard({ s, acting, verb, onApprove, onReject, onHistory }) {
   const compCount = s.competencies?.length ?? 0;
   const courseSnippet = s.course_id ? s.course_id.slice(0, 8) + "…" : "—";
 
@@ -128,7 +131,7 @@ function SyllabusCard({ s, acting, onApprove, onReject, onHistory }) {
           <button onClick={() => onApprove(s)}
             disabled={acting === s.id}
             className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50">
-            {acting === s.id ? "Processing…" : "Approve"}
+            {acting === s.id ? "Processing…" : verb}
           </button>
         </div>
       </div>
@@ -138,6 +141,7 @@ function SyllabusCard({ s, acting, onApprove, onReject, onHistory }) {
 
 export default function SyllabusApprovalQueue() {
   const { user } = useAuth();
+  const verb = actionVerb(user?.role);
   const [syllabi, setSyllabi] = useState([]);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(null);
@@ -173,11 +177,11 @@ export default function SyllabusApprovalQueue() {
     setActing(approveTarget.id);
     try {
       await api.post(`/syllabi/${approveTarget.id}/approve`, { feedback: approveFeedback.trim() || "" });
-      showToast("Syllabus approved");
+      showToast(verb === "Endorse" ? "Syllabus endorsed" : "Syllabus approved");
       setApproveTarget(null);
       setApproveFeedback("");
       fetchQueue();
-    } catch (err) { showToast(err.response?.data?.detail || "Approve failed", "error"); }
+    } catch (err) { showToast(err.response?.data?.detail || `${verb} failed`, "error"); }
     finally { setActing(null); }
   };
 
@@ -244,6 +248,7 @@ export default function SyllabusApprovalQueue() {
                 key={s.id}
                 s={s}
                 acting={acting}
+                verb={verb}
                 onApprove={syl => { setApproveTarget(syl); setApproveFeedback(""); }}
                 onReject={syl => { setRejectTarget(syl); setRejectFeedback(""); }}
                 onHistory={openHistory}
@@ -263,7 +268,7 @@ export default function SyllabusApprovalQueue() {
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-base font-semibold text-gray-800">Confirm Approval</h2>
+                  <h2 className="text-base font-semibold text-gray-800">{verb === "Endorse" ? "Confirm Endorsement" : "Confirm Approval"}</h2>
                   <p className="text-xs text-gray-400">This action cannot be undone</p>
                 </div>
               </div>
@@ -317,7 +322,7 @@ export default function SyllabusApprovalQueue() {
                   onClick={handleApprove}
                   disabled={acting === approveTarget.id}
                   className="px-5 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors font-medium">
-                  {acting === approveTarget.id ? "Approving…" : "Yes, Approve"}
+                  {acting === approveTarget.id ? (verb === "Endorse" ? "Endorsing…" : "Approving…") : `Yes, ${verb}`}
                 </button>
               </div>
             </div>
@@ -406,7 +411,7 @@ export default function SyllabusApprovalQueue() {
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-gray-700 capitalize">{h.role.replace(/_/g, " ")}</span>
                         <span className={`text-xs font-medium ${h.status === "approved" ? "text-green-600" : "text-red-600"}`}>
-                          {h.status}
+                          {h.status === "approved" && h.role === "vp_academic_affairs" ? "endorsed" : h.status}
                         </span>
                       </div>
                       {h.feedback && <p className="text-xs text-gray-500 mt-0.5 italic">"{h.feedback}"</p>}

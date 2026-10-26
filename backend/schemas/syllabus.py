@@ -74,4 +74,10 @@ class SyllabusWithCourseResponse(BaseModel):
 
 
 class SyllabusValidateRequest(BaseModel):
-    competencies: list[CompetencyCreate]
+    # Optional: after approval the competency list is locked, so this only
+    # confirms it. A list that differs from the approved one is refused.
+    competencies: Optional[list[CompetencyCreate]] = None
+
+
+class SyllabusCompetenciesUpdate(BaseModel):
+    competencies: list[CompetencyCreate] = Field(min_length=1)
