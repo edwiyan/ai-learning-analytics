@@ -73,7 +73,7 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 
 - [x] **T3.1 Persist risk snapshots.**
   Add `services/ai/risk_snapshot.py: refresh_course_risk(course_id, db)`. It runs `predict_risk` for every student and writes a `RiskPrediction` row whenever the level changes, then returns the transitions. Call it wherever T1.4 recomputes mastery.
-- [ ] **T3.2 In-app alerts when a student becomes At-Risk.**
+- [x] **T3.2 In-app alerts when a student becomes At-Risk.**
   For each transition into At-Risk, `notify()` the course instructor and the student user (resolved via `users.hashed_identifier`). The message states the reason (number of gaps and/or % decline). Do not repeat the alert while the student stays At-Risk.
   *Depends on* T3.1.
 - [ ] **T3.3 SMTP email for At-Risk alerts.**
@@ -153,3 +153,4 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 | 2026-10-26 | T2.3 | GET /assessments/course/{id}/mapping-accuracy (reviewed vs AI pick, 85% target, by competency/action) + MappingAccuracyCard. Also fixed UI '70%' confidence labels/thresholds to 0.75 (TopicMapping, ProcessingInterface). |
 | 2026-10-26 | T2.4 | competencies.source (migration r8n9o0p1q2r3); POST /syllabi/courses/{id}/competencies (owner only, auto FAC-NN code, 409 on dup); 'Create a new topic tag' form in OverrideDrawer. |
 | 2026-10-26 | T3.1 | services/ai/risk_snapshot.py writes RiskPrediction on level change and returns transitions; run inside refresh_course_analytics. |
+| 2026-10-26 | T3.2 | services/risk_alerts.py: on transition into At-Risk, in-app notify instructor (student_at_risk) + student (at_risk_alert) with Table 3.8.2 reason; no repeat while still At-Risk; bell icons added. |

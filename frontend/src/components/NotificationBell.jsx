@@ -12,6 +12,8 @@ const TYPE_ICONS = {
   grade_submission_approved: "✅",
   grade_submission_rejected: "❌",
   grade_submission_posted: "🏁",
+  student_at_risk: "⚠️",
+  at_risk_alert: "📚",
 };
 
 function timeAgo(isoString) {

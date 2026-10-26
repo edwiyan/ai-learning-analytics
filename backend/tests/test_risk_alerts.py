@@ -64,3 +64,30 @@ def test_snapshot_records_only_changes(db, course_setup):
     # Nothing changed -> no new snapshot, no transitions
     assert refresh_course_risk(course_setup["course"].id, db) == []
     assert db.query(RiskPrediction).count() == 2
+
+
+def test_new_at_risk_student_alerts_instructor_and_student(db, course_setup, instructor_user):
+    from backend.core.security import hash_student_id
+    from backend.models.notification import Notification
+    from backend.models.user import User, UserRole
+    from backend.services.analytics_refresh import refresh_course_analytics
+
+    student = User(email="weak@test.com", password_hash="x", full_name="Weak Student",
+                   role=UserRole.student, student_number="2024-0099", is_active=True)
+    db.add(student)
+    db.commit()
+    add_scores(db, course_setup, hash_student_id("2024-0099"), 50)
+
+    result = refresh_course_analytics(course_setup["course"].id, db)
+    assert result["alerted"] == 1
+
+    notes = {n.type: n for n in db.query(Notification).all()}
+    assert set(notes) == {"student_at_risk", "at_risk_alert"}
+    assert str(notes["student_at_risk"].user_id) == str(instructor_user.id)
+    assert "Weak Student" in notes["student_at_risk"].title
+    assert "3 competencies below 75%" in notes["student_at_risk"].message
+    assert str(notes["at_risk_alert"].user_id) == str(student.id)
+
+    # Still At-Risk on the next refresh -> no duplicate alerts
+    refresh_course_analytics(course_setup["course"].id, db)
+    assert db.query(Notification).count() == 2
