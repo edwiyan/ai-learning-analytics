@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { openResourceFile } from "../utils/resourceFile";
 import {
   Chart as ChartJS,
   CategoryScale, LinearScale, RadialLinearScale,
@@ -525,6 +526,7 @@ export default function StudentDashboard() {
                       href={r.url}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={r.has_file ? (e) => { e.preventDefault(); openResourceFile(r); } : undefined}
                       className="flex flex-1 min-w-0 items-center gap-3 p-3 group"
                     >
                       <div className="shrink-0">
@@ -533,7 +535,14 @@ export default function StudentDashboard() {
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium text-gray-700 group-hover:text-indigo-600 truncate">
                           {r.title}
+                          {r.has_file && <span className="text-xs text-gray-400 font-normal"> · {r.file_name}</span>}
                         </p>
+                        {r.instructor_endorsed && (
+                          <p className="text-[11px] font-medium text-emerald-700 mt-0.5">✓ Recommended by your instructor</p>
+                        )}
+                        {r.description && (
+                          <p className="text-xs text-gray-500 mt-0.5 truncate">{r.description}</p>
+                        )}
                         {r.competency_tags?.length > 0 && (
                           <p className="text-xs text-gray-400 mt-0.5 truncate">
                             {r.competency_tags.slice(0, 4).join(" · ")}

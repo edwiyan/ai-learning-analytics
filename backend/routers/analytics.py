@@ -1199,7 +1199,7 @@ def list_resources(db: Session = Depends(get_db), current_user: User = Depends(g
         ).group_by(RecommendationFeedback.resource_id).all()
     }
     results = []
-    for r in db.query(Resource).all():
+    for r in db.query(Resource).filter(Resource.course_id.is_(None)).all():
         helpful, not_helpful = counts.get(str(r.id), (0, 0))
         item = ResourceResponse.model_validate(r)
         item.helpful_count, item.not_helpful_count = int(helpful), int(not_helpful)

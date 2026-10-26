@@ -48,7 +48,10 @@ def _make_db(competencies: list, resources: list):
     comp_query.filter.return_value.all.return_value = competencies
     res_query = MagicMock()
     res_query.all.return_value = resources
-    db.query.side_effect = [comp_query, res_query]
+    # Third query: the course's instructor curation (none in these tests)
+    links_query = MagicMock()
+    links_query.filter.return_value.all.return_value = []
+    db.query.side_effect = [comp_query, res_query, links_query]
     return db
 
 

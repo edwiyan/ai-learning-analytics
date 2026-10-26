@@ -40,6 +40,10 @@ class RecommendationItem(BaseModel):
     title: str
     type: str
     url: str
+    description: str | None = None
+    file_name: str | None = None
+    has_file: bool = False
+    instructor_endorsed: bool = False  # accepted or added by the course instructor
     competency_tags: list[str] = []
     relevance_score: float
     personalized_message: str | None = None

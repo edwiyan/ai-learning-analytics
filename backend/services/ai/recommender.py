@@ -1,9 +1,13 @@
 from sqlalchemy.orm import Session
 
-from backend.models.resource import Resource
+from backend.models.resource import CourseResource, CourseResourceStatus, Resource
 from backend.models.syllabus import Competency
 from backend.services.ai.llm_client import complete_text, llm_configured
 from backend.services.ai.prompts import build_encouragement_prompt
+
+# Resources the instructor accepted for one of the student's weak competencies rank
+# above plain tag matches.
+INSTRUCTOR_ACCEPTED_BOOST = 3
 
 
 def _generate_encouragement(weak_competencies: list, resource_title: str) -> str | None:
@@ -41,20 +45,46 @@ def get_recommendations(
         if c.topic_name:
             search_terms.add(c.topic_name.lower().strip())
 
-    resources = db.query(Resource).all()
+    # Shared repository resources plus this course's own instructor resources.
+    resources = [
+        r for r in db.query(Resource).all()
+        if getattr(r, "course_id", None) is None or str(r.course_id) == str(course_id)
+    ]
     if not resources:
         return []
 
-    scored: list[tuple[Resource, int]] = []
+    # Instructor curation for this course: declined resources are never recommended;
+    # accepted ones are matched directly to the competency they were accepted for.
+    weak_ids = {str(c.id) for c in weak_competencies}
+    declined: set[str] = set()
+    accepted_for_weak: set[str] = set()
+    for link in db.query(CourseResource).filter(CourseResource.course_id == course_id).all():
+        rid = str(link.resource_id)
+        if link.status == CourseResourceStatus.declined.value:
+            declined.add(rid)
+        elif link.status == CourseResourceStatus.accepted.value and \
+                (link.competency_id is None or str(link.competency_id) in weak_ids):
+            accepted_for_weak.add(rid)
+    declined -= accepted_for_weak  # accepted for another competency wins over a decline
+
+    scored: list[tuple[Resource, int, bool]] = []
     for r in resources:
+        rid = str(r.id)
+        if rid in declined:
+            continue
         tags = [t.lower().strip() for t in (r.competency_tags or [])]
         # Count how many resource tags overlap with any weak competency term
         match_count = sum(
             1 for tag in tags
             if any(term in tag or tag in term for term in search_terms)
         )
+        endorsed = rid in accepted_for_weak
+        if endorsed:
+            match_count += INSTRUCTOR_ACCEPTED_BOOST
+        elif getattr(r, "course_id", None) is not None:
+            continue  # a course resource the instructor did not attach to these competencies
         if match_count > 0:
-            scored.append((r, match_count))
+            scored.append((r, match_count, endorsed))
 
     if not scored:
         return []
@@ -63,9 +93,9 @@ def get_recommendations(
     top = scored[:top_n]
 
     results = []
-    for i, (r, match_count) in enumerate(top):
+    for i, (r, match_count, endorsed) in enumerate(top):
         total_tags = len(r.competency_tags or []) or 1
-        relevance = round(min(match_count / total_tags, 1.0), 3)
+        relevance = 1.0 if endorsed else round(min(match_count / total_tags, 1.0), 3)
 
         # GPT encouragement only on the first result to avoid latency/cost on every item
         message = _generate_encouragement(weak_competencies, r.title) if i == 0 else None
@@ -73,8 +103,12 @@ def get_recommendations(
         results.append({
             "id": str(r.id),
             "title": r.title,
-            "type": r.type,
+            "type": r.type.value if hasattr(r.type, "value") else r.type,
             "url": r.url,
+            "description": getattr(r, "description", None),
+            "file_name": getattr(r, "file_name", None),
+            "has_file": bool(getattr(r, "file_path", None)),
+            "instructor_endorsed": endorsed,
             "competency_tags": r.competency_tags or [],
             "relevance_score": relevance,
             "personalized_message": message,
