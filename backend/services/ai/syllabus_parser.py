@@ -2,31 +2,7 @@ import json
 import re
 from openai import OpenAI, AuthenticationError, APIConnectionError
 from backend.core.config import settings
-
-PARSE_PROMPT = """You are an academic syllabus parser. Extract the structured course information from the syllabus text below.
-
-Return ONLY valid JSON in this exact format:
-{
-  "course_title": "string",
-  "competencies": [
-    {
-      "competency_code": "string (e.g. CLO1, CO-01, or auto-generate if missing)",
-      "topic_name": "string",
-      "learning_outcomes": ["string", "string"],
-      "bloom_level": "string (one of: Remembering, Understanding, Applying, Analyzing, Evaluating, Creating, or null if unclear)"
-    }
-  ]
-}
-
-Rules:
-- Each competency must have a unique code
-- Extract every distinct topic or learning outcome
-- If no explicit competency codes exist, generate them as CLO1, CLO2, etc.
-- learning_outcomes is a list of strings describing what students should be able to do
-- bloom_level: infer the primary Bloom's Taxonomy level from the learning outcomes' action verbs (e.g. "define/list" → Remembering, "explain/describe" → Understanding, "use/solve" → Applying, "compare/differentiate" → Analyzing, "evaluate/judge" → Evaluating, "design/create" → Creating)
-
-Syllabus text:
-{text}"""
+from backend.services.ai.prompts import build_syllabus_prompt
 
 
 def _is_openai_configured() -> bool:
@@ -137,10 +113,9 @@ def parse_syllabus(raw_text: str) -> dict:
 
     try:
         client = OpenAI(api_key=settings.openai_api_key)
-        truncated = raw_text[:12000]
         response = client.chat.completions.create(
             model=settings.openai_model,
-            messages=[{"role": "user", "content": PARSE_PROMPT.format(text=truncated)}],
+            messages=[{"role": "user", "content": build_syllabus_prompt(raw_text)}],
             temperature=0.1,
             response_format={"type": "json_object"},
         )

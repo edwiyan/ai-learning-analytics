@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from backend.models.resource import Resource
 from backend.models.syllabus import Competency
 from backend.core.config import settings
+from backend.services.ai.prompts import build_encouragement_prompt
 
 
 def _is_openai_configured() -> bool:
@@ -17,11 +18,7 @@ def _generate_encouragement(weak_competencies: list, resource_title: str) -> str
     try:
         from openai import OpenAI
         client = OpenAI(api_key=settings.openai_api_key)
-        gap_names = ", ".join(c.topic_name for c in weak_competencies[:3])
-        prompt = (
-            f"Write 1-2 encouraging sentences for a student who needs to improve on: {gap_names}. "
-            f"Suggest they check out: \"{resource_title}\". Be warm, specific, and supportive."
-        )
+        prompt = build_encouragement_prompt([c.topic_name for c in weak_competencies], resource_title)
         resp = client.chat.completions.create(
             model=settings.openai_model,
             messages=[{"role": "user", "content": prompt}],

@@ -1,38 +1,16 @@
 import json
 from openai import OpenAI
 from backend.core.config import settings
+from backend.services.ai.prompts import build_mapping_prompt
+
 
 client = OpenAI(api_key=settings.openai_api_key)
 
-MAP_PROMPT = """You are an academic assessment mapper. Given a question and a list of course competencies, identify which competency this question best assesses and classify its Bloom's Taxonomy level.
-
-Return ONLY valid JSON:
-{{
-  "competency_code": "string (the matching competency code, or null if no match)",
-  "confidence_score": 0.0,
-  "bloom_level": "string (one of: Remembering, Understanding, Applying, Analyzing, Evaluating, Creating)"
-}}
-
-confidence_score is between 0.0 and 1.0. Use null for competency_code if confidence < 0.3.
-bloom_level: classify based on the cognitive demand of the question.
-
-Question: {question}
-
-Competencies:
-{competencies}"""
-
-
 def map_question_to_competency(question_text: str, competencies: list[dict]) -> dict:
-    comp_list = "\n".join(
-        f"- {c['competency_code']}: {c['topic_name']} — {', '.join(c.get('learning_outcomes', [])[:2])}"
-        for c in competencies
-    )
     response = client.chat.completions.create(
         model=settings.openai_model,
         messages=[
-            {"role": "user", "content": MAP_PROMPT.format(
-                question=question_text, competencies=comp_list
-            )}
+            {"role": "user", "content": build_mapping_prompt(question_text, competencies)}
         ],
         temperature=0.0,
         response_format={"type": "json_object"},
