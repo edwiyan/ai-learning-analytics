@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { Fragment, useState, useEffect } from "react";
 import Pagination from "../components/Pagination";
 import Layout from "../components/Layout";
 import RiskBadge from "../components/RiskBadge";
@@ -259,9 +259,8 @@ export default function InterventionAlertsPage() {
                       const isReviewed = reviewed.has(key);
                       const isLogging = logOpen?.key === key;
                       return (
-                        <>
+                        <Fragment key={key}>
                           <tr
-                            key={key}
                             className={`transition-colors ${
                               isReviewed
                                 ? "bg-gray-50 opacity-60"
@@ -417,7 +416,7 @@ export default function InterventionAlertsPage() {
                               </td>
                             </tr>
                           )}
-                        </>
+                        </Fragment>
                       );
                     })}
                   </tbody>

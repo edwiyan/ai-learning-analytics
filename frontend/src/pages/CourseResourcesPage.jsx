@@ -167,7 +167,9 @@ export default function CourseResourcesPage() {
     let cancelled = false;
     api.get(`/courses/${activeCourse}/resources`)
       .then(r => { if (!cancelled) setView(r.data); })
-      .catch(() => { if (!cancelled) setView(null); });
+      .catch(err => {
+        if (!cancelled) setView({ course_id: activeCourse, error: err.response?.data?.detail || "Could not load this course's resources." });
+      });
     return () => { cancelled = true; };
   }, [activeCourse]);
 
@@ -235,7 +237,7 @@ export default function CourseResourcesPage() {
             <h1 className="text-xl font-bold text-gray-800">Course Review Resources</h1>
             <p className="text-sm text-gray-500 mt-0.5">Accept or decline the suggested review materials for each competency, and add your own. Students weak in a competency see your accepted resources first; declined ones are never shown.</p>
           </div>
-          <select value={activeCourse} onChange={e => { setCourseId(e.target.value); setView(null); }}
+          <select value={activeCourse} onChange={e => setCourseId(e.target.value)}
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white min-w-64">
             {(courses || []).map(c => <option key={c.id} value={c.id}>{c.code} — {c.title}</option>)}
           </select>
@@ -245,11 +247,17 @@ export default function CourseResourcesPage() {
           <div className={`px-4 py-2.5 rounded-lg text-sm font-medium ${toast.type === "error" ? "bg-red-50 text-red-700 border border-red-200" : "bg-green-50 text-green-700 border border-green-200"}`}>{toast.msg}</div>
         )}
 
-        {view && !view.has_validated_syllabus ? (
+        {activeCourse && view?.course_id !== activeCourse && (
+          <div className="flex justify-center py-16"><div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" /></div>
+        )}
+
+        {view?.course_id !== activeCourse ? null : view.error ? (
+          <div className="px-4 py-2.5 rounded-lg text-sm bg-red-50 text-red-700 border border-red-200">{view.error}</div>
+        ) : !view.has_validated_syllabus ? (
           <div className="bg-white rounded-xl border border-dashed border-gray-300 p-10 text-center text-sm text-gray-500">
             This course has no endorsed syllabus yet. Resources are suggested per competency once the syllabus is endorsed.
           </div>
-        ) : view && (
+        ) : (
           <>
             <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between gap-4 flex-wrap">
               <div className="text-sm text-gray-600">
