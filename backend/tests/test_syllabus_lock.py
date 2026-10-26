@@ -106,3 +106,29 @@ def test_rejected_syllabus_can_be_edited_again(client, db, instructor_token, syl
                        json={"feedback": "Split topic 1"}).status_code == 200
     r = client.put(f"/syllabi/{syllabus.id}/competencies", headers=_auth(instructor_token), json=EDITED)
     assert r.status_code == 200
+
+
+def _upload(client, token, course_id):
+    import io
+    from docx import Document
+    doc = Document()
+    doc.add_paragraph("Course Learning Outcomes")
+    doc.add_paragraph("CLO1: Analyze the running time of algorithms using Big-O notation")
+    doc.add_paragraph("CLO2: Implement linked lists, stacks and queues")
+    buf = io.BytesIO()
+    doc.save(buf)
+    return client.post(f"/syllabi/upload?course_id={course_id}", headers=_auth(token),
+                       files={"file": ("s.docx", buf.getvalue(),
+                                       "application/vnd.openxmlformats-officedocument.wordprocessingml.document")})
+
+
+def test_reupload_replaces_draft_and_is_refused_under_review(client, db, instructor_token, syllabus, monkeypatch):
+    from backend.core.limiter import limiter
+    monkeypatch.setattr(limiter, "enabled", False)
+    course_id = syllabus.course_id
+    r = _upload(client, instructor_token, course_id)
+    assert r.status_code == 201, r.text
+    assert r.json()["id"] == str(syllabus.id)                       # replaced in place
+    assert db.query(Syllabus).filter(Syllabus.course_id == course_id).count() == 1
+    client.post(f"/syllabi/{syllabus.id}/submit-for-review", headers=_auth(instructor_token))
+    assert _upload(client, instructor_token, course_id).status_code == 409

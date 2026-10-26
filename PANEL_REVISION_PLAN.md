@@ -142,8 +142,8 @@ Acceptance: `grep -ri "predict\|real-time" frontend/src` shows no claims about A
 - [x] **T6.1** CLAUDE.md: "MVC" → three-tier description; add settings, validation and privacy notes.
 - [x] **T6.2** `CAPSTONE_DOC_EDITS.md`: point to `PANEL_REVISIONS_MANUSCRIPT.docx` as the current
   manuscript edit list; keep the version/stack fixes.
-- [ ] **T6.3** Full run: pytest, Vitest, build, lint (no new errors); browser check of every new page.
-- [ ] **T6.4** Final cross-check of the ten comments against system and manuscript.
+- [x] **T6.3** Full run: pytest, Vitest, build, lint (no new errors); browser check of every new page.
+- [x] **T6.4** Final cross-check of the ten comments against system and manuscript.
 
 ## Order and dependencies
 
@@ -159,3 +159,12 @@ grading-policy citation for 75%; OpenAI account evidence; signed VPAR endorsemen
 ## Progress log
 
 - 2026-10-27 — Plan written; manuscript guide `PANEL_REVISIONS_MANUSCRIPT.docx` created.
+- 2026-10-27 — P1–P6 implemented on branch `panel-revisions` (D1–D6 as recommended).
+- 2026-10-27 — Bug sweep: closed access-control holes (Findings 1–2 plus course analytics,
+  student profiles, consultations, grade weights, ToS writes, PD college scope, intervention
+  logging); one syllabus per course; Vite proxy/SPA clash on /institution-settings; Course
+  Resources blank-state bug; useApi stale-URL bug; React key warning. API crawl (576 GETs, 6 roles):
+  0 server errors. UI crawl (all routes, 6 roles): 0 errors. 14 browser flows (settings,
+  reports, validation set → blind labels → adjudication → results, bulk confirm, course
+  resources, wizard → PD/Dean approve → VP endorse → locked): all pass. DB integrity checks clean.
+  Tests: pytest 176 passed / 1 skipped / 0 xfail; Vitest 13; build OK.

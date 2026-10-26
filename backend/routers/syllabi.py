@@ -73,6 +73,15 @@ async def upload_syllabus(
 
     _assert_course_access(course, current_user)
 
+    # One syllabus per course. A draft or returned syllabus is replaced in place (its
+    # approval history is kept); one under review or endorsed cannot be replaced.
+    existing = db.query(Syllabus).filter(Syllabus.course_id == course_id).first()
+    if existing is not None and existing.approval_stage not in EDITABLE_STAGES:
+        raise HTTPException(
+            status_code=409,
+            detail="This course already has a syllabus that is under review or endorsed",
+        )
+
     ext = os.path.splitext(file.filename or "")[1].lower()
     if file.content_type not in ALLOWED_MIME_TYPES or ext not in ALLOWED_EXTENSIONS:
         raise HTTPException(status_code=400, detail="Only PDF and DOCX files are allowed")
@@ -107,14 +116,20 @@ async def upload_syllabus(
     parse_ms = (time.perf_counter() - parse_started) * 1000
     competency_count = len(parsed.get("competencies", []))
 
-    syllabus = Syllabus(
-        course_id=course_id,
-        file_path=file_path,
-        raw_text=raw_text,
-        parsed_json=parsed,
-        status=SyllabusStatus.pending,
-    )
-    db.add(syllabus)
+    if existing is not None:
+        syllabus = existing
+        db.query(Competency).filter(Competency.syllabus_id == syllabus.id).delete()
+        syllabus.file_path, syllabus.raw_text, syllabus.parsed_json = file_path, raw_text, parsed
+        syllabus.status = SyllabusStatus.pending
+    else:
+        syllabus = Syllabus(
+            course_id=course_id,
+            file_path=file_path,
+            raw_text=raw_text,
+            parsed_json=parsed,
+            status=SyllabusStatus.pending,
+        )
+        db.add(syllabus)
     db.flush()
 
     for comp in parsed.get("competencies", []):
