@@ -222,8 +222,13 @@ function ConfirmDialog({ title, message, confirmLabel = "Confirm", danger = fals
 
 // ── OverrideDrawer ────────────────────────────────────────────────────────────
 
-function OverrideDrawer({ item, competencies, onSave, onClose }) {
+function OverrideDrawer({ item, competencies, courseId, onCompetencyCreated, onSave, onClose }) {
   const [selected, setSel]       = useState(item.mapped_competency_id || "");
+  const [created, setCreated]     = useState([]);
+  const [newTag, setNewTag]       = useState(null);   // { topic_name, competency_code } while the form is open
+  const [tagError, setTagError]   = useState("");
+  const [creatingTag, setCreatingTag] = useState(false);
+  const options = [...competencies, ...created.filter(c => !competencies.some(x => x.id === c.id))];
   const [saving, setSaving]       = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [reason, setReason]       = useState("");
@@ -240,9 +245,29 @@ function OverrideDrawer({ item, competencies, onSave, onClose }) {
       await api.put(`/assessments/items/${item.id}/tag`, null, {
         params: { competency_id: selected, reason: reason.trim() || undefined },
       });
-      onSave(item.id, selected);
+      onSave(item.id, selected, options.find(c => c.id === selected));
     } catch { /* user can retry */ }
     finally { setSaving(false); onClose(); }
+  };
+
+  const createTag = async () => {
+    if (!newTag?.topic_name?.trim()) return;
+    setCreatingTag(true);
+    setTagError("");
+    try {
+      const res = await api.post(`/syllabi/courses/${courseId}/competencies`, {
+        topic_name: newTag.topic_name.trim(),
+        competency_code: newTag.competency_code?.trim() || undefined,
+      });
+      setCreated(prev => [...prev, res.data]);
+      setSel(res.data.id);
+      setNewTag(null);
+      onCompetencyCreated?.();
+    } catch (err) {
+      setTagError(err.response?.data?.detail?.toString() || "Could not create the tag.");
+    } finally {
+      setCreatingTag(false);
+    }
   };
 
   const handleSaveClick = () => {
@@ -311,11 +336,57 @@ function OverrideDrawer({ item, competencies, onSave, onClose }) {
               className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
             >
               <option value="">— Choose competency —</option>
-              {competencies.map(c => (
-                <option key={c.id} value={c.id}>{c.competency_code}: {c.topic_name}</option>
+              {options.map(c => (
+                <option key={c.id} value={c.id}>
+                  {c.competency_code}: {c.topic_name}{c.source === "faculty" ? " (custom)" : ""}
+                </option>
               ))}
             </select>
+            {newTag === null && courseId && (
+              <button
+                type="button"
+                onClick={() => { setNewTag({ topic_name: "", competency_code: "" }); setTagError(""); }}
+                className="mt-2 text-xs font-medium text-indigo-600 hover:text-indigo-800"
+              >
+                + Create a new topic tag
+              </button>
+            )}
           </div>
+
+          {newTag !== null && (
+            <div className="rounded-lg border border-indigo-100 bg-indigo-50/40 p-3 space-y-2">
+              <p className="text-xs font-medium text-gray-700">New topic tag</p>
+              <p className="text-xs text-gray-500">Use this when no syllabus competency fits the question.</p>
+              <label htmlFor="new-tag-topic" className="sr-only">Topic name</label>
+              <input
+                id="new-tag-topic"
+                value={newTag.topic_name}
+                onChange={e => setNewTag(t => ({ ...t, topic_name: e.target.value }))}
+                maxLength={200}
+                placeholder="Topic name, e.g. Recursion basics"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
+              />
+              <label htmlFor="new-tag-code" className="sr-only">Code (optional)</label>
+              <input
+                id="new-tag-code"
+                value={newTag.competency_code}
+                onChange={e => setNewTag(t => ({ ...t, competency_code: e.target.value }))}
+                maxLength={20}
+                placeholder="Code (optional, auto: FAC-01)"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
+              />
+              {tagError && <p role="alert" className="text-xs text-red-600">{tagError}</p>}
+              <div className="flex justify-end gap-2">
+                <button type="button" onClick={() => setNewTag(null)}
+                  className="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded-lg">Cancel</button>
+                <button type="button" onClick={createTag}
+                  disabled={creatingTag || newTag.topic_name.trim().length < 3}
+                  className="px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50">
+                  {creatingTag ? "Creating…" : "Create tag"}
+                </button>
+              </div>
+            </div>
+          )}
 
           <div>
             <label htmlFor="override-reason" className="block text-xs font-medium text-gray-600 mb-1.5">
@@ -423,7 +494,7 @@ function MappingAccuracyCard({ courseId }) {
 
 // ── MappingTable ──────────────────────────────────────────────────────────────
 
-function MappingTable({ assessmentId, competencies }) {
+function MappingTable({ assessmentId, competencies, courseId, onCompetencyCreated }) {
   const { user } = useAuth();
   const [items, setItems]               = useState([]);
   const [loading, setLoading]           = useState(true);
@@ -500,8 +571,8 @@ function MappingTable({ assessmentId, competencies }) {
     );
   }, [items, user, askConfirm, showToast, dismissToast]);
 
-  const handleOverrideSave = useCallback((itemId, newCompId) => {
-    const comp = (competencies || []).find(c => c.id === newCompId);
+  const handleOverrideSave = useCallback((itemId, newCompId, chosen) => {
+    const comp = chosen || (competencies || []).find(c => c.id === newCompId);
     setItems(prev => prev.map(it =>
       it.id === itemId ? {
         ...it,
@@ -1003,6 +1074,8 @@ function MappingTable({ assessmentId, competencies }) {
         <OverrideDrawer
           item={drawerItem}
           competencies={competencies || []}
+          courseId={courseId}
+          onCompetencyCreated={onCompetencyCreated}
           onSave={handleOverrideSave}
           onClose={() => setDrawerItem(null)}
         />
@@ -1041,7 +1114,7 @@ export default function TopicMappingPage() {
     selectedCourseId ? `/assessments/course/${selectedCourseId}` : null,
     [selectedCourseId]
   );
-  const { data: competencies } = useApi(
+  const { data: competencies, refetch: refetchCompetencies } = useApi(
     selectedCourseId ? `/syllabi/courses/${selectedCourseId}/competencies` : null,
     [selectedCourseId]
   );
@@ -1338,6 +1411,8 @@ export default function TopicMappingPage() {
                     key={selectedAssessmentId}
                     assessmentId={selectedAssessmentId}
                     competencies={competencies || []}
+                    courseId={selectedCourseId}
+                    onCompetencyCreated={refetchCompetencies}
                   />
                 </div>
               </div>

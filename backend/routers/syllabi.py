@@ -14,7 +14,7 @@ from backend.core.notifications import notify, notify_roles
 from backend.models.user import User, UserRole, COLLEGE_SCOPED_ROLES
 from backend.models.course import Course
 from backend.models.syllabus import Syllabus, SyllabusStatus, Competency, SyllabusApproval, ApprovalStage
-from backend.schemas.syllabus import SyllabusResponse, SyllabusWithCourseResponse, SyllabusValidateRequest, SyllabusApprovalCreate, SyllabusApprovalResponse
+from backend.schemas.syllabus import CustomCompetencyCreate, SyllabusResponse, SyllabusWithCourseResponse, SyllabusValidateRequest, SyllabusApprovalCreate, SyllabusApprovalResponse
 from backend.services.ocr.extractor import extract_text
 from backend.services.ai.syllabus_parser import parse_syllabus
 
@@ -130,9 +130,60 @@ def get_course_competencies(
         return []
     comps = db.query(Competency).filter(Competency.syllabus_id == syllabus.id).all()
     return [
-        {"id": str(c.id), "competency_code": c.competency_code, "topic_name": c.topic_name}
+        {"id": str(c.id), "competency_code": c.competency_code, "topic_name": c.topic_name,
+         "source": c.source}
         for c in comps
     ]
+
+
+@router.post("/courses/{course_id}/competencies", status_code=status.HTTP_201_CREATED)
+def create_custom_competency(
+    course_id: uuid.UUID,
+    payload: CustomCompetencyCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.instructor, UserRole.admin)),
+):
+    """Create a custom topic tag on the course's validated syllabus, for questions
+    no syllabus competency fits (capstone §3.6.2 Faculty Override UI)."""
+    course = db.query(Course).filter(Course.id == course_id).first()
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    _assert_course_access(course, current_user)
+
+    syllabus = (
+        db.query(Syllabus)
+        .filter(Syllabus.course_id == course_id, Syllabus.status == SyllabusStatus.validated)
+        .first()
+    )
+    if not syllabus:
+        raise HTTPException(status_code=422, detail="This course has no validated syllabus to add a tag to")
+
+    existing = {c.competency_code.strip().upper() for c in syllabus.competencies}
+    code = (payload.competency_code or "").strip().upper()
+    if code:
+        if code in existing:
+            raise HTTPException(status_code=409, detail=f"Competency code {code} already exists")
+    else:
+        n = 1
+        while f"FAC-{n:02d}" in existing:
+            n += 1
+        code = f"FAC-{n:02d}"
+
+    topic = payload.topic_name.strip()
+    competency = Competency(
+        syllabus_id=syllabus.id,
+        competency_code=code,
+        topic_name=topic,
+        learning_outcomes=[payload.learning_outcome.strip()] if payload.learning_outcome else [topic],
+        source="faculty",
+    )
+    db.add(competency)
+    db.commit()
+    db.refresh(competency)
+    log_action(db, str(current_user.id), "create_custom_competency", target_table="competencies",
+               target_id=str(competency.id), extra={"course_id": str(course_id), "code": code})
+    return {"id": str(competency.id), "competency_code": competency.competency_code,
+            "topic_name": competency.topic_name, "source": competency.source}
 
 
 @router.get("/pending-approval", response_model=list[SyllabusResponse])

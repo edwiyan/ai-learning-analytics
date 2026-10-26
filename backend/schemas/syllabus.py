@@ -1,13 +1,20 @@
 from uuid import UUID
 from typing import Any, Optional
 from datetime import datetime
-from pydantic import BaseModel, computed_field
+from pydantic import BaseModel, Field, computed_field
 
 
 class CompetencyCreate(BaseModel):
     competency_code: str
     topic_name: str
     learning_outcomes: list[str] = []
+
+
+class CustomCompetencyCreate(BaseModel):
+    """Faculty-created topic tag added during mapping review (capstone §3.6.2)."""
+    topic_name: str = Field(min_length=3, max_length=200)
+    competency_code: Optional[str] = Field(default=None, max_length=20)
+    learning_outcome: Optional[str] = Field(default=None, max_length=500)
 
 
 class CompetencyResponse(BaseModel):

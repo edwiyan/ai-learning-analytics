@@ -65,7 +65,7 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 - [x] **T2.3 Mapping accuracy audit report.**
   `GET /assessments/course/{course_id}/mapping-accuracy` returns the reviewed item count, items where the AI matched the final tag, accuracy %, and a per-competency breakdown, with the 85% target. Add a summary card on `TopicMappingPage.jsx`.
   *Depends on* T2.1. Tests: accuracy calculation.
-- [ ] **T2.4 Faculty-created custom topic tags.**
+- [x] **T2.4 Faculty-created custom topic tags.**
   `POST /syllabi/{syllabus_id}/competencies` (instructor who owns the course) creates a competency with `source = "faculty"`. Add a "Create new tag" option in the review dropdown on `TopicMappingPage.jsx`.
   Files: `backend/models/syllabus.py` (+ `source` column), migration, `backend/routers/syllabi.py`, frontend.
 
@@ -151,3 +151,4 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 | 2026-10-26 | T2.1 | assessment_items.ai_suggested_competency_id/ai_confidence/ai_mapped_at (migration q7m8n9o0p1q2, backfilled for unvalidated AI maps); exposed in /items. |
 | 2026-10-26 | T2.2 | mapping_override / mapping_revert audit logs (old/new/AI pick/confidence/reason); override_action accepted|reassigned|custom|manual in /items + tag response; reason box + true AI pick in OverrideDrawer. |
 | 2026-10-26 | T2.3 | GET /assessments/course/{id}/mapping-accuracy (reviewed vs AI pick, 85% target, by competency/action) + MappingAccuracyCard. Also fixed UI '70%' confidence labels/thresholds to 0.75 (TopicMapping, ProcessingInterface). |
+| 2026-10-26 | T2.4 | competencies.source (migration r8n9o0p1q2r3); POST /syllabi/courses/{id}/competencies (owner only, auto FAC-NN code, 409 on dup); 'Create a new topic tag' form in OverrideDrawer. |

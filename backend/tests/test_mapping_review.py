@@ -157,3 +157,27 @@ def test_mapping_accuracy_report(client, db, instructor_token, mapped, other_ins
     resp = client.get(f"/assessments/course/{mapped['course'].id}/mapping-accuracy",
                       headers=_auth(other_instructor_token))
     assert resp.status_code == 403
+
+
+def test_faculty_can_create_custom_tag_and_use_it(client, db, instructor_token, mapped, other_instructor_token):
+    h = _auth(instructor_token)
+    course_id = mapped["course"].id
+    resp = client.post(f"/syllabi/courses/{course_id}/competencies",
+                       json={"topic_name": "Recursion basics"}, headers=h)
+    assert resp.status_code == 201, resp.text
+    tag = resp.json()
+    assert tag["competency_code"] == "FAC-01" and tag["source"] == "faculty"
+
+    dup = client.post(f"/syllabi/courses/{course_id}/competencies",
+                      json={"topic_name": "Other", "competency_code": "dsa-01"}, headers=h)
+    assert dup.status_code == 409
+
+    foreign = client.post(f"/syllabi/courses/{course_id}/competencies",
+                          json={"topic_name": "Sneaky tag"}, headers=_auth(other_instructor_token))
+    assert foreign.status_code == 403
+
+    item = mapped["item"]
+    resp = client.put(f"/assessments/items/{item.id}/tag",
+                      params={"competency_id": tag["id"]}, headers=h)
+    assert resp.status_code == 200
+    assert resp.json()["override_action"] == "custom"

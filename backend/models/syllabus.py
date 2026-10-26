@@ -66,6 +66,9 @@ class Competency(Base):
     topic_name = Column(String, nullable=False)
     learning_outcomes = Column(JSON)
     bloom_level = Column(String, nullable=True)
+    # "syllabus" = extracted from the uploaded syllabus; "faculty" = custom topic tag
+    # created during mapping review (capstone §3.6.2).
+    source = Column(String, nullable=False, default="syllabus", server_default="syllabus")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     syllabus = relationship("Syllabus", back_populates="competencies")
