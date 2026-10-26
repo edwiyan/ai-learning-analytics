@@ -97,3 +97,28 @@ def test_ai_suggestion_survives_override(client, db, instructor_token, mapped, m
     db.refresh(item)
     assert item.mapped_competency_id == comps["DSA-02"].id
     assert item.ai_suggested_competency_id == comps["DSA-01"].id
+
+
+def test_override_is_audit_logged(client, db, instructor_token, mapped):
+    from backend.models.audit import AuditLog
+
+    item, comps = mapped["item"], mapped["comps"]
+    item.ai_suggested_competency_id = comps["DSA-01"].id
+    item.ai_confidence = 0.4
+    db.commit()
+
+    resp = client.put(f"/assessments/items/{item.id}/tag",
+                      params={"competency_id": str(comps["DSA-02"].id), "reason": "tests linked lists"},
+                      headers=_auth(instructor_token))
+    assert resp.json()["override_action"] == "reassigned"
+
+    log = db.query(AuditLog).filter(AuditLog.action == "mapping_override").one()
+    assert log.target_id == str(item.id)
+    assert log.extra_data["ai_suggested_competency_id"] == str(comps["DSA-01"].id)
+    assert log.extra_data["new_competency_id"] == str(comps["DSA-02"].id)
+    assert log.extra_data["reason"] == "tests linked lists"
+
+    # Accepting the AI's pick is recorded as "accepted"
+    resp = client.put(f"/assessments/items/{item.id}/tag",
+                      params={"competency_id": str(comps["DSA-01"].id)}, headers=_auth(instructor_token))
+    assert resp.json()["override_action"] == "accepted"

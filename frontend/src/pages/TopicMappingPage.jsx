@@ -226,14 +226,20 @@ function OverrideDrawer({ item, competencies, onSave, onClose }) {
   const [selected, setSel]       = useState(item.mapped_competency_id || "");
   const [saving, setSaving]       = useState(false);
   const [confirming, setConfirming] = useState(false);
-  const currentComp = competencies.find(c => c.id === item.mapped_competency_id);
-  const zone = confZone(item.confidence_score);
+  const [reason, setReason]       = useState("");
+  // Show the AI's original pick (kept even after earlier overrides), falling back to the live mapping.
+  const aiCompId    = item.ai_suggested_competency_id || item.mapped_competency_id;
+  const currentComp = competencies.find(c => c.id === aiCompId);
+  const aiScore     = item.ai_confidence ?? item.confidence_score;
+  const zone = confZone(aiScore);
 
   const doSave = async () => {
     if (!selected) return;
     setSaving(true);
     try {
-      await api.put(`/assessments/items/${item.id}/tag?competency_id=${selected}`);
+      await api.put(`/assessments/items/${item.id}/tag`, null, {
+        params: { competency_id: selected, reason: reason.trim() || undefined },
+      });
       onSave(item.id, selected);
     } catch { /* user can retry */ }
     finally { setSaving(false); onClose(); }
@@ -288,7 +294,7 @@ function OverrideDrawer({ item, competencies, onSave, onClose }) {
                   <p className="text-sm font-semibold text-indigo-700">{currentComp.competency_code}</p>
                   <p className="text-xs text-indigo-500 mt-0.5">{currentComp.topic_name}</p>
                 </div>
-                <ConfidenceBar score={item.confidence_score} />
+                <ConfidenceBar score={aiScore} />
               </div>
               {zone && (
                 <p className="text-xs text-indigo-400 mt-2 italic leading-relaxed">{zone.tip}</p>
@@ -309,6 +315,21 @@ function OverrideDrawer({ item, competencies, onSave, onClose }) {
                 <option key={c.id} value={c.id}>{c.competency_code}: {c.topic_name}</option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label htmlFor="override-reason" className="block text-xs font-medium text-gray-600 mb-1.5">
+              Reason <span className="text-gray-400 font-normal">(optional, logged to improve AI mapping)</span>
+            </label>
+            <textarea
+              id="override-reason"
+              value={reason}
+              onChange={e => setReason(e.target.value)}
+              maxLength={500}
+              rows={3}
+              placeholder="e.g. Question tests recursion, not sorting"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            />
           </div>
         </div>
 

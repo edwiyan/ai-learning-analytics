@@ -59,7 +59,7 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 - [x] **T2.1 Keep the original AI suggestion.**
   Add `ai_suggested_competency_id`, `ai_confidence` and `ai_mapped_at` to `assessment_items`, plus a migration. `_run_topic_mapping` writes these, and overrides never touch them.
   Files: `backend/models/assessment.py`, migration, `backend/routers/assessments.py`.
-- [ ] **T2.2 Log every override.**
+- [x] **T2.2 Log every override.**
   `override_tag` / `revert` call `log_action(...)` with the old and new competency and a `reason` (optional query or body field). Expose `override_action` = accepted | reassigned | custom.
   *Depends on* T2.1.
 - [ ] **T2.3 Mapping accuracy audit report.**
@@ -149,3 +149,4 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 | 2026-10-26 | T1.3 | competency_mastery_score() = SUM(score)/SUM(max)x100 used in feature_engineering + topic-mastery-distribution; F1 guard still green. |
 | 2026-10-26 | T1.4 | services/analytics_refresh.py (per-course lock) runs after topic mapping, override and revert. Also fixed: pre-tagged CSV scores never got competency_id. |
 | 2026-10-26 | T2.1 | assessment_items.ai_suggested_competency_id/ai_confidence/ai_mapped_at (migration q7m8n9o0p1q2, backfilled for unvalidated AI maps); exposed in /items. |
+| 2026-10-26 | T2.2 | mapping_override / mapping_revert audit logs (old/new/AI pick/confidence/reason); override_action accepted|reassigned|custom|manual in /items + tag response; reason box + true AI pick in OverrideDrawer. |

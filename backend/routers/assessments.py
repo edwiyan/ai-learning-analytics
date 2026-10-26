@@ -61,6 +61,19 @@ def _get_item_for_edit(item_id: str, db: Session, current_user: User) -> Assessm
     return item
 
 
+def _override_action(item: AssessmentItem) -> str | None:
+    """How faculty resolved an item's mapping (capstone §3.6.2): accepted the AI's
+    suggestion, reassigned it, tagged it with a faculty-created topic, or tagged an
+    item the AI never suggested anything for (manual). None while unreviewed."""
+    if item.validated_by is None:
+        return None
+    if item.mapped_competency is not None and getattr(item.mapped_competency, "source", None) == "faculty":
+        return "custom"
+    if item.ai_suggested_competency_id is None:
+        return "manual"
+    return "accepted" if item.ai_suggested_competency_id == item.mapped_competency_id else "reassigned"
+
+
 def _run_topic_mapping(assessment_id: str, db: Session):
     """Background job after a CSV upload: AI-map untagged items, then refresh the
     course's competency mastery (also needed when every item was pre-tagged)."""
@@ -572,6 +585,7 @@ def get_items(
                 item.ai_suggested_competency.competency_code if item.ai_suggested_competency else None
             ),
             "ai_confidence": item.ai_confidence,
+            "override_action": _override_action(item),
         }
         for item in items
     ]
@@ -609,6 +623,7 @@ def override_tag(
     item_id: str,
     competency_id: str,
     background_tasks: BackgroundTasks,
+    reason: str | None = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.instructor, UserRole.admin)),
 ):
@@ -626,7 +641,9 @@ def override_tag(
             detail="Competency does not belong to this course's validated syllabus",
         )
     competency_id = competency.id
+    previous_competency_id = item.mapped_competency_id
     item.mapped_competency_id = competency_id
+    item.mapped_competency = competency
     item.needs_review = False
     item.validated_by = current_user.id
     db.query(StudentScore).filter(StudentScore.item_id == item.id).update(
@@ -634,8 +651,22 @@ def override_tag(
         synchronize_session=False,
     )
     db.commit()
+    action = _override_action(item)
+    # Logged for the mapping-accuracy audit and prompt optimization (§3.6.2).
+    log_action(db, str(current_user.id), "mapping_override", target_table="assessment_items",
+               target_id=str(item.id), extra={
+                   "override_action": action,
+                   "previous_competency_id": str(previous_competency_id) if previous_competency_id else None,
+                   "new_competency_id": str(competency_id),
+                   "ai_suggested_competency_id": (
+                       str(item.ai_suggested_competency_id) if item.ai_suggested_competency_id else None
+                   ),
+                   "ai_confidence": item.ai_confidence,
+                   "reason": (reason or "").strip()[:500] or None,
+                   "question_text": item.question_text[:300],
+               })
     background_tasks.add_task(refresh_course_analytics, item.assessment.course_id, db)
-    return {"status": "updated"}
+    return {"status": "updated", "override_action": action}
 
 
 @router.put("/items/{item_id}/revert")
@@ -649,5 +680,9 @@ def revert_item(
     item.needs_review = True
     item.validated_by = None
     db.commit()
+    log_action(db, str(current_user.id), "mapping_revert", target_table="assessment_items",
+               target_id=str(item.id), extra={
+                   "competency_id": str(item.mapped_competency_id) if item.mapped_competency_id else None,
+               })
     background_tasks.add_task(refresh_course_analytics, item.assessment.course_id, db)
     return {"status": "reverted"}
