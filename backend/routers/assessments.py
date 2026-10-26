@@ -20,6 +20,7 @@ from backend.schemas.tos import TosCreate, TosResponse
 from backend.models.tos import TableOfSpecifications
 from backend.services.assessment.csv_parser import parse_assessment_csv
 from backend.services.ai.topic_mapper import map_question_to_competency
+from backend.services.analytics_refresh import refresh_course_analytics
 from backend.core.config import settings
 from backend.core.limiter import limiter
 
@@ -60,6 +61,15 @@ def _get_item_for_edit(item_id: str, db: Session, current_user: User) -> Assessm
 
 
 def _run_topic_mapping(assessment_id: str, db: Session):
+    """Background job after a CSV upload: AI-map untagged items, then refresh the
+    course's competency mastery (also needed when every item was pre-tagged)."""
+    _map_unmapped_items(assessment_id, db)
+    assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
+    if assessment:
+        refresh_course_analytics(assessment.course_id, db)
+
+
+def _map_unmapped_items(assessment_id: str, db: Session):
     items = db.query(AssessmentItem).filter(
         AssessmentItem.assessment_id == assessment_id,
         AssessmentItem.mapped_competency_id == None,
@@ -474,6 +484,9 @@ async def upload_csv(
         item.confidence_score = 1.0
         item.needs_review = False
         item.validated_by = current_user.id
+        db.query(StudentScore).filter(StudentScore.item_id == item.id).update(
+            {"competency_id": item.mapped_competency_id}, synchronize_session=False,
+        )
 
     for rec in records:
         key = _question_key(rec["question_text"])
@@ -499,6 +512,7 @@ async def upload_csv(
             student_id_hash=rec["student_id_hash"],
             assessment_id=assessment_id,
             item_id=item.id,
+            competency_id=item.mapped_competency_id,
             grading_period=assessment.grading_period,
             score=rec["score"],
             max_score=rec["max_score"],
@@ -583,6 +597,7 @@ def get_mapping_queue(
 def override_tag(
     item_id: str,
     competency_id: str,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.instructor, UserRole.admin)),
 ):
@@ -608,12 +623,14 @@ def override_tag(
         synchronize_session=False,
     )
     db.commit()
+    background_tasks.add_task(refresh_course_analytics, item.assessment.course_id, db)
     return {"status": "updated"}
 
 
 @router.put("/items/{item_id}/revert")
 def revert_item(
     item_id: str,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.instructor, UserRole.admin)),
 ):
@@ -621,4 +638,5 @@ def revert_item(
     item.needs_review = True
     item.validated_by = None
     db.commit()
+    background_tasks.add_task(refresh_course_analytics, item.assessment.course_id, db)
     return {"status": "reverted"}

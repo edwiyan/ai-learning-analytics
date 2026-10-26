@@ -120,3 +120,22 @@ def test_csv_without_competency_code_column_still_works(client, instructor_token
     assert res.status_code == 200, res.text
     assert res.json()["items_created"] == 1
     assert res.json()["flagged_for_review"] == 1
+
+
+def test_upload_fills_competency_mastery(client, db, instructor_token, assessment):
+    """Pre-tagged scores carry their competency, and the post-upload refresh writes
+    competency_mastery rows (capstone Table 9) without running the seed script."""
+    from backend.models.competency_mastery import CompetencyMastery
+
+    body = HEADER + (
+        "2024-0001,What is Big-O of array access?,2,5,DSA-01\n"
+        "2024-0002,What is Big-O of array access?,5,5,DSA-01\n"
+    )
+    res = _upload(client, instructor_token, assessment.id, body)
+    assert res.status_code == 200, res.text
+
+    assert all(s.competency_id is not None for s in db.query(StudentScore).all())
+    rows = db.query(CompetencyMastery).all()
+    assert len(rows) == 2
+    by_pct = sorted((r.mastery_percentage, r.mastery_level, r.risk_flag) for r in rows)
+    assert by_pct == [(40.0, "Emerging", True), (100.0, "Proficient", False)]
