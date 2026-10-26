@@ -14,6 +14,7 @@ def llm(db, monkeypatch):
     calls = []
     monkeypatch.setattr(llm_client, "_session_factory", _TestingSessionLocal)
     monkeypatch.setattr(llm_client, "openai_configured", lambda: True)
+    monkeypatch.setattr(llm_client, "gemini_configured", lambda: False)
     monkeypatch.setattr(llm_client, "breakers", {"openai": llm_client.CircuitBreaker("openai")})
     monkeypatch.setattr(llm_client, "_sleep", lambda s: None)
 
@@ -44,7 +45,8 @@ def test_different_prompt_or_no_cache_calls_provider(db, llm):
 
 
 def test_unconfigured_raises(monkeypatch):
-    monkeypatch.setattr(llm_client, "llm_configured", lambda: False)
+    monkeypatch.setattr(llm_client, "openai_configured", lambda: False)
+    monkeypatch.setattr(llm_client, "gemini_configured", lambda: False)
     with pytest.raises(llm_client.LLMUnavailable):
         llm_client.complete_json("x", purpose="x")
 
@@ -114,3 +116,52 @@ def test_health_reports_llm_status(client, monkeypatch):
     body = client.get("/health").json()
     assert body["llm"]["configured"] is True
     assert body["llm"]["providers"]["openai"] in {"closed", "open", "half_open"}
+
+
+# ── Multi-provider fallback (§3.9.2: OpenAI -> Gemini) ────────────────────────
+
+def test_gemini_answers_when_openai_fails(db, llm, monkeypatch):
+    monkeypatch.setattr(llm_client, "gemini_configured", lambda: True)
+    monkeypatch.setattr(llm_client, "breakers", {
+        "openai": llm_client.CircuitBreaker("openai"), "gemini": llm_client.CircuitBreaker("gemini")})
+
+    def openai_down(prompt, temperature):
+        raise RuntimeError("openai outage")
+    monkeypatch.setattr(llm_client, "_openai_json", openai_down)
+    monkeypatch.setattr(llm_client, "_gemini_json", lambda p, t: {"from": "gemini"})
+
+    assert llm_client.complete_json("q", purpose="topic_mapping") == {"from": "gemini"}
+    row = db.query(LLMCache).one()
+    assert row.provider == "gemini"
+    assert llm_client.llm_status()["providers"] == {"openai": "closed", "gemini": "closed"}
+
+
+def test_gemini_disabled_without_key(db, llm, monkeypatch):
+    monkeypatch.setattr(llm_client, "gemini_configured", lambda: False)
+
+    def openai_down(prompt, temperature):
+        raise RuntimeError("openai outage")
+    monkeypatch.setattr(llm_client, "_openai_json", openai_down)
+    monkeypatch.setattr(llm_client, "_gemini_json", lambda p, t: pytest.fail("gemini called without a key"))
+    with pytest.raises(llm_client.LLMUnavailable):
+        llm_client.complete_json("q", purpose="x")
+
+
+def test_gemini_request_shape(monkeypatch):
+    """The REST call sends the key in a header (not the URL) and asks for JSON."""
+    import httpx
+    sent = {}
+
+    class Resp:
+        status_code = 200
+        def raise_for_status(self): pass
+        def json(self): return {"candidates": [{"content": {"parts": [{"text": '{"ok": true}'}]}}]}
+
+    def fake_post(url, headers, json, timeout):
+        sent.update(url=url, headers=headers, body=json)
+        return Resp()
+    monkeypatch.setattr(httpx, "post", fake_post)
+    monkeypatch.setattr(llm_client.settings, "gemini_api_key", "g-key")
+    assert llm_client._gemini_json("prompt", 0.0) == {"ok": True}
+    assert "g-key" not in sent["url"] and sent["headers"]["x-goog-api-key"] == "g-key"
+    assert sent["body"]["generationConfig"]["responseMimeType"] == "application/json"

@@ -7,6 +7,8 @@ Capstone §3.9.2 mitigations implemented here:
   * API Dependency -> transient errors are retried with backoff, and a circuit
     breaker stops calling a failing provider for a cool-down period so requests
     fail fast and fall back (graceful degradation) instead of hanging.
+  * Multi-provider fallback -> when OpenAI fails (or its circuit is open) and
+    GEMINI_API_KEY is set, the same prompt is sent to Google Gemini.
 Callers handle LLMUnavailable by falling back (rule-based parser, manual review
 queue, template drafts, or no encouragement message).
 """
@@ -67,7 +69,7 @@ class CircuitBreaker:
             return "open" if self._clock() - self.opened_at < self.cooldown else "half_open"
 
 
-breakers = {"openai": CircuitBreaker("openai")}
+breakers = {"openai": CircuitBreaker("openai"), "gemini": CircuitBreaker("gemini")}
 
 RETRY_DELAYS = (0.5,)  # one retry after 0.5 s; patched to () in tests
 _sleep = time.sleep
@@ -110,6 +112,8 @@ def llm_status() -> dict:
     providers = {}
     if openai_configured():
         providers["openai"] = breakers["openai"].status()
+    if gemini_configured():
+        providers["gemini"] = breakers["gemini"].status()
     available = any(state != "open" for state in providers.values())
     return {"configured": bool(providers), "available": available, "providers": providers}
 
@@ -119,8 +123,12 @@ def openai_configured() -> bool:
     return bool(key) and not key.startswith("placeholder") and not key.startswith("sk-test")
 
 
+def gemini_configured() -> bool:
+    return bool(settings.gemini_api_key)
+
+
 def llm_configured() -> bool:
-    return openai_configured()
+    return openai_configured() or gemini_configured()
 
 
 def _client():
@@ -183,23 +191,89 @@ def _openai_text(prompt: str, temperature: float, max_tokens: int) -> str:
     return response.choices[0].message.content.strip()
 
 
+GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+
+
+def _gemini_generate(prompt: str, generation_config: dict) -> str:
+    import httpx
+    response = httpx.post(
+        GEMINI_URL.format(model=settings.gemini_model),
+        headers={"x-goog-api-key": settings.gemini_api_key},
+        json={"contents": [{"role": "user", "parts": [{"text": prompt}]}],
+              "generationConfig": generation_config},
+        timeout=30.0,
+    )
+    if response.status_code == 429 or response.status_code >= 500:
+        raise ConnectionError(f"Gemini HTTP {response.status_code}")  # transient: retried
+    response.raise_for_status()
+    return response.json()["candidates"][0]["content"]["parts"][0]["text"]
+
+
+def _gemini_json(prompt: str, temperature: float) -> dict:
+    return json.loads(_gemini_generate(
+        prompt, {"temperature": temperature, "responseMimeType": "application/json"}))
+
+
+def _gemini_text(prompt: str, temperature: float, max_tokens: int) -> str:
+    return _gemini_generate(prompt, {"temperature": temperature, "maxOutputTokens": max_tokens}).strip()
+
+
+def _providers() -> list[tuple[str, str]]:
+    """(provider, model) in fallback order, configured ones only."""
+    order = []
+    if openai_configured():
+        order.append(("openai", settings.openai_model))
+    if gemini_configured():
+        order.append(("gemini", settings.gemini_model))
+    return order
+
+
+def _json_fn(provider: str):
+    return _openai_json if provider == "openai" else _gemini_json
+
+
+def _text_fn(provider: str):
+    return _openai_text if provider == "openai" else _gemini_text
+
+
 def complete_json(prompt: str, *, purpose: str, temperature: float = 0.0, use_cache: bool = True) -> dict:
-    """Return the model's JSON answer for prompt, from cache when available."""
-    if not llm_configured():
+    """Return the model's JSON answer for prompt, from cache when available,
+    trying each configured provider in order."""
+    providers = _providers()
+    if not providers:
         raise LLMUnavailable("No LLM provider configured")
-    key = _cache_key(settings.openai_model, prompt, temperature)
+    # Keyed on the primary model so a fallback answer is reused once OpenAI recovers.
+    key = _cache_key(providers[0][1], prompt, temperature)
     if use_cache:
         cached = _cache_get(key)
         if cached is not None:
             return cached
-    result = _call("openai", lambda: _openai_json(prompt, temperature))
-    if use_cache:
-        _cache_put(key, purpose, settings.openai_model, "openai", result)
-    return result
+    errors = []
+    for provider, model in providers:
+        fn = _json_fn(provider)
+        try:
+            result = _call(provider, lambda: fn(prompt, temperature))
+        except LLMUnavailable as exc:
+            errors.append(str(exc))
+            continue
+        if provider != providers[0][0]:
+            logger.info("LLM fallback: %s answered %s", provider, purpose)
+        if use_cache:
+            _cache_put(key, purpose, model, provider, result)
+        return result
+    raise LLMUnavailable("; ".join(errors))
 
 
 def complete_text(prompt: str, *, purpose: str, temperature: float = 0.7, max_tokens: int = 80) -> str:
     """Free-text completion (not cached: used for varied encouragement messages)."""
-    if not llm_configured():
+    providers = _providers()
+    if not providers:
         raise LLMUnavailable("No LLM provider configured")
-    return _call("openai", lambda: _openai_text(prompt, temperature, max_tokens))
+    errors = []
+    for provider, _model in providers:
+        fn = _text_fn(provider)
+        try:
+            return _call(provider, lambda: fn(prompt, temperature, max_tokens))
+        except LLMUnavailable as exc:
+            errors.append(str(exc))
+    raise LLMUnavailable("; ".join(errors))

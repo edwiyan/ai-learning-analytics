@@ -97,7 +97,7 @@ Recommended defaults are already used in the tasks below. Change them here if yo
   *Depends on* T5.1.
 - [x] **T5.3 Retry and circuit breaker.**
   Inside `llm_client`: retry with backoff (2 attempts), open the circuit after N consecutive failures for M seconds, and while it is open fail fast. Callers then fall back as they do today: the rule-based syllabus parser, or the manual-review queue for mapping. Show a "AI temporarily unavailable" banner via `/health` → `llm_status`.
-- [ ] **T5.4 Gemini fallback (D2).**
+- [x] **T5.4 Gemini fallback (D2).**
   If OpenAI fails and `GEMINI_API_KEY` is set, retry once with Gemini (JSON mode). Record which provider answered in the cache row. Add a test with mocked providers.
 
 ## Phase 6 — Ingestion measurements (doc §3.1 Objective 1)
@@ -160,3 +160,4 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 | 2026-10-26 | T5.1 | services/ai/prompts.py (syllabus/mapping/encouragement prompts, 3 few-shot mapping examples, sanitize() + <<< >>> data delimiters). FIXED: old PARSE_PROMPT had unescaped braces -> KeyError -> GPT syllabus parsing never ran (always rule-based fallback). |
 | 2026-10-26 | T5.2 | services/ai/llm_client.py (complete_json/complete_text, LLMUnavailable) used by parser, mapper, recommender, question generator; llm_cache table (u1q2r3s4t5u6) caches JSON answers by sha256(model+temp+prompt). |
 | 2026-10-26 | T5.3 | CircuitBreaker (3 failures -> open 60s -> half-open) + 1 retry on transient errors in llm_client; /health returns llm {configured, available, providers}; AiStatusBanner in Layout for instructor/admin. |
+| 2026-10-26 | T5.4 | GEMINI_API_KEY/GEMINI_MODEL settings; llm_client tries OpenAI then Gemini (REST via httpx, key in header, JSON mime type), each with its own breaker; cache row records answering provider. Disabled when key blank. |

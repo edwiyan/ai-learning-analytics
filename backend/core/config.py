@@ -8,6 +8,10 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 30
     openai_api_key: str
     openai_model: str = "gpt-4o-mini"
+    # Optional fallback provider (capstone §3.9.2 multi-provider fallback).
+    # Used only when OpenAI fails or its circuit is open; blank = disabled.
+    gemini_api_key: str = ""
+    gemini_model: str = "gemini-2.5-flash"
     topic_mapping_confidence_threshold: float = 0.75
     # Secret salt for student-ID hashing: SHA-256(Student_ID + Salt), capstone §3.9.1.
     # Changing it after data exists breaks the link between users and their scores.
