@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Request, UploadFile, status
 from sqlalchemy.orm import Session
@@ -104,8 +105,11 @@ def _map_unmapped_items(assessment_id: str, db: Session):
             item.confidence_score = score
             item.needs_review = score < settings.topic_mapping_confidence_threshold
             item.bloom_level = result.get("bloom_level")
+            item.ai_confidence = score
+            item.ai_mapped_at = datetime.now(timezone.utc)
             if code and code in comp_map:
                 item.mapped_competency_id = comp_map[code].id
+                item.ai_suggested_competency_id = comp_map[code].id
         except Exception:
             item.needs_review = True
 
@@ -561,6 +565,13 @@ def get_items(
             "requires_review": item.needs_review,
             "validated_by": str(item.validated_by) if item.validated_by else None,
             "bloom_level": item.bloom_level,
+            "ai_suggested_competency_id": (
+                str(item.ai_suggested_competency_id) if item.ai_suggested_competency_id else None
+            ),
+            "ai_suggested_competency_code": (
+                item.ai_suggested_competency.competency_code if item.ai_suggested_competency else None
+            ),
+            "ai_confidence": item.ai_confidence,
         }
         for item in items
     ]

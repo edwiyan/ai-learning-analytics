@@ -69,5 +69,8 @@ class Competency(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     syllabus = relationship("Syllabus", back_populates="competencies")
-    assessment_items = relationship("AssessmentItem", back_populates="mapped_competency")
+    assessment_items = relationship(
+        "AssessmentItem", back_populates="mapped_competency",
+        foreign_keys="AssessmentItem.mapped_competency_id",
+    )
     student_scores = relationship("StudentScore", back_populates="competency")

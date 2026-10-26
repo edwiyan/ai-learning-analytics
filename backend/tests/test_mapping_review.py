@@ -70,3 +70,30 @@ def test_owner_can_revert_mapping(client, db, instructor_token, mapped):
     assert resp.status_code == 200
     db.refresh(item)
     assert item.needs_review is True
+
+
+def test_ai_suggestion_survives_override(client, db, instructor_token, mapped, monkeypatch):
+    """Topic mapping records the AI's original choice; a later faculty reassignment
+    changes the live mapping but not the recorded suggestion (§3.6.2 audit)."""
+    from backend.routers import assessments as assessments_router
+
+    item, comps = mapped["item"], mapped["comps"]
+    item.mapped_competency_id = None
+    item.confidence_score = None
+    db.commit()
+    monkeypatch.setattr(
+        assessments_router, "map_question_to_competency",
+        lambda q, c: {"competency_code": "DSA-01", "confidence_score": 0.6, "bloom_level": "Applying"},
+    )
+    assessments_router._run_topic_mapping(mapped["assessment"].id, db)
+    db.refresh(item)
+    assert item.ai_suggested_competency_id == comps["DSA-01"].id
+    assert item.ai_confidence == 0.6
+    assert item.ai_mapped_at is not None
+    assert item.needs_review is True  # 0.6 < 0.75
+
+    client.put(f"/assessments/items/{item.id}/tag",
+               params={"competency_id": str(comps["DSA-02"].id)}, headers=_auth(instructor_token))
+    db.refresh(item)
+    assert item.mapped_competency_id == comps["DSA-02"].id
+    assert item.ai_suggested_competency_id == comps["DSA-01"].id

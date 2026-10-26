@@ -74,8 +74,17 @@ class AssessmentItem(Base):
 
     bloom_level = Column(String, nullable=True)
 
+    # The AI's original suggestion (capstone §3.6.2 mapping-accuracy audit). Written
+    # once by topic mapping and never changed by faculty overrides.
+    ai_suggested_competency_id = Column(GUID(), ForeignKey("competencies.id"), nullable=True)
+    ai_confidence = Column(Float, nullable=True)
+    ai_mapped_at = Column(DateTime(timezone=True), nullable=True)
+
     assessment = relationship("Assessment", back_populates="items")
-    mapped_competency = relationship("Competency", back_populates="assessment_items")
+    mapped_competency = relationship(
+        "Competency", back_populates="assessment_items", foreign_keys=[mapped_competency_id]
+    )
+    ai_suggested_competency = relationship("Competency", foreign_keys=[ai_suggested_competency_id])
     scores = relationship("StudentScore", back_populates="item")
 
 

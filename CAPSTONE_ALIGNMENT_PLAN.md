@@ -56,7 +56,7 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 
 ## Phase 2 — Human-in-the-loop and mapping audit (doc §3.6.2)
 
-- [ ] **T2.1 Keep the original AI suggestion.**
+- [x] **T2.1 Keep the original AI suggestion.**
   Add `ai_suggested_competency_id`, `ai_confidence` and `ai_mapped_at` to `assessment_items`, plus a migration. `_run_topic_mapping` writes these, and overrides never touch them.
   Files: `backend/models/assessment.py`, migration, `backend/routers/assessments.py`.
 - [ ] **T2.2 Log every override.**
@@ -148,3 +148,4 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 | 2026-10-26 | T1.2 | SHA-256(id+STUDENT_ID_SALT); migration p6l7m8n9o0p1 + core/rehash.py + scripts/rehash_student_ids.py. Local DB backed up to backups/, salt added to .env, migrated (240 scores, 9 enrollments, 60 mastery, 10 users re-keyed, 0 orphans). |
 | 2026-10-26 | T1.3 | competency_mastery_score() = SUM(score)/SUM(max)x100 used in feature_engineering + topic-mastery-distribution; F1 guard still green. |
 | 2026-10-26 | T1.4 | services/analytics_refresh.py (per-course lock) runs after topic mapping, override and revert. Also fixed: pre-tagged CSV scores never got competency_id. |
+| 2026-10-26 | T2.1 | assessment_items.ai_suggested_competency_id/ai_confidence/ai_mapped_at (migration q7m8n9o0p1q2, backfilled for unvalidated AI maps); exposed in /items. |
