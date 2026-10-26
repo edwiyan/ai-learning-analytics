@@ -822,6 +822,43 @@ def get_admin_stats(
     )
 
 
+@router.get("/admin/ingestion-stats")
+def get_ingestion_stats(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.admin)),
+):
+    """Ingestion parse rate and latency per file type vs. the capstone §3.1
+    Objective 1 targets (100% valid parsing, < 2 s per file)."""
+    from backend.core.ingestion import INGESTION_TARGET_MS
+    from backend.models.audit import AuditLog
+
+    rows = db.query(AuditLog).filter(AuditLog.action == "ingestion").all()
+    by_kind: dict = defaultdict(list)
+    for r in rows:
+        extra = r.extra_data or {}
+        if "processing_ms" in extra:
+            by_kind[extra.get("kind", "unknown")].append(extra)
+
+    def pct(values, q):
+        values = sorted(values)
+        return round(values[min(len(values) - 1, int(round(q * (len(values) - 1))))], 1)
+
+    result = []
+    for kind, entries in sorted(by_kind.items()):
+        times = [e["processing_ms"] for e in entries]
+        ok = sum(1 for e in entries if e.get("parse_ok"))
+        result.append({
+            "kind": kind,
+            "attempts": len(entries),
+            "parsed_ok": ok,
+            "parse_rate_pct": round(ok / len(entries) * 100, 1),
+            "median_ms": pct(times, 0.5),
+            "p95_ms": pct(times, 0.95),
+            "within_target_pct": round(sum(1 for t in times if t < INGESTION_TARGET_MS) / len(times) * 100, 1),
+        })
+    return {"target_ms": INGESTION_TARGET_MS, "kinds": result}
+
+
 @router.get("/admin/enrollment-trends", response_model=list[EnrollmentTrendItem])
 def get_enrollment_trends(
     db: Session = Depends(get_db),

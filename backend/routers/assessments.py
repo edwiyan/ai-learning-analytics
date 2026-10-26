@@ -1,3 +1,4 @@
+import time
 import uuid
 from datetime import datetime, timezone
 
@@ -5,6 +6,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Re
 from sqlalchemy.orm import Session
 
 from backend.core.audit import log_action
+from backend.core.ingestion import record_ingestion
 from backend.core.database import get_db
 from backend.core.deps import get_current_user, require_role
 from backend.core.notifications import notify, notify_roles
@@ -439,10 +441,14 @@ async def upload_csv(
         raise HTTPException(status_code=400, detail="Only CSV files are allowed")
 
     file_bytes = await file.read()
+    started = time.perf_counter()
     try:
         records = parse_assessment_csv(file_bytes)
     except ValueError as e:
+        record_ingestion(db, str(current_user.id), "assessment_csv", False,
+                         (time.perf_counter() - started) * 1000, file.filename, error=str(e)[:200])
         raise HTTPException(status_code=422, detail=str(e))
+    parse_ms = (time.perf_counter() - started) * 1000
 
     # One AssessmentItem per distinct question (not per CSV row); every student's
     # score row points at the shared item. Questions already uploaded to this
@@ -545,6 +551,9 @@ async def upload_csv(
 
     log_action(db, str(current_user.id), "upload_csv", target_table="assessments",
                target_id=str(assessment_id), extra={"rows": len(records), "filename": file.filename})
+    record_ingestion(db, str(current_user.id), "assessment_csv", True,
+                     (time.perf_counter() - started) * 1000, file.filename,
+                     parse_ms=round(parse_ms, 1), rows=len(records))
     background_tasks.add_task(_run_topic_mapping, assessment_id, db)
 
     return UploadSummary(

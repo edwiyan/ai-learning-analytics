@@ -139,3 +139,24 @@ def test_upload_fills_competency_mastery(client, db, instructor_token, assessmen
     assert len(rows) == 2
     by_pct = sorted((r.mastery_percentage, r.mastery_level, r.risk_flag) for r in rows)
     assert by_pct == [(40.0, "Emerging", True), (100.0, "Proficient", False)]
+
+
+def test_ingestion_is_measured(client, db, instructor_token, admin_token, assessment):
+    """Each upload attempt is recorded with outcome and timing; admins see the
+    parse rate and latency vs. the < 2 s target (capstone §3.1 Objective 1)."""
+    ok = _upload(client, instructor_token, assessment.id, HEADER + "2024-0001,Q1?,1,1,DSA-01\n")
+    assert ok.status_code == 200
+    bad = _upload(client, instructor_token, assessment.id, "wrong,header\n1,2\n")
+    assert bad.status_code == 422
+
+    stats = client.get("/analytics/admin/ingestion-stats",
+                       headers={"Authorization": f"Bearer {admin_token}"}).json()
+    assert stats["target_ms"] == 2000
+    csv = next(k for k in stats["kinds"] if k["kind"] == "assessment_csv")
+    assert csv["attempts"] == 2 and csv["parsed_ok"] == 1
+    assert csv["parse_rate_pct"] == 50.0
+    assert csv["median_ms"] >= 0
+
+    forbidden = client.get("/analytics/admin/ingestion-stats",
+                           headers={"Authorization": f"Bearer {instructor_token}"})
+    assert forbidden.status_code == 403

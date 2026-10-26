@@ -114,7 +114,13 @@ const AUDIT_LABELS = {
   add_resource: "Resource added",
   delete_resource: "Resource deleted",
   change_password: "Password changed",
+  mapping_override: "Mapping reviewed",
+  mapping_revert: "Mapping reverted",
+  create_custom_competency: "Custom topic tag created",
+  ingestion: "File ingested",
 };
+
+const INGESTION_KIND_LABELS = { syllabus: "Syllabus (PDF/DOCX)", assessment_csv: "Assessment CSV" };
 
 const AUDIT_COLORS = {
   login: "bg-green-100 text-green-700",
@@ -147,6 +153,7 @@ export default function AdminDashboard() {
   const [lastRefreshed, setLastRefreshed] = useState(null);
 
   const { data: susResults } = useApi("/surveys/sus/results");
+  const { data: ingestion } = useApi("/analytics/admin/ingestion-stats");
 
   const TOP_PAGE_SIZE     = 5;
   const FAILURE_PAGE_SIZE = 5;
@@ -608,6 +615,45 @@ export default function AdminDashboard() {
           </SectionCard>
         </div>
 
+        {/* Ingestion parse rate and latency vs. capstone §3.1 Objective 1 targets */}
+        {ingestion?.kinds?.length > 0 && (
+          <SectionCard title="File Ingestion">
+            <p className="text-xs text-gray-500 mb-3">
+              Target: 100% of valid files parsed, each in under {ingestion.target_ms / 1000} s.
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="text-left text-gray-500 border-b border-gray-100">
+                    <th scope="col" className="py-1.5 pr-3 font-medium">File type</th>
+                    <th scope="col" className="py-1.5 pr-3 font-medium text-right">Attempts</th>
+                    <th scope="col" className="py-1.5 pr-3 font-medium text-right">Parsed</th>
+                    <th scope="col" className="py-1.5 pr-3 font-medium text-right">Median</th>
+                    <th scope="col" className="py-1.5 pr-3 font-medium text-right">95th pct</th>
+                    <th scope="col" className="py-1.5 font-medium text-right">Under target</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ingestion.kinds.map(k => (
+                    <tr key={k.kind} className="border-b border-gray-50 last:border-0">
+                      <td className="py-1.5 pr-3 text-gray-700">{INGESTION_KIND_LABELS[k.kind] || k.kind}</td>
+                      <td className="py-1.5 pr-3 text-right text-gray-700">{k.attempts}</td>
+                      <td className={`py-1.5 pr-3 text-right font-semibold ${k.parse_rate_pct === 100 ? "text-emerald-600" : "text-amber-600"}`}>
+                        {k.parse_rate_pct}%
+                      </td>
+                      <td className="py-1.5 pr-3 text-right text-gray-700">{(k.median_ms / 1000).toFixed(2)} s</td>
+                      <td className="py-1.5 pr-3 text-right text-gray-700">{(k.p95_ms / 1000).toFixed(2)} s</td>
+                      <td className={`py-1.5 text-right font-semibold ${k.within_target_pct === 100 ? "text-emerald-600" : "text-amber-600"}`}>
+                        {k.within_target_pct}%
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </SectionCard>
+        )}
+
         {/* ── NEW: Recent Activity feed ── */}
         <SectionCard
           title="Recent Activity"
@@ -627,7 +673,7 @@ export default function AdminDashboard() {
             </div>
           ) : auditLogs?.length ? (
             <div className="space-y-1">
-              {auditLogs.slice(0, 5).map(log => {
+              {auditLogs.filter(log => log.action !== "ingestion").slice(0, 5).map(log => {
                 const dotColor = {
                   login: "bg-green-400",
                   logout: "bg-gray-300",

@@ -1,4 +1,5 @@
 import os
+import time
 import uuid
 from datetime import datetime, timezone
 
@@ -8,6 +9,7 @@ from sqlalchemy.orm import Session
 from backend.core.limiter import limiter
 
 from backend.core.audit import log_action
+from backend.core.ingestion import record_ingestion
 from backend.core.database import get_db
 from backend.core.deps import get_current_user, require_role
 from backend.core.notifications import notify, notify_roles
@@ -74,18 +76,27 @@ async def upload_syllabus(
     with open(file_path, "wb") as f:
         f.write(file_bytes)
 
+    started = time.perf_counter()
     try:
         raw_text = extract_text(file_bytes, file.filename)
     except ValueError as exc:
+        record_ingestion(db, str(current_user.id), "syllabus", False,
+                         (time.perf_counter() - started) * 1000, file.filename, error=str(exc)[:200])
         raise HTTPException(status_code=422, detail=str(exc))
+    extract_ms = (time.perf_counter() - started) * 1000
 
     if not raw_text.strip():
+        record_ingestion(db, str(current_user.id), "syllabus", False, extract_ms, file.filename,
+                         error="no extractable text")
         raise HTTPException(
             status_code=422,
             detail="No text could be extracted from this file. Make sure it is a text-based PDF or DOCX (not a scanned image)."
         )
 
+    parse_started = time.perf_counter()
     parsed = parse_syllabus(raw_text)
+    parse_ms = (time.perf_counter() - parse_started) * 1000
+    competency_count = len(parsed.get("competencies", []))
 
     syllabus = Syllabus(
         course_id=course_id,
@@ -111,6 +122,10 @@ async def upload_syllabus(
     db.refresh(syllabus)
     log_action(db, str(current_user.id), "upload_syllabus", target_table="syllabi",
                target_id=str(syllabus.id), extra={"course_id": course_id, "filename": file.filename})
+    record_ingestion(db, str(current_user.id), "syllabus", competency_count > 0,
+                     (time.perf_counter() - started) * 1000, file.filename,
+                     extract_ms=round(extract_ms, 1), parse_ms=round(parse_ms, 1),
+                     competencies=competency_count)
     return syllabus
 
 

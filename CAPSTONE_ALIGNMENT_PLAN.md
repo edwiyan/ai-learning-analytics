@@ -102,7 +102,7 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 
 ## Phase 6 — Ingestion measurements (doc §3.1 Objective 1)
 
-- [ ] **T6.1 Record parse time and success rate.**
+- [x] **T6.1 Record parse time and success rate.**
   Time syllabus extraction and parsing and CSV parsing, and store `processing_ms` and `parse_ok` (audit log extra or columns). Add `GET /analytics/admin/ingestion-stats` (success %, median/p95 ms against the 2 s target) and a card on the admin dashboard.
 - [-] **T6.2 Legacy `.doc` support** — descoped per D3.
 
@@ -161,3 +161,4 @@ Recommended defaults are already used in the tasks below. Change them here if yo
 | 2026-10-26 | T5.2 | services/ai/llm_client.py (complete_json/complete_text, LLMUnavailable) used by parser, mapper, recommender, question generator; llm_cache table (u1q2r3s4t5u6) caches JSON answers by sha256(model+temp+prompt). |
 | 2026-10-26 | T5.3 | CircuitBreaker (3 failures -> open 60s -> half-open) + 1 retry on transient errors in llm_client; /health returns llm {configured, available, providers}; AiStatusBanner in Layout for instructor/admin. |
 | 2026-10-26 | T5.4 | GEMINI_API_KEY/GEMINI_MODEL settings; llm_client tries OpenAI then Gemini (REST via httpx, key in header, JSON mime type), each with its own breaker; cache row records answering provider. Disabled when key blank. |
+| 2026-10-26 | T6.1 | core/ingestion.py records each syllabus/CSV upload attempt (parse_ok, processing/extract/parse ms) as 'ingestion' audit entries; GET /analytics/admin/ingestion-stats (parse rate, median/p95, % under 2 s); File Ingestion card on AdminDashboard. T6.2 stays descoped (D3). |
