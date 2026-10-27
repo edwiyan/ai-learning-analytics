@@ -36,6 +36,11 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       EMAIL_FROM: ${EMAIL_FROM:-}
       ENVIRONMENT: production
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@ailas.edu}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+    volumes:
+      # Uploaded syllabi and resource files must survive image rebuilds.
+      - uploads:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -71,3 +76,4 @@ services:
 
 volumes:
   postgres_data:
+  uploads:

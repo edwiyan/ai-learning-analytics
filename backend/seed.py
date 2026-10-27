@@ -35,18 +35,24 @@ SAMPLE_RESOURCES = [
 def seed():
     db = SessionLocal()
     try:
-        # Admin user
-        existing = db.query(User).filter(User.email == "admin@ailas.edu").first()
+        # Admin user. Production must supply ADMIN_PASSWORD; the dev default is for local/QA only.
+        admin_email = os.getenv("ADMIN_EMAIL", "admin@ailas.edu")
+        admin_password = os.getenv("ADMIN_PASSWORD", "")
+        if not admin_password:
+            if os.getenv("ENVIRONMENT", "development") == "production":
+                sys.exit("ADMIN_PASSWORD must be set in .env when ENVIRONMENT=production.")
+            admin_password = "Admin@1234"
+        existing = db.query(User).filter(User.email == admin_email).first()
         if not existing:
             admin = User(
-                email="admin@ailas.edu",
-                password_hash=hash_password("Admin@1234"),
+                email=admin_email,
+                password_hash=hash_password(admin_password),
                 full_name="System Administrator",
                 role=UserRole.admin,
             )
             db.add(admin)
             db.commit()
-            print("Admin user created: admin@ailas.edu / Admin@1234")
+            print(f"Admin user created: {admin_email}")
         else:
             print("Admin user already exists.")
 
