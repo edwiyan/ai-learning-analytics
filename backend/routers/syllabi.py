@@ -345,6 +345,50 @@ def get_syllabus_alignment(
     return syllabus_alignment(syllabus, db)
 
 
+def _readable_syllabus(syllabus_id: uuid.UUID, db: Session, current_user: User) -> Syllabus:
+    syllabus = db.query(Syllabus).filter(Syllabus.id == syllabus_id).first()
+    if not syllabus:
+        raise HTTPException(status_code=404, detail="Syllabus not found")
+    course = db.query(Course).filter(Course.id == syllabus.course_id).first()
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    assert_course_read_access(course.instructor_id, current_user, db)
+    return syllabus
+
+
+@router.get("/{syllabus_id}/review")
+def get_syllabus_review(
+    syllabus_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Everything an approver sees before approving/endorsing: course, instructor,
+    the competency list under review and the earlier decisions in the chain."""
+    from backend.services.approval_review import syllabus_review
+
+    return syllabus_review(_readable_syllabus(syllabus_id, db, current_user), db)
+
+
+@router.get("/{syllabus_id}/file")
+def download_syllabus_file(
+    syllabus_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """The original uploaded syllabus document, for approvers to read in full."""
+    from fastapi.responses import FileResponse
+
+    syllabus = _readable_syllabus(syllabus_id, db, current_user)
+    if not syllabus.file_path or not os.path.isfile(syllabus.file_path):
+        raise HTTPException(status_code=404, detail="The original file is not available on the server")
+    ext = os.path.splitext(syllabus.file_path)[1].lower()
+    media = "application/pdf" if ext == ".pdf" else (
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document" if ext == ".docx"
+        else "application/octet-stream"
+    )
+    return FileResponse(syllabus.file_path, media_type=media, filename=f"syllabus-{str(syllabus.id)[:8]}{ext}")
+
+
 @router.get("/{syllabus_id}/approval-history", response_model=list[SyllabusApprovalResponse])
 def get_approval_history(
     syllabus_id: uuid.UUID,

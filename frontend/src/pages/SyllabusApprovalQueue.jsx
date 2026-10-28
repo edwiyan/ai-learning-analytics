@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from "react";
 import Layout from "../components/Layout";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
+import { ReviewModal, ReviewLoader, SyllabusReviewBody } from "../components/ApprovalReview";
+import { useApi } from "../hooks/useApi";
+import { courseLine } from "../utils/approvalReview";
 
 function Toast({ message, type = "success", onClose }) {
   useEffect(() => { const t = setTimeout(onClose, 3000); return () => clearTimeout(t); }, [onClose]);
@@ -92,9 +95,10 @@ function AlignmentCheck({ syllabusId }) {
   );
 }
 
-function SyllabusCard({ s, acting, verb, onApprove, onReject, onHistory }) {
+function SyllabusCard({ s, onReview }) {
   const compCount = s.competencies?.length ?? 0;
-  const courseSnippet = s.course_id ? s.course_id.slice(0, 8) + "…" : "—";
+  const { data } = useApi(`/syllabi/${s.id}/review`);
+  const course = data?.course;
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
@@ -111,29 +115,18 @@ function SyllabusCard({ s, acting, verb, onApprove, onReject, onHistory }) {
             )}
           </div>
           <p className="text-sm font-semibold text-gray-800 truncate">
-            {s.parsed_json?.course_title || `Syllabus — Course ${courseSnippet}`}
+            {courseLine(course) || s.parsed_json?.course_title || "Syllabus"}
           </p>
-          <div className="flex items-center gap-4 text-xs text-gray-400">
-            <span>Course ID: <span className="font-mono">{courseSnippet}</span></span>
-            <span>Syllabus: <span className="font-mono">{s.id.slice(0, 8)}…</span></span>
+          <div className="flex items-center gap-4 text-xs text-gray-400 flex-wrap">
+            {course?.instructor_name && <span>Instructor: <span className="text-gray-600">{course.instructor_name}</span></span>}
+            {course?.academic_period && <span>{course.academic_period}</span>}
+            {course?.college && <span>{course.college}</span>}
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <button onClick={() => onHistory(s.id)}
-            className="text-xs text-gray-500 hover:text-indigo-600 border border-gray-200 px-2.5 py-1.5 rounded-lg transition-colors">
-            History
-          </button>
-          <button onClick={() => onReject(s)}
-            disabled={acting === s.id}
-            className="text-xs text-red-600 hover:text-red-800 border border-red-200 hover:border-red-400 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50">
-            Reject
-          </button>
-          <button onClick={() => onApprove(s)}
-            disabled={acting === s.id}
-            className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50">
-            {acting === s.id ? "Processing…" : verb}
-          </button>
-        </div>
+        <button onClick={() => onReview(s)}
+          className="shrink-0 text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors">
+          Review syllabus
+        </button>
       </div>
     </div>
   );
@@ -146,6 +139,9 @@ export default function SyllabusApprovalQueue() {
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(null);
 
+  // Review dialog (content being approved)
+  const [reviewTarget, setReviewTarget] = useState(null);
+
   // Approve modal
   const [approveTarget, setApproveTarget] = useState(null);
   const [approveFeedback, setApproveFeedback] = useState("");
@@ -153,10 +149,6 @@ export default function SyllabusApprovalQueue() {
   // Reject modal
   const [rejectTarget, setRejectTarget] = useState(null);
   const [rejectFeedback, setRejectFeedback] = useState("");
-
-  // History modal
-  const [historyTarget, setHistoryTarget] = useState(null);
-  const [history, setHistory] = useState([]);
 
   const [toast, setToast] = useState(null);
   const showToast = (message, type = "success") => setToast({ message, type });
@@ -180,6 +172,7 @@ export default function SyllabusApprovalQueue() {
       showToast(verb === "Endorse" ? "Syllabus endorsed" : "Syllabus approved");
       setApproveTarget(null);
       setApproveFeedback("");
+      setReviewTarget(null);
       fetchQueue();
     } catch (err) { showToast(err.response?.data?.detail || `${verb} failed`, "error"); }
     finally { setActing(null); }
@@ -193,17 +186,10 @@ export default function SyllabusApprovalQueue() {
       showToast("Syllabus rejected");
       setRejectTarget(null);
       setRejectFeedback("");
+      setReviewTarget(null);
       fetchQueue();
     } catch (err) { showToast(err.response?.data?.detail || "Reject failed", "error"); }
     finally { setActing(null); }
-  };
-
-  const openHistory = async (syllabusId) => {
-    setHistoryTarget(syllabusId);
-    try {
-      const res = await api.get(`/syllabi/${syllabusId}/approval-history`);
-      setHistory(res.data);
-    } catch { setHistory([]); }
   };
 
   const roleLabel = {
@@ -244,17 +230,35 @@ export default function SyllabusApprovalQueue() {
         ) : (
           <div className="space-y-3">
             {syllabi.map(s => (
-              <SyllabusCard
-                key={s.id}
-                s={s}
-                acting={acting}
-                verb={verb}
-                onApprove={syl => { setApproveTarget(syl); setApproveFeedback(""); }}
-                onReject={syl => { setRejectTarget(syl); setRejectFeedback(""); }}
-                onHistory={openHistory}
-              />
+              <SyllabusCard key={s.id} s={s} onReview={setReviewTarget} />
             ))}
           </div>
+        )}
+
+        {/* ── Review dialog: what is being approved ── */}
+        {reviewTarget && (
+          <ReviewModal
+            title={reviewTarget.parsed_json?.course_title || "Syllabus review"}
+            subtitle={`${STAGE_LABELS[reviewTarget.approval_stage] || reviewTarget.approval_stage} · reviewing as ${roleLabel}`}
+            onClose={() => setReviewTarget(null)}
+            footer={<>
+              <button onClick={() => { setRejectTarget(reviewTarget); setRejectFeedback(""); }}
+                disabled={acting === reviewTarget.id}
+                className="px-4 py-2 text-sm text-red-600 border border-red-200 hover:border-red-400 rounded-lg transition-colors disabled:opacity-50">
+                Reject
+              </button>
+              <button onClick={() => { setApproveTarget(reviewTarget); setApproveFeedback(""); }}
+                disabled={acting === reviewTarget.id}
+                className="px-5 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 font-medium">
+                {verb}…
+              </button>
+            </>}
+          >
+            <div className="space-y-5">
+              <AlignmentCheck syllabusId={reviewTarget.id} />
+              <ReviewLoader url={`/syllabi/${reviewTarget.id}/review`} Body={SyllabusReviewBody} />
+            </div>
+          </ReviewModal>
         )}
 
         {/* ── Approve confirmation modal ── */}
@@ -274,12 +278,11 @@ export default function SyllabusApprovalQueue() {
               </div>
 
               <div className="px-6 py-4 space-y-4">
-                <AlignmentCheck syllabusId={approveTarget.id} />
                 {/* Syllabus summary */}
                 <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm">
                   <div className="flex justify-between text-xs text-gray-500">
                     <span>Syllabus</span>
-                    <span className="font-mono">{approveTarget.id.slice(0, 12)}…</span>
+                    <span className="font-medium text-gray-700 truncate ml-3">{approveTarget.parsed_json?.course_title || `#${approveTarget.id.slice(0, 8)}`}</span>
                   </div>
                   <div className="flex justify-between text-xs text-gray-500">
                     <span>Competencies</span>
@@ -350,7 +353,7 @@ export default function SyllabusApprovalQueue() {
                 <div className="bg-gray-50 rounded-xl p-4 space-y-2">
                   <div className="flex justify-between text-xs text-gray-500">
                     <span>Syllabus</span>
-                    <span className="font-mono">{rejectTarget.id.slice(0, 12)}…</span>
+                    <span className="font-medium text-gray-700 truncate ml-3">{rejectTarget.parsed_json?.course_title || `#${rejectTarget.id.slice(0, 8)}`}</span>
                   </div>
                   <div className="flex justify-between text-xs text-gray-500">
                     <span>Competencies</span>
@@ -393,36 +396,6 @@ export default function SyllabusApprovalQueue() {
           </div>
         )}
 
-        {/* ── History modal ── */}
-        {historyTarget && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg">
-              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                <h2 className="text-base font-semibold text-gray-800">Approval History</h2>
-                <button onClick={() => setHistoryTarget(null)} className="text-gray-400 hover:text-gray-600 text-lg leading-none">✕</button>
-              </div>
-              <div className="px-6 py-4 space-y-3 max-h-80 overflow-y-auto">
-                {history.length === 0 ? (
-                  <p className="text-sm text-gray-400 text-center py-4">No approval records yet.</p>
-                ) : history.map(h => (
-                  <div key={h.id} className="flex items-start gap-3 text-sm">
-                    <span className={`mt-0.5 w-2.5 h-2.5 rounded-full shrink-0 ${h.status === "approved" ? "bg-green-500" : "bg-red-500"}`} />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-700 capitalize">{h.role.replace(/_/g, " ")}</span>
-                        <span className={`text-xs font-medium ${h.status === "approved" ? "text-green-600" : "text-red-600"}`}>
-                          {h.status === "approved" && h.role === "vp_academic_affairs" ? "endorsed" : h.status}
-                        </span>
-                      </div>
-                      {h.feedback && <p className="text-xs text-gray-500 mt-0.5 italic">"{h.feedback}"</p>}
-                      <p className="text-xs text-gray-400">{h.reviewed_at ? new Date(h.reviewed_at).toLocaleString() : ""}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </Layout>

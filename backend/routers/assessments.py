@@ -388,6 +388,23 @@ def get_assessment_approval_history(
     ).order_by(AssessmentApproval.reviewed_at).all()
 
 
+@router.get("/{assessment_id}/review")
+def get_assessment_review(
+    assessment_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """The full assessment as the Program Director reviews it: course, drafted
+    questions with answer keys, Table of Specifications and approval history."""
+    from backend.services.approval_review import assessment_review
+
+    assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
+    if not assessment:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+    assert_course_read_access(assessment.course.instructor_id, current_user, db)
+    return assessment_review(assessment, db)
+
+
 @router.get("/{assessment_id}/tos", response_model=list[TosResponse])
 def get_tos(
     assessment_id: uuid.UUID,

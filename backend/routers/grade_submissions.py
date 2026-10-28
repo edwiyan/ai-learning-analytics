@@ -225,6 +225,23 @@ def get_submission(
     return submission
 
 
+@router.get("/{submission_id}/review")
+def get_submission_review(
+    submission_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """The grades being approved: per-student period grade, class summary,
+    the assessments behind it and the earlier decisions in the chain."""
+    from backend.services.approval_review import grade_submission_review
+
+    submission = db.query(GradeSubmission).filter(GradeSubmission.id == submission_id).first()
+    if not submission:
+        raise HTTPException(status_code=404, detail="Grade submission not found")
+    assert_course_read_access(submission.instructor_id, current_user, db)
+    return grade_submission_review(submission, db)
+
+
 @router.get("/{submission_id}/approval-history", response_model=list[GradeSubmissionApprovalResponse])
 def get_submission_approval_history(
     submission_id: uuid.UUID,

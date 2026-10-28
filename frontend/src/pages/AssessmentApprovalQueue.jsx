@@ -1,6 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
 import api from "../services/api";
 import Layout from "../components/Layout";
+import { ReviewModal, ReviewLoader, AssessmentReviewBody } from "../components/ApprovalReview";
+import { useApi } from "../hooks/useApi";
+import { courseLine, PERIOD_LABELS } from "../utils/approvalReview";
 
 const CRITERIA_LABELS = {
   content_validity: "Content is valid and relevant to learning outcomes",
@@ -79,7 +82,6 @@ function ApproveModal({ assessment, onClose, onDone }) {
           <p className="text-xs text-gray-500 mt-0.5">{assessment.title} &bull; {assessment.type} &bull; {assessment.grading_period}</p>
         </div>
         <div className="px-6 py-4 space-y-3">
-          <AlignmentHints assessmentId={assessment.id} />
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Review Criteria</p>
           {Object.entries(CRITERIA_LABELS).map(([key, label]) => (
             <label key={key} className="flex items-start gap-3 cursor-pointer group">
@@ -175,13 +177,15 @@ function RejectModal({ assessment, onClose, onDone }) {
   );
 }
 
-function AssessmentCard({ assessment, onApprove, onReject }) {
+function AssessmentCard({ assessment, onReview }) {
+  const { data } = useApi(`/assessments/${assessment.id}/review`);
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs text-gray-400 font-mono">#{String(assessment.id).slice(0, 8)}</p>
+        <div className="min-w-0">
+          <p className="text-xs text-gray-400 truncate">{courseLine(data?.course) || " "}</p>
           <h3 className="text-sm font-semibold text-gray-800 mt-0.5">{assessment.title}</h3>
+          {data?.course?.instructor_name && <p className="text-xs text-gray-500 mt-0.5">{data.course.instructor_name}</p>}
         </div>
         <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium shrink-0">
           Pending Review
@@ -189,22 +193,15 @@ function AssessmentCard({ assessment, onApprove, onReject }) {
       </div>
       <div className="mt-2 flex flex-wrap gap-2">
         <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full capitalize">{assessment.type}</span>
-        <span className="text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full capitalize">{assessment.grading_period?.replace("_", " ")}</span>
+        <span className="text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full">{PERIOD_LABELS[assessment.grading_period] || assessment.grading_period}</span>
+        {data && <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{data.questions.length} questions · {data.total_points} pts</span>}
       </div>
-      <div className="mt-4 flex gap-2">
-        <button
-          onClick={() => onApprove(assessment)}
-          className="flex-1 px-3 py-1.5 text-xs font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-        >
-          Approve
-        </button>
-        <button
-          onClick={() => onReject(assessment)}
-          className="flex-1 px-3 py-1.5 text-xs font-medium bg-white text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
-        >
-          Reject
-        </button>
-      </div>
+      <button
+        onClick={() => onReview(assessment)}
+        className="mt-4 w-full px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+      >
+        Review assessment
+      </button>
     </div>
   );
 }
@@ -212,6 +209,7 @@ function AssessmentCard({ assessment, onApprove, onReject }) {
 export default function AssessmentApprovalQueue() {
   const [assessments, setAssessments] = useState([]);
   const [fetching, setFetching] = useState(true);
+  const [reviewTarget, setReviewTarget] = useState(null);
   const [approveTarget, setApproveTarget] = useState(null);
   const [rejectTarget, setRejectTarget] = useState(null);
   const [toast, setToast] = useState(null);
@@ -237,6 +235,7 @@ export default function AssessmentApprovalQueue() {
     const target = action === "approved" ? approveTarget : rejectTarget;
     setApproveTarget(null);
     setRejectTarget(null);
+    setReviewTarget(null);
     setAssessments(prev => prev.filter(a => a.id !== target?.id));
     showToast(`Assessment ${action} successfully.`, action === "approved" ? "success" : "info");
   };
@@ -281,16 +280,33 @@ export default function AssessmentApprovalQueue() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {assessments.map(a => (
-              <AssessmentCard
-                key={a.id}
-                assessment={a}
-                onApprove={setApproveTarget}
-                onReject={setRejectTarget}
-              />
+              <AssessmentCard key={a.id} assessment={a} onReview={setReviewTarget} />
             ))}
           </div>
         )}
 
+        {reviewTarget && (
+          <ReviewModal
+            title={reviewTarget.title}
+            subtitle="Pending Program Director review"
+            onClose={() => setReviewTarget(null)}
+            footer={<>
+              <button onClick={() => setRejectTarget(reviewTarget)}
+                className="px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors">
+                Reject
+              </button>
+              <button onClick={() => setApproveTarget(reviewTarget)}
+                className="px-5 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors">
+                Approve…
+              </button>
+            </>}
+          >
+            <div className="space-y-5">
+              <AlignmentHints assessmentId={reviewTarget.id} />
+              <ReviewLoader url={`/assessments/${reviewTarget.id}/review`} Body={AssessmentReviewBody} />
+            </div>
+          </ReviewModal>
+        )}
         {approveTarget && (
           <ApproveModal
             assessment={approveTarget}

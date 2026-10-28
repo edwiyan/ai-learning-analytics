@@ -2,9 +2,12 @@ import { useEffect, useState, useCallback } from "react";
 import api from "../services/api";
 import Layout from "../components/Layout";
 import { useAuth } from "../context/AuthContext";
+import { ReviewModal, ReviewLoader, GradeReviewBody } from "../components/ApprovalReview";
+import { useApi } from "../hooks/useApi";
+import { courseLine, PERIOD_LABELS } from "../utils/approvalReview";
 
-const PERIOD_LABELS = {
-  prelim: "Prelim", midterm: "Midterm", semi_final: "Semi-Final", final: "Final",
+const STAGE_LABELS = {
+  pending_pd: "Pending Program Director", pending_dean: "Pending Dean", pending_vp: "Pending VP",
 };
 
 // The VP for Academic Affairs gives the final endorsement rather than an approval.
@@ -97,32 +100,35 @@ function RejectModal({ submission, onClose, onDone }) {
   );
 }
 
-function SubmissionCard({ submission, verb, onApprove, onReject }) {
+function SubmissionCard({ submission, onReview }) {
+  const { data } = useApi(`/grade-submissions/${submission.id}/review`);
+  const sum = data?.summary;
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs text-gray-400 font-mono">#{String(submission.id).slice(0, 8)}</p>
+        <div className="min-w-0">
+          <p className="text-xs text-gray-400 truncate">{courseLine(data?.course) || " "}</p>
           <p className="text-sm font-semibold text-gray-800 mt-0.5">
             {PERIOD_LABELS[submission.grading_period] || submission.grading_period} Grades
           </p>
           <p className="text-xs text-gray-500 mt-0.5">
-            Submitted: {submission.submitted_at ? new Date(submission.submitted_at).toLocaleDateString() : "—"}
+            {data?.course?.instructor_name ? `${data.course.instructor_name} · ` : ""}
+            Submitted {submission.submitted_at ? new Date(submission.submitted_at).toLocaleDateString() : "—"}
           </p>
         </div>
         <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium shrink-0">Pending Review</span>
       </div>
+      {sum && (
+        <p className="text-xs text-gray-600 mt-2">
+          {sum.students} students · {sum.passed} passed · <span className={sum.failed ? "text-red-600" : ""}>{sum.failed} failed</span>
+          {sum.class_average != null && <> · avg {sum.class_average.toFixed(2)}%</>}
+        </p>
+      )}
       {submission.notes && <p className="text-xs text-gray-500 mt-2 italic">"{submission.notes}"</p>}
-      <div className="mt-4 flex gap-2">
-        <button onClick={() => onApprove(submission)}
-          className="flex-1 px-3 py-1.5 text-xs font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-          {verb}
-        </button>
-        <button onClick={() => onReject(submission)}
-          className="flex-1 px-3 py-1.5 text-xs font-medium bg-white text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors">
-          Reject
-        </button>
-      </div>
+      <button onClick={() => onReview(submission)}
+        className="mt-4 w-full px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+        Review grades
+      </button>
     </div>
   );
 }
@@ -132,6 +138,7 @@ export default function GradeApprovalQueue() {
   const verb = actionVerb(user?.role);
   const [submissions, setSubmissions] = useState([]);
   const [fetching, setFetching] = useState(true);
+  const [reviewTarget, setReviewTarget] = useState(null);
   const [approveTarget, setApproveTarget] = useState(null);
   const [rejectTarget, setRejectTarget] = useState(null);
   const [toast, setToast] = useState(null);
@@ -156,6 +163,7 @@ export default function GradeApprovalQueue() {
   const handleDone = (action, target) => {
     setApproveTarget(null);
     setRejectTarget(null);
+    setReviewTarget(null);
     setSubmissions(prev => prev.filter(s => s.id !== target.id));
     showToast(`Grade submission ${action} successfully.`, action === "rejected" ? "info" : "success");
   };
@@ -195,11 +203,30 @@ export default function GradeApprovalQueue() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {submissions.map(s => (
-              <SubmissionCard key={s.id} submission={s} verb={verb} onApprove={setApproveTarget} onReject={setRejectTarget} />
+              <SubmissionCard key={s.id} submission={s} onReview={setReviewTarget} />
             ))}
           </div>
         )}
 
+        {reviewTarget && (
+          <ReviewModal
+            title={`${PERIOD_LABELS[reviewTarget.grading_period] || reviewTarget.grading_period} Grade Submission`}
+            subtitle={STAGE_LABELS[reviewTarget.status] || reviewTarget.status}
+            onClose={() => setReviewTarget(null)}
+            footer={<>
+              <button onClick={() => setRejectTarget(reviewTarget)}
+                className="px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors">
+                Reject
+              </button>
+              <button onClick={() => setApproveTarget(reviewTarget)}
+                className="px-5 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors">
+                {verb}…
+              </button>
+            </>}
+          >
+            <ReviewLoader url={`/grade-submissions/${reviewTarget.id}/review`} Body={GradeReviewBody} />
+          </ReviewModal>
+        )}
         {approveTarget && (
           <ApproveModal
             submission={approveTarget}
